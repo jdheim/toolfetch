@@ -27,6 +27,7 @@ Builds whole project
 
 OPTIONS:
   -d                     Dry-run JReleaser release
+  -n                     Create a standalone executable (native image)
   -u                     Update versions
   -v                     Version check
 EOF
@@ -45,6 +46,7 @@ readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
       -d) dryRunJReleaserRelease ;;
+      -n) isNativeImage="true" ;;
       -u) updateVersions ;;
       -v) versionCheck ;;
       -h|--help) usage ;;
@@ -84,7 +86,20 @@ versionCheck() {
 
 mvnCleanInstall() {
   step "Clean and Install"
-  run ./mvnw clean install "${remainingOptions[@]}"
+  if [[ "${isNativeImage:-false}" == "true" ]]; then
+    local mavenCompilerSource
+    mavenCompilerSource="$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")"
+    run docker run --rm -t -u "$(id -u):$(id -g)" \
+      -v "$HOME/.m2":/home/user/.m2 \
+      -v "$PWD":/work \
+      -w /work \
+      -e HOME="/home/user" \
+      --entrypoint "/bin/bash" \
+      ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}" \
+      -lc "./mvnw package -Pnative-image -DskipTests"
+  else
+    run ./mvnw clean install "${remainingOptions[@]}"
+  fi
 }
 
 main "$@"
