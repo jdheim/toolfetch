@@ -91,6 +91,7 @@ mvnCleanInstall() {
     mavenCompilerSource="$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")"
     run docker run --rm -t -u "$(id -u):$(id -g)" \
       -v "$HOME/.m2":/home/user/.m2 \
+      -v "$HOME/.config":/home/user/.config \
       -v "$PWD":/work \
       -w /work \
       -e HOME="/home/user" \
