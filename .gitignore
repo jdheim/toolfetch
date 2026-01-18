@@ -1,0 +1,7 @@
+# INTELLIJ IDEA
+.idea/*
+!.idea/copyright
+!.idea/scopes
+
+# PROJECT
+target/

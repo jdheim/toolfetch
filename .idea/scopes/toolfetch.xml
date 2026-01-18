@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="toolfetch" pattern="file:*/&amp;&amp;!mvnw&amp;&amp;!mvnw.cmd" />
+</component>
