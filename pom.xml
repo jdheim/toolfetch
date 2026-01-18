@@ -22,10 +22,14 @@
     <artifactId>toolfetch</artifactId>
     <version>0.0.1</version>
 
+    <name>ToolFetch</name>
+
     <properties>
         <!-- Project -->
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss'Z'</maven.build.timestamp.format>
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Enforce Tools -->
@@ -51,6 +55,7 @@
         <!-- Packaging Maven Plugins -->
         <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
         <!-- Other Maven Plugins -->
+        <git-commit-id-maven-plugin.version>9.0.2</git-commit-id-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
         <native-maven-plugin.version>0.11.3</native-maven-plugin.version>
     </properties>
@@ -142,6 +147,22 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>version-info.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>version-info.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -180,6 +201,11 @@
                 </plugin>
 
                 <plugin>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <version>${git-commit-id-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>${maven-enforcer-plugin.version}</version>
@@ -214,6 +240,37 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>export-git-version-info-to-maven</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>validate-git-version-info</id>
+                        <goals>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <phase>test</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <commitIdGenerationMode>full</commitIdGenerationMode>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <useNativeGit>true</useNativeGit>
+                    <validationProperties>
+                        <validationProperty>
+                            <name>git.commit.id.full</name>
+                            <value>${git.commit.id.full}</value>
+                            <shouldMatchTo><![CDATA[^[a-f0-9]{40}$]]></shouldMatchTo>
+                        </validationProperty>
+                    </validationProperties>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -237,6 +294,13 @@
                                 <!-- Generates native-image config for picocli -->
                                 <arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
                             </compilerArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <useNativeGit>false</useNativeGit>
                         </configuration>
                     </plugin>
                     <plugin>
