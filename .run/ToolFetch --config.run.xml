@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ToolFetch --config" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.jdheim.toolfetch.Main" />
+    <module name="toolfetch" />
+    <option name="PROGRAM_PARAMETERS" value="--config &quot;$PROJECT_DIR$/src/test/resources/toolfetch.yaml&quot;" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.jdheim.toolfetch.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
