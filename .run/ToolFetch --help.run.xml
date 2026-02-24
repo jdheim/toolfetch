@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ToolFetch --help" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.jdheim.toolfetch.Main" />
+    <module name="toolfetch" />
+    <option name="PROGRAM_PARAMETERS" value="--help" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.jdheim.toolfetch.command.execstrategy.option.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

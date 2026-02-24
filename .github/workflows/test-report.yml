@@ -1,0 +1,26 @@
+name: "Test Report"
+
+on:
+  workflow_run:
+    workflows: [ "Test" ]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  report:
+    name: "Test Report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Reporter
+        uses: dorny/test-reporter@v2
+        with:
+          artifact: test-report
+          name: Test
+          badge-title: 'Tests'
+          path: '**/*.xml'
+          reporter: java-junit

@@ -21,9 +21,12 @@ set -o errexit  # ABORT ON NON-ZERO EXIT STATUS
 set -o nounset  # TREAT UNSET VARIABLES AS AN ERROR AND EXIT
 set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
 
-readonly INFO="[\e[1;34mINFO\e[0m]"
-readonly WARNING="[\e[1;33mWARNING\e[0m]"
-readonly ERROR="[\e[1;31mERROR\e[0m]"
+: "${INFO:=$'[\033[1;34mINFO\033[0m]'}"
+: "${WARN:=$'[\033[1;33mWARN\033[0m]'}"
+: "${ERROR:=$'[\033[1;31mERROR\033[0m]'}"
+: "${MAVEN_VERSION_IGNORE:=$'.*-(M|alpha|beta|rc)[-.]?[0-9]+'}"
+
+readonly INFO WARN ERROR MAVEN_VERSION_IGNORE
 
 # General functions
 
@@ -42,6 +45,14 @@ run() {
 
 getProjectVersion() {
   yq -r ".project.version" "jreleaser.yml" | sed "s/-.*//"
+}
+
+getProjectArtifactId() {
+  xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:artifactId" "pom.xml"
+}
+
+getProjectGroupId() {
+  xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:groupId" "pom.xml"
 }
 
 getProjectModules() {
@@ -83,4 +94,27 @@ findAndUpdateCopyright() {
   for file in $(grep -ERil --include="${name}" --exclude-dir={target} "© [0-9]{4}-[0-9]{4} JDHeim.com"); do
     updateCopyrightInFile "${file}"
   done
+}
+
+githubStepSummary() {
+  local exitCode=${1}
+  local logFile="${2}"
+  local startPattern="${3}"
+  local endPattern="${4:-"^[[]ERROR[]] Re-run Maven"}"
+  {
+    echo -n "### Status: "
+    if (( exitCode == 0 )); then
+      echo -e "✅ OK"
+    else
+      echo -e "❌ ERROR"
+      echo
+      echo "<details><summary>Logs</summary>"
+      echo
+      echo '```text'
+      awk -v start="${startPattern}" -v end="${endPattern}" '$0 ~ start {p=1} p {print} $0 ~ end {exit}' "${logFile}"
+      echo '```'
+      echo
+      echo "</details>"
+    fi
+  } >> "${GITHUB_STEP_SUMMARY}"
 }

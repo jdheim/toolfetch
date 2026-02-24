@@ -1,0 +1,8 @@
+destination: "/tmp"
+tools:
+  - id: kitty
+    version: "0.44.0"
+    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
+  - id: firefox
+    version: "146.0.1"
+    url: "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz"

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jdheim.com/schema/toolfetch.schema.json",
+  "title": "Toolfetch",
+  "description": "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file",
+  "type": "object",
+  "required": [
+    "destination",
+    "tools"
+  ],
+  "properties": {
+    "destination": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL must start with 'http://' or 'https://'. It may contain the ${version} placeholder; no other ${...} placeholders are allowed",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^\\S+$"
+              },
+              {
+                "pattern": "^https?://(?:(?!\\$\\{(?!version\\})).)*$"
+              }
+            ]
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "url": {
+                  "pattern": "\\$\\{version\\}"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "version"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
