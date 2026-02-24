@@ -31,7 +31,7 @@ main() {
     updatePropertyInXmlFile "${module}/pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:parent/n:version" "${version}"
   done
   if [[ "${isUpdated:-false}" == false ]]; then
-    echo -e "${WARNING} Nothing to update"
+    echo -e "${WARN} Nothing to update"
   fi
 }
 

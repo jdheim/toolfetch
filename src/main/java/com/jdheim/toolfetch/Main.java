@@ -16,26 +16,22 @@
 
 package com.jdheim.toolfetch;
 
-import java.nio.file.Path;
-import java.util.concurrent.Callable;
-import com.jdheim.toolfetch.version.VersionProvider;
+import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.command.picocli.execution.ValidatingExecutionStrategy;
 import picocli.CommandLine;
-import picocli.CommandLine.Command;
 
-@Command(name = "toolfetch", versionProvider = VersionProvider.class, mixinStandardHelpOptions = true, description = "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file")
-public class Main implements Callable<Integer> {
+public final class Main {
 
-    @CommandLine.Option(names = {"-c", "--config"}, required = true, description = "Path to toolfetch.yaml")
-    private Path configPath;
-
-    static void main(String[] args) {
-        int exit = new CommandLine(new Main()).execute(args);
-        System.exit(exit);
+    private Main() {
+        throw new AssertionError();
     }
 
-    @Override
-    public Integer call() {
-        return 0;
+    static void main(String[] args) {
+        System.exit(commandLine().execute(args));
+    }
+
+    static CommandLine commandLine() {
+        return new CommandLine(new ToolFetch()).setExecutionStrategy(new ValidatingExecutionStrategy());
     }
 
 }

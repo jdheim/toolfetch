@@ -1,0 +1,70 @@
+name: "Scan"
+
+on:
+  workflow_run:
+    workflows: [ "Test" ]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        scan:
+          - name: Dependency Analyze
+            id: dependency-analyze
+          - name: OWASP Scan
+            id: owasp-scan
+          - name: Sonar Scan
+            id: sonar-scan
+          - name: SpotBugs Scan
+            id: spotbugs-scan
+    name: ${{ matrix.scan.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download test artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-target
+          path: target
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "m2-repo-${{ matrix.scan.id }}"
+          generate-workflow-stats: "false"
+
+      # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
+      - name: Install .NET SDK required by AssemblyAnalyzer
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        if: ${{ matrix.scan.id == 'owasp-scan' }}
+        with:
+          packages: dotnet-runtime-8.0
+          version: 1.0
+
+      - name: Scan
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        working-directory: scripts
+        run: ./scan.sh --${{ matrix.scan.id }} -DskipTests -Dmaven.clean.skip
+
+      - name: Upload ${{ matrix.scan.name }} Report
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() && matrix.scan.id != 'dependency-analyze' && matrix.scan.id != 'sonar-scan' }}
+        with:
+          name: ${{ matrix.scan.id }}-report
+          path: |
+            target/dependency-check-report.html
+            target/site/**
+            !target/site/jacoco

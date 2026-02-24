@@ -5,7 +5,7 @@
     <option name="PROGRAM_PARAMETERS" value="--version" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="com.jdheim.toolfetch.*" />
+        <option name="PATTERN" value="com.jdheim.toolfetch.command.execstrategy.option.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

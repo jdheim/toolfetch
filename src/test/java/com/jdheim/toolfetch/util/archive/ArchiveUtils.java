@@ -1,0 +1,108 @@
+/*
+ * © 2026-2026 JDHeim.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jdheim.toolfetch.util.archive;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.function.Consumer;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.compress.compressors.brotli.BrotliUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
+
+public final class ArchiveUtils {
+
+    private static final String BROTLI_SUFFIX = ".br";
+
+    private ArchiveUtils() {
+        throw new AssertionError();
+    }
+
+    public static byte[] readTestFile(String path) throws IOException {
+        return readTestFile(path, null);
+    }
+
+    public static byte[] readTestFile(String path, @Nullable String expectedCompressorName) throws IOException {
+        try (InputStream in = ArchiveUtils.class.getResourceAsStream(path)) {
+            assertThat(in).withFailMessage("Test File not found: " + path).isNotNull();
+            byte[] data = in.readAllBytes();
+            assertCompressorName(path, expectedCompressorName, data);
+            return data;
+        }
+    }
+
+    private static void assertCompressorName(String path, @Nullable String expectedCompressorName, byte[] data) throws
+            CompressorException {
+        try {
+            String compressorName = CompressorStreamFactory.detect(new ByteArrayInputStream(data));
+            assertThat(compressorName).isEqualTo(expectedCompressorName);
+        } catch (CompressorException e) {
+            if (path.toLowerCase(Locale.ROOT).endsWith(BROTLI_SUFFIX)) {
+                assertThat(BrotliUtils.isBrotliCompressionAvailable()).isTrue();
+            } else if (StringUtils.isNotEmpty(expectedCompressorName)) {
+                throw e;
+            }
+        }
+    }
+
+    public static byte[] createZip(Consumer<ZipArchiveOutputStream> zipEntries) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(baos)) {
+            zipEntries.accept(zaos);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return baos.toByteArray();
+    }
+
+    public static void addZipEntryFile(ZipArchiveOutputStream zaos, String path, String content) {
+        byte[] data = content.getBytes(StandardCharsets.UTF_8);
+        ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+        archiveEntry.setSize(data.length);
+        try {
+            zaos.putArchiveEntry(archiveEntry);
+            zaos.write(data);
+            zaos.closeArchiveEntry();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void addZipEntryDir(ZipArchiveOutputStream zaos, String path) {
+        if (!path.endsWith("/")) {
+            path = path + "/";
+        }
+        ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+        try {
+            zaos.putArchiveEntry(archiveEntry);
+            zaos.closeArchiveEntry();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+}

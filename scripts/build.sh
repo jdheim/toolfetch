@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BUILDS WHOLE PROJECT
+# BUILDS PROJECT
 
 #
 # © 2026-2026 JDHeim.com
@@ -28,8 +28,6 @@ Builds whole project
 OPTIONS:
   -d                     Dry-run JReleaser release
   -n                     Create a standalone executable (native image)
-  -u                     Update versions
-  -v                     Version check
 EOF
   exit 1
 }
@@ -39,16 +37,14 @@ main() {
   readOptions "$@"
   scripts/common/updateVersion.sh "$(getProjectVersion)"
   scripts/common/updateCopyright.sh
-  mvnCleanInstall
+  build
 }
 
 readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
-      -d) dryRunJReleaserRelease ;;
+      -d) dryRunJReleaserRelease "$@" ;;
       -n) isNativeImage="true" ;;
-      -u) updateVersions ;;
-      -v) versionCheck ;;
       -h|--help) usage ;;
       *) remainingOptions+=("${1}") ;;
     esac
@@ -62,34 +58,24 @@ dryRunJReleaserRelease() {
     echo -e "${ERROR} The GITHUB_TOKEN env variable is not set"
     exit 1
   fi
-  JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-} run jreleaser release --dry-run --output-directory=target
+  shift
+  JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-} run jreleaser release --dry-run --output-directory=target "$@"
   exit $?
 }
 
-updateVersions() {
-  local mavenVersionIgnore=".*-M-?[0-9]+,.*-alpha-?[0-9]+,.*-beta-?[0-9]+"
-  ./mvnw versions:update-properties \
-    -pl . \
-    -DgenerateBackupPoms=false \
-    -Dmaven.version.ignore="${mavenVersionIgnore}"
-  exit $?
-}
-
-versionCheck() {
-  step "Maven - Version Check"
-  local mavenVersionIgnore=".*-M-?[0-9]+,.*-alpha-?[0-9]+,.*-beta-?[0-9]+"
-  ./mvnw versions:display-property-updates \
-    -pl . \
-    -Dmaven.version.ignore="${mavenVersionIgnore}"
-  exit $?
-}
-
-mvnCleanInstall() {
-  step "Clean and Install"
+build() {
+  step "Build Project"
   if [[ "${isNativeImage:-false}" == "true" ]]; then
     local mavenCompilerSource
     mavenCompilerSource="$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")"
-    run docker run --rm -t -u "$(id -u):$(id -g)" \
+    run docker pull ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}"
+    local dockerTty=""
+    local mavenColors=""
+    if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+      dockerTty="-t"
+      mavenColors="--color=always"
+    fi
+    run docker container run ${dockerTty:-} --rm --name "graalvm" -u "$(id -u):$(id -g)" \
       -v "$HOME/.m2":/home/user/.m2 \
       -v "$HOME/.config":/home/user/.config \
       -v "$PWD":/work \
@@ -97,9 +83,9 @@ mvnCleanInstall() {
       -e HOME="/home/user" \
       --entrypoint "/bin/bash" \
       ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}" \
-      -lc "./mvnw package -Pnative-image -DskipTests"
+      -lc "./mvnw clean package -Pnative-image -DskipTests ${mavenColors:-} ${remainingOptions[*]}"
   else
-    run ./mvnw clean install "${remainingOptions[@]}"
+    run ./mvnw clean install -DskipTests "${remainingOptions[@]}"
   fi
 }
 

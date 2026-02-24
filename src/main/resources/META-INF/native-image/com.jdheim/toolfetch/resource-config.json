@@ -1,0 +1,21 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "schema/.*"
+      },
+      {
+        "pattern": "logback.xml"
+      },
+      {
+        "pattern": "version-info.properties"
+      },
+      {
+        "pattern": "ch/qos/logback/core/logback-core-version\\.properties"
+      },
+      {
+        "pattern": "ch/qos/logback/classic/logback-classic-version\\.properties"
+      }
+    ]
+  }
+}
