@@ -24,7 +24,7 @@ main() {
   updateCopyrightInFile "LICENSE"
   findAndUpdateCopyright "*.md"
   if [[ "${isUpdated:-false}" == false ]]; then
-    echo -e "${WARNING} Nothing to update"
+    echo -e "${WARN} Nothing to update"
   fi
 }
 

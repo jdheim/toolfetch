@@ -1,0 +1,29 @@
+[
+  {
+    "name": "com.jdheim.toolfetch.model.Configuration",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.jdheim.toolfetch.model.Tool",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.fusesource.jansi.AnsiConsole",
+    "methods": [
+      {
+        "name": "systemInstall",
+        "parameterTypes": []
+      },
+      {
+        "name": "out",
+        "parameterTypes": []
+      },
+      {
+        "name": "err",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

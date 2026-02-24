@@ -1,0 +1,48 @@
+name: Prepare
+
+inputs:
+  maven-repo-cache-key:
+    description: Cache Key for Maven Repository
+    required: false
+    default: "m2-repo"
+  generate-workflow-stats:
+    description: Whether to generate workflow stats
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Dependencies with APT
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: jq yq xmlstarlet
+        version: 1.0
+
+    - name: Setup ENV variables
+      shell: bash
+      run: echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")" >> ${GITHUB_ENV}
+
+    - name: Setup JDK
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ env.JDK_VERSION }}
+        distribution: temurin
+
+    - name: Cache Maven Repository
+      uses: actions/cache@v5
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-
+
+    - name: Generate Workflow Stats
+      if: ${{ inputs.generate-workflow-stats == 'true' }}
+      shell: bash
+      run: |
+        echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
+        echo "- Java **$(java --version | grep "openjdk" | awk '{print $2}')**" >> ${GITHUB_STEP_SUMMARY}
+        echo "- Maven **$(./mvnw --batch-mode --version | grep "Apache Maven" | awk '{print $3}')**" >> ${GITHUB_STEP_SUMMARY}
+        echo "- Docker Client **$(docker version --format "{{.Client.Version}}")**" >> ${GITHUB_STEP_SUMMARY}
+        echo "- Docker Server **$(docker version --format "{{.Server.Version}}")**" >> ${GITHUB_STEP_SUMMARY}
