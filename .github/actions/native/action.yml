@@ -1,0 +1,22 @@
+name: "Build and Test Native Image"
+
+runs:
+  using: composite
+  steps:
+    - name: Build Native Image
+      working-directory: scripts
+      shell: bash
+      run: ./build.sh -n
+
+    - name: Smoke Test Native
+      working-directory: scripts
+      shell: bash
+      run: ./scan.sh --st-native
+
+    - name: Upload Test Reports
+      uses: actions/upload-artifact@v6
+      if: ${{ !cancelled() }}
+      with:
+        name: smoke-test-native-report
+        if-no-files-found: error
+        path: target/failsafe-reports/**/TEST-*.xml

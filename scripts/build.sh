@@ -28,6 +28,7 @@ Builds whole project
 OPTIONS:
   -d                     Dry-run JReleaser release
   -n                     Create a standalone executable (native image)
+  --nd                   Create a standalone executable (native image) with debug enabled
 EOF
   exit 1
 }
@@ -45,6 +46,7 @@ readOptions() {
     case "${1}" in
       -d) dryRunJReleaserRelease "$@" ;;
       -n) isNativeImage="true" ;;
+      --nd) isNativeImage="true"; isNativeImageDebug="true" ;;
       -h|--help) usage ;;
       *) remainingOptions+=("${1}") ;;
     esac
@@ -69,11 +71,15 @@ build() {
     local mavenCompilerSource
     mavenCompilerSource="$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")"
     run docker pull ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}"
-    local dockerTty=""
-    local mavenColors=""
+    local dockerTty mavenColors nativeImageDebugProfile nativeImageSharedLibrarySetup nativeImageSharedLibraryCopy
     if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
       dockerTty="-t"
       mavenColors="--color=always"
+    fi
+    if [[ "${isNativeImageDebug:-false}" == "true" ]]; then
+      nativeImageDebugProfile="-Pnative-image-debug"
+      nativeImageSharedLibrarySetup="mkdir /tmp/.graalvm-jdwp; native-image --macro:svmjdwp-library -o /tmp/.graalvm-jdwp/libsvmjdwp &&"
+      nativeImageSharedLibraryCopy="&& cp /tmp/.graalvm-jdwp/libsvmjdwp.so target/"
     fi
     run docker container run ${dockerTty:-} --rm --name "graalvm" -u "$(id -u):$(id -g)" \
       -v "$HOME/.m2":/home/user/.m2 \
@@ -83,7 +89,7 @@ build() {
       -e HOME="/home/user" \
       --entrypoint "/bin/bash" \
       ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}" \
-      -lc "./mvnw clean package -Pnative-image -DskipTests ${mavenColors:-} ${remainingOptions[*]}"
+      -lc "${nativeImageSharedLibrarySetup:-} ./mvnw clean package -Pnative-image ${nativeImageDebugProfile:-} -DskipTests ${mavenColors:-} ${remainingOptions[*]} ${nativeImageSharedLibraryCopy:-}"
   else
     run ./mvnw clean install -DskipTests "${remainingOptions[@]}"
   fi

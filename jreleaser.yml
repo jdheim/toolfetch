@@ -22,6 +22,18 @@ release:
       preset: "conventional-commits"
       extraProperties:
         categorizeScopes: "true"
+      labelers:
+        - label: 'dependencies'
+          title: 'regex:^(?:deps(?:\(.*\))?!?):\s.*'
+          order: 120
+      categories:
+        - title: '⚙️ Dependencies'
+          key: 'dependencies'
+          order: 55
+          labels:
+            - 'dependencies'
+      replacers:
+        - search: 'deps: '
       categoryTitleFormat: "### {{categoryTitle}}"
       contributors:
         format: "- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}"

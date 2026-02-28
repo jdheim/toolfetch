@@ -1,0 +1,21 @@
+name: "Test Native"
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Test Native"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare
+        uses: ./.github/actions/prepare
+
+      - name: Build and Test Native Image
+        uses: ./.github/actions/native

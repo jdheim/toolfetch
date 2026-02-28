@@ -1,0 +1,39 @@
+name: "OWASP Scan"
+
+on:
+  workflow_run:
+    workflows: [ "Scan" ]
+    types:
+      - completed
+
+jobs:
+  scan:
+    name: "OWASP Scan"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Prepare
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "m2-repo-owasp-scan"
+          generate-workflow-stats: "false"
+
+      # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
+      - name: Install .NET SDK required by AssemblyAnalyzer
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: dotnet-runtime-8.0
+          version: 1.0
+
+      - name: Scan
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        working-directory: scripts
+        run: ./scan.sh --owasp-scan
+
+      - name: Upload OWASP Scan Report
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: owasp-scan-report
+          path: target/dependency-check-report.html
