@@ -34,6 +34,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <error-prone.args>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=com.jdheim -XepOpt:NullAway:JSpecifyMode=true</error-prone.args>
 
+        <!-- Maven Surefire/Failsafe Plugin Command Line setup -->
+        <argLine>
+            -Xshare:off
+            --enable-native-access=ALL-UNNAMED
+            --add-opens=java.base/java.io=ALL-UNNAMED
+            -javaagent:${org.mockito:mockito-core:jar}
+        </argLine>
+
         <!-- Enforce Tools -->
         <enforce-maven.version>3.9.12</enforce-maven.version>
         <enforce-java.version>${maven.compiler.source}</enforce-java.version>
@@ -404,13 +412,6 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration> <!-- See https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
-                        <argLine>
-                            @{argLine}
-                            -Xshare:off
-                            --enable-native-access=ALL-UNNAMED
-                            --add-opens=java.base/java.io=ALL-UNNAMED
-                            -javaagent:${org.mockito:mockito-core:jar}
-                        </argLine>
                         <excludes>
                             <exclude>**/*SmokeTest.java</exclude>
                         </excludes>
@@ -421,13 +422,6 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin.version}</version>
                     <configuration> <!-- See https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
-                        <argLine>
-                            @{argLine}
-                            -Xshare:off
-                            --enable-native-access=ALL-UNNAMED
-                            --add-opens=java.base/java.io=ALL-UNNAMED
-                            -javaagent:${org.mockito:mockito-core:jar}
-                        </argLine>
                         <includes>
                             <include>**/*IT.java</include>
                             <include>**/*SmokeTest.java</include>
