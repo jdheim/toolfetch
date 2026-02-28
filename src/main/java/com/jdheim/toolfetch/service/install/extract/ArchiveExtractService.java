@@ -61,11 +61,12 @@ public class ArchiveExtractService implements ExtractService {
             LOG.info("Removing {}", archivePath);
             FileUtils.deleteQuietly(archivePath.toFile());
             if (FileUtils.isEmptyDirectory(destinationPath.toFile())) {
-                LOG.info("Nothing has been extracted. Removing {}", destinationPath);
+                LOG.warn("Nothing has been extracted. Removing {}", destinationPath);
                 FileUtils.deleteQuietly(destinationPath.toFile());
             }
         } catch (Exception e) {
-            LOG.warn("Extract failed due to exception: \"{}\". Skipping {}", e.getMessage(), tool.id());
+            LOG.warn("Extract failed due to exception: \"{}: {}\". Skipping {}", e.getClass().getName(), e.getMessage(),
+                    tool.id());
             FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }

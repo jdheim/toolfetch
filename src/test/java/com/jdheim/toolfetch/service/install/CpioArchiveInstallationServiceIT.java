@@ -18,7 +18,6 @@ package com.jdheim.toolfetch.service.install;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -37,14 +36,14 @@ class CpioArchiveInstallationServiceIT extends TestCommonArchiveInstallationServ
     @CsvSource({
             ".cpio,", ".cpio.gz, gz", "-newc.cpio,", "-newc.cpio.gz, gz"
     })
-    void testInstall_NotSupported(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    void testInstall_NotSupported(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String archiveName = "sample1" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/cpio/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertAnyMatch(Level.WARN,
-                    "Extract failed due to exception: \"No Archiver found for the stream signature\". Skipping toolfetch");
+                    "Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: " +
+                            "No Archiver found for the stream signature\". Skipping toolfetch");
             assertThat(destinationPath).doesNotExist();
         });
     }

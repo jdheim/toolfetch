@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Consumer;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -42,16 +44,27 @@ public final class ArchiveUtils {
         throw new AssertionError();
     }
 
-    public static byte[] readTestFile(String path) throws IOException {
+    public static byte[] readTestFile(Path path) {
+        try (InputStream in = Files.newInputStream(path)) {
+            assertThat(in).withFailMessage("Test File not found: " + path).isNotNull();
+            return in.readAllBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static byte[] readTestFile(String path) {
         return readTestFile(path, null);
     }
 
-    public static byte[] readTestFile(String path, @Nullable String expectedCompressorName) throws IOException {
+    public static byte[] readTestFile(String path, @Nullable String expectedCompressorName) {
         try (InputStream in = ArchiveUtils.class.getResourceAsStream(path)) {
             assertThat(in).withFailMessage("Test File not found: " + path).isNotNull();
             byte[] data = in.readAllBytes();
             assertCompressorName(path, expectedCompressorName, data);
             return data;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
