@@ -57,7 +57,8 @@
         <nullaway.version>0.13.1</nullaway.version>
         <jspecify.version>1.0.0</jspecify.version>
         <json-schema-validator.version>3.0.0</json-schema-validator.version>
-        <jackson.version>3.1.0</jackson.version>
+        <jackson-tools.version>3.1.0</jackson-tools.version>
+        <jackson.version>2.21</jackson.version>
         <picocli.version>4.7.7</picocli.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
         <logback.version>1.5.32</logback.version>
@@ -156,7 +157,17 @@
             </dependency>
             <dependency>
                 <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson-tools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>${jackson-tools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
@@ -270,7 +281,15 @@
         </dependency>
         <dependency>
             <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
@@ -502,6 +521,8 @@
                         <ignoredNonTestScopedDependencies>
                             <ignoredNonTestScopedDependency>ch.qos.logback:logback-classic</ignoredNonTestScopedDependency>
                             <ignoredNonTestScopedDependency>ch.qos.logback:logback-core</ignoredNonTestScopedDependency>
+                            <ignoredNonTestScopedDependency>tools.jackson.core:jackson-core</ignoredNonTestScopedDependency>
+                            <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-annotations</ignoredNonTestScopedDependency>
                         </ignoredNonTestScopedDependencies>
                     </configuration>
                 </plugin>
