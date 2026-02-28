@@ -1,8 +1,8 @@
-name: "Test Report"
+name: "Test Report Native"
 
 on:
   workflow_run:
-    workflows: [ "Scan" ]
+    workflows: [ "Test Native", "Release" ]
     types:
       - completed
 
@@ -13,14 +13,14 @@ permissions:
 
 jobs:
   report:
-    name: "Test Report"
+    name: "Test Report Native"
     runs-on: ubuntu-latest
     steps:
-      - name: Test Reporter
+      - name: Smoke Test Native Reporter
         uses: dorny/test-reporter@v2
         with:
-          name: "Test"
-          artifact: test-report
+          name: "Smoke Test Native"
+          artifact: smoke-test-native-report
           badge-title: 'Tests'
           path: '**/TEST-*.xml'
           reporter: java-junit

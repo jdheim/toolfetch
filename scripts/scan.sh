@@ -30,6 +30,7 @@ OPTIONS:
   --da                   Dependency Analyze
   --dt                   Dependency Tree
   -t, --jacoco-scan      Runs Tests with Jacoco Coverage Scan
+  --st-native            Runs Smoke Tests for a standalone executable (native image)
   --jacoco-html          Launch default browser to check Jacoco Coverage Scan analysis result
   --owasp-scan           OWASP Scan
   --owasp-html           Launch default browser to check OWASP Scan analysis result
@@ -56,7 +57,8 @@ readOptions() {
     case "${1}" in
       --da|--dependency-analyze) dependencyAnalyze "$@" ;;
       --dt|--dependency-tree) dependencyTree "$@" ;;
-      --jacoco-scan|-t) testsWithJacocoScan "$@" ;;
+      -t|--jacoco-scan) testsWithJacocoScan "$@" ;;
+      --st-native) smokeTestsNative "$@" ;;
       --jacoco-html) jacocoHtml ;;
       --owasp-scan) owaspScan "$@" ;;
       --owasp-html) owaspHtml ;;
@@ -187,6 +189,18 @@ testsWithJacocoScan() {
   step "Tests with Jacoco Coverage Scan"
   shift
   run ./mvnw clean verify -Pjacoco-scan "$@"
+  exit $?
+}
+
+smokeTestsNative() {
+  step "Smoke Tests for a standalone executable (native image)"
+  shift
+  local binary="target/toolfetch"
+  if [[ ! -x "${binary}" ]]; then
+    echo -e "${ERROR} Executable \"${binary}\" does not exist. Run: ./build.sh -n "
+    exit 1
+  fi
+  run ./mvnw verify -Psmoke-tests-native "$@"
   exit $?
 }
 

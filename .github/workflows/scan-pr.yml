@@ -1,0 +1,63 @@
+name: "Scan"
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scan:
+          - name: Dependency Analyze
+            id: dependency-analyze
+          - name: Sonar Scan
+            id: sonar-scan
+          - name: SpotBugs Scan
+            id: spotbugs-scan
+    name: ${{ matrix.scan.name }}
+    steps:
+      - name: Prepare
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "m2-repo-${{ matrix.scan.id }}"
+          generate-workflow-stats: "false"
+
+      - name: Scan
+        working-directory: scripts
+        run: ./scan.sh --${{ matrix.scan.id }}
+
+      - name: Upload ${{ matrix.scan.name }} Report
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() && matrix.scan.id == 'spotbugs-scan' }}
+        with:
+          name: ${{ matrix.scan.id }}-report
+          path: |
+            target/site/**
+            !target/site/jacoco
+
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
+        with:
+          name: test-report
+          if-no-files-found: error
+          path: |
+            target/surefire-reports/**/TEST-*.xml
+            target/failsafe-reports/**/TEST-*.xml
+
+      - name: Upload Jacoco Scan Report
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
+        with:
+          name: jacoco-scan-report
+          if-no-files-found: error
+          path: |
+            target/site/jacoco/**
