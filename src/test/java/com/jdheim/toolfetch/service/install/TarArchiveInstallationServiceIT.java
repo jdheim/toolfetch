@@ -19,11 +19,11 @@ package com.jdheim.toolfetch.service.install;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
-import java.io.IOException;
 import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.util.archive.ArchiveUtils;
+import com.jdheim.toolfetch.util.assertion.AssertionUtils;
 import org.apache.commons.compress.compressors.brotli.BrotliUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,18 +46,13 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
             "-concat.tar.gz, gz", "-concat.tar.lz4, lz4-framed", "-concat.tar.xz, xz", ".tar.gz.gz.gz, gz", ".tar.gz.xz.gz, gz",
             ".tar.lz4, lz4-framed", ".tar.lzma, lzma", ".tar.sz, snappy-framed", ".tar.xz, xz", ".tar.zst, zstd", ".tar.Z, z"
     })
-    void testInstall_FilesAtRoot(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    void testInstall_FilesAtRoot(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String archiveName = "sample1" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/tar/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
-            for (int i = 1; i <= 3; i++) {
-                assertThat(destinationPath.resolve("test%d.txt".formatted(i))).isRegularFile()
-                        .hasContent("Hello ToolFetch %d".formatted(i));
-            }
+            AssertionUtils.assertSample1Archive(destinationPath);
         });
     }
 
@@ -67,34 +62,13 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
             "-concat.tar.gz, gz", "-concat.tar.lz4, lz4-framed", "-concat.tar.xz, xz", ".tar.gz.gz.gz, gz", ".tar.gz.xz.gz, gz",
             ".tar.lz4, lz4-framed", ".tar.lzma, lzma", ".tar.sz, snappy-framed", ".tar.xz, xz", ".tar.zst, zstd", ".tar.Z, z"
     })
-    void testInstall_Strip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    void testInstall_Strip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String filename = "sample2" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/tar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
-            assertThat(destinationPath.resolve("test1")).doesNotExist();
-            assertThat(destinationPath.resolve("test11")).doesNotExist();
-            assertThat(destinationPath.resolve("test111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test111111")).isDirectory();
-            assertThat(destinationPath.resolve("test222")).isDirectory();
-            assertThat(destinationPath.resolve("test333")).isDirectory();
-            assertThat(destinationPath.resolve("test333/test3333")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test11111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 11111");
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test111111/test111111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 111111");
-            assertThat(destinationPath.resolve("test222/test222.txt")).isRegularFile().hasContent("Hello ToolFetch 222");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-1.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-1");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-2.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-2");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-3.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-3");
+            AssertionUtils.assertSample2Archive(destinationPath);
         });
     }
 
@@ -104,42 +78,18 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
             "-concat.tar.gz, gz", "-concat.tar.lz4, lz4-framed", "-concat.tar.xz, xz", ".tar.gz.gz.gz, gz", ".tar.gz.xz.gz, gz",
             ".tar.lz4, lz4-framed", ".tar.lzma, lzma", ".tar.sz, snappy-framed", ".tar.xz, xz", ".tar.zst, zstd", ".tar.Z, z"
     })
-    void testInstall_FileAtRootNoStrip(String archiveSuffix, String expectedCompressorName,
-            WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_FileAtRootNoStrip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String filename = "sample3" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/tar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
-            assertThat(destinationPath.resolve("test1")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111/test111111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test222")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test333")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111/test11111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 11111");
-            assertThat(
-                    destinationPath.resolve("test1/test11/test111/test1111/test11111/test111111/test111111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 111111");
-            assertThat(destinationPath.resolve("test1/test11/test222/test222.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 222");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-1.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-1");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-2.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-2");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-3.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-3");
-            assertThat(destinationPath.resolve("test4.txt")).isRegularFile().hasContent("Hello ToolFetch 4");
+            AssertionUtils.assertSample3Archive(destinationPath);
         });
     }
 
     @Test
-    void testInstall_BrotliNotAvailable(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_BrotliNotAvailable(WireMockRuntimeInfo wmRuntimeInfo) {
         String filename = "sample1.tar.br";
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/tar/" + filename);
 
@@ -148,7 +98,8 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
 
             testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
                 getTestLogListAppender().assertAnyMatch(Level.WARN,
-                        "Extract failed due to exception: \"No Archiver found for the stream signature\". Skipping toolfetch");
+                        "Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: " +
+                                "No Archiver found for the stream signature\". Skipping toolfetch");
                 assertThat(destinationPath).doesNotExist();
             });
         }

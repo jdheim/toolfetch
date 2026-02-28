@@ -25,5 +25,17 @@
         "parameterTypes": []
       }
     ]
+  },
+  {
+    "name": "org.apache.commons.compress.harmony.unpack200.Pack200UnpackerAdapter",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "java.io.FilterInputStream",
+    "fields": [
+      {
+        "name": "in"
+      }
+    ]
   }
 ]

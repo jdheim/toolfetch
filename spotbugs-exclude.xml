@@ -19,4 +19,8 @@
         <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
         <Class name="~.*(Test|IT)"/>
     </Match>
+    <Match>
+        <Bug pattern="COMMAND_INJECTION"/>
+        <Class name="com.jdheim.toolfetch.ToolFetchTestBase"/>
+    </Match>
 </FindBugsFilter>

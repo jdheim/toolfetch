@@ -39,6 +39,10 @@ public class TestLogListAppender extends ListAppender<ILoggingEvent> {
         assertThat(list).noneMatch(event -> event.getLevel() == Level.ERROR || event.getLevel() == Level.WARN);
     }
 
+    public void assertNoError() {
+        assertThat(list).noneMatch(event -> event.getLevel() == Level.ERROR);
+    }
+
     @Override
     public void start() {
         start(ArrayUtils.EMPTY_CLASS_ARRAY);

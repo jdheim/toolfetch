@@ -18,10 +18,10 @@ package com.jdheim.toolfetch.service.install;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.util.archive.ArchiveUtils;
+import com.jdheim.toolfetch.util.assertion.AssertionUtils;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -31,93 +31,42 @@ class JarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
 
     @ParameterizedTest
     @CsvSource({".jar, ", ".jar.pack, pack200", ".jar.pack.gz, gz"})
-    void testInstall_FilesAtRoot(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    void testInstall_FilesAtRoot(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String archiveName = "sample1" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/jar/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
+            AssertionUtils.assertSample1Archive(destinationPath);
             assertThat(destinationPath.resolve("META-INF")).isDirectory();
             assertThat(destinationPath.resolve("META-INF").resolve("MANIFEST.MF")).isRegularFile().hasContent("""
                     Manifest-Version: 1.0
                     Created-By: 25.0.2 (Eclipse Adoptium)
                     """);
-            for (int i = 1; i <= 3; i++) {
-                assertThat(destinationPath.resolve("test%d.txt".formatted(i))).exists()
-                        .isRegularFile()
-                        .hasContent("Hello ToolFetch %d".formatted(i));
-            }
         });
     }
 
     @ParameterizedTest
     @CsvSource({".jar, ", ".jar.pack, pack200", ".jar.pack.gz, gz"})
-    void testInstall_Strip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    void testInstall_Strip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String filename = "sample2" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/jar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
-            assertThat(destinationPath.resolve("test1")).doesNotExist();
-            assertThat(destinationPath.resolve("test11")).doesNotExist();
-            assertThat(destinationPath.resolve("test111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test111111")).isDirectory();
-            assertThat(destinationPath.resolve("test222")).isDirectory();
-            assertThat(destinationPath.resolve("test333")).isDirectory();
-            assertThat(destinationPath.resolve("test333/test3333")).isDirectory();
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test11111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 11111");
-            assertThat(destinationPath.resolve("test111/test1111/test11111/test111111/test111111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 111111");
-            assertThat(destinationPath.resolve("test222/test222.txt")).isRegularFile().hasContent("Hello ToolFetch 222");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-1.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-1");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-2.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-2");
-            assertThat(destinationPath.resolve("test333/test3333/test3333-3.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-3");
+            AssertionUtils.assertSample2Archive(destinationPath);
         });
     }
 
     @ParameterizedTest
     @CsvSource({".jar, ", ".jar.pack, pack200", ".jar.pack.gz, gz"})
-    void testInstall_FileAtRootNoStrip(String archiveSuffix, String expectedCompressorName,
-            WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_FileAtRootNoStrip(String archiveSuffix, String expectedCompressorName, WireMockRuntimeInfo wmRuntimeInfo) {
         String filename = "sample3" + archiveSuffix;
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/jar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
             getTestLogListAppender().assertNoErrorNoWarn();
-            assertThat(destinationPath).isDirectory();
-            assertThat(destinationPath.resolve("test1")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111/test111111")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test222")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test333")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333")).isDirectory();
-            assertThat(destinationPath.resolve("test1/test11/test111/test1111/test11111/test11111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 11111");
-            assertThat(
-                    destinationPath.resolve("test1/test11/test111/test1111/test11111/test111111/test111111.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 111111");
-            assertThat(destinationPath.resolve("test1/test11/test222/test222.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 222");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-1.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-1");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-2.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-2");
-            assertThat(destinationPath.resolve("test1/test11/test333/test3333/test3333-3.txt")).isRegularFile()
-                    .hasContent("Hello ToolFetch 3333-3");
-            assertThat(destinationPath.resolve("test4.txt")).isRegularFile().hasContent("Hello ToolFetch 4");
+            AssertionUtils.assertSample3Archive(destinationPath);
         });
     }
 

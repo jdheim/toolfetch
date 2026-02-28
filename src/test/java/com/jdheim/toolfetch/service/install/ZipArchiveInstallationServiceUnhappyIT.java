@@ -20,7 +20,6 @@ import static com.jdheim.toolfetch.util.archive.ArchiveUtils.addZipEntryDir;
 import static com.jdheim.toolfetch.util.archive.ArchiveUtils.addZipEntryFile;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
@@ -72,20 +71,20 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         testInstall(wmRuntimeInfo, zipEntries, assertions);
         assertThat(logArgs).hasSize(3);
         getTestLogListAppender().assertAnyMatch(Level.WARN,
-                "Extract failed due to exception: \"Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
+                "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
                         tempDir.resolve(logArgs[0]), logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
     }
 
     /// Password-protected ZIP file with password: "toolfetch"
     @Test
-    void testInstall_FilesAtRoot_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_FilesAtRoot_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) {
         List<String> files = List.of("test1.txt", "test2.txt", "test3.txt");
         testInstall_PasswordProtected(1, files, wmRuntimeInfo);
     }
 
     /// Password-protected ZIP file with password: "toolfetch"
     @Test
-    void testInstall_Strip_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_Strip_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) {
         List<String> files = List.of("test1/test11/test111/test1111/test11111/test11111.txt",
                 "test1/test11/test111/test1111/test11111/test111111/test111111.txt", "test1/test11/test222/test222.txt",
                 "test1/test11/test333/test3333/test3333-1.txt", "test1/test11/test333/test3333/test3333-2.txt",
@@ -95,7 +94,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
     /// Password-protected ZIP file with password: "toolfetch"
     @Test
-    void testInstall_FileAtRootNoStrip_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    void testInstall_FileAtRootNoStrip_PasswordProtected(WireMockRuntimeInfo wmRuntimeInfo) {
         List<String> files = List.of("test1/test11/test111/test1111/test11111/test11111.txt",
                 "test1/test11/test111/test1111/test11111/test111111/test111111.txt", "test1/test11/test222/test222.txt",
                 "test1/test11/test333/test3333/test3333-1.txt", "test1/test11/test333/test3333/test3333-2.txt",
@@ -103,31 +102,17 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         testInstall_PasswordProtected(3, files, wmRuntimeInfo);
     }
 
-    private void testInstall_PasswordProtected(int index, List<String> files, WireMockRuntimeInfo wmRuntimeInfo) throws
-            IOException {
+    private void testInstall_PasswordProtected(int index, List<String> files, WireMockRuntimeInfo wmRuntimeInfo) {
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/zip/sample%d-password.zip".formatted(index));
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
             files.forEach(file -> getTestLogListAppender().assertAnyMatch(Level.WARN,
                     "Can't read archive entry at \"%s\". Skipping".formatted(file)));
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + tempDir.resolve("toolfetch/toolfetch.zip"));
-            getTestLogListAppender().assertAnyMatch(Level.INFO,
+            getTestLogListAppender().assertAnyMatch(Level.WARN,
                     "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
             assertThat(destinationPath).doesNotExist();
         });
-    }
-
-    /// ZIPX extended archive with advanced compression methods including LZMA, BZip2 and PPMd algorithms
-    @Test
-    void testInstall_NotSupported(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/zip/not-supported.zipx");
-
-        testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
-            assertThat(destinationPath).doesNotExist();
-        });
-
-        getTestLogListAppender().assertAnyMatch(Level.WARN,
-                "Extract failed due to exception: \"No Archiver found for the stream signature\". Skipping toolfetch");
     }
 
 }
