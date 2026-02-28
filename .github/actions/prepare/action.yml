@@ -1,10 +1,6 @@
 name: "Prepare"
 
 inputs:
-  fetch-depth:
-    description: "Number of commits to fetch. 0 indicates all history for all branches and tags"
-    required: false
-    default: "1"
   maven-repo-cache-key:
     description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache."
     required: false
@@ -17,11 +13,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: ${{ inputs.fetch-depth }}
-
     - name: Install Dependencies with APT
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
