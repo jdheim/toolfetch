@@ -9,8 +9,14 @@
     <a href="https://github.com/jdheim/toolfetch/actions/workflows/test-report.yml" rel="noreferrer">
         <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/test-report.yml?label=Tests&logo=github&logoColor=white&branch=main" alt="Tests"/>
     </a>
-    <a href="https://github.com/jdheim/toolfetch/actions/workflows/scan.yml" rel="noreferrer">
-        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scan.yml?label=Scans&logo=github&logoColor=white&branch=main" alt="Scans"/>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/test-report-native.yml" rel="noreferrer">
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/test-report-native.yml?label=Smoke%20Tests&logo=github&logoColor=white&branch=main" alt="Smoke Tests"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/scan-pr.yml" rel="noreferrer">
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scan-pr.yml?label=Scans&logo=github&logoColor=white&branch=main" alt="Scans"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/scan-owasp.yml" rel="noreferrer">
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scan-owasp.yml?label=OWASP%20Scan&logo=github&logoColor=white&branch=main" alt="OWASP Scan"/>
     </a>
 </p>
 
