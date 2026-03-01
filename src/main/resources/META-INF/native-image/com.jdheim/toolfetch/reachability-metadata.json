@@ -1,0 +1,545 @@
+{
+  "reflection": [
+    {
+      "type": "ch.qos.logback.classic.encoder.PatternLayoutEncoder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.classic.util.DefaultJoranConfigurator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.ConsoleAppender",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "setWithJansi",
+          "parameterTypes": [
+            "boolean"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.OutputStreamAppender",
+      "methods": [
+        {
+          "name": "setEncoder",
+          "parameterTypes": [
+            "ch.qos.logback.core.encoder.Encoder"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.encoder.Encoder"
+    },
+    {
+      "type": "ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+      "methods": [
+        {
+          "name": "setParent",
+          "parameterTypes": [
+            "ch.qos.logback.core.spi.ContextAware"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.pattern.PatternLayoutEncoderBase",
+      "methods": [
+        {
+          "name": "setPattern",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.spi.ContextAware"
+    },
+    {
+      "type": "com.ethlo.time.ITU"
+    },
+    {
+      "type": "com.github.luben.zstd.ZstdInputStream"
+    },
+    {
+      "type": "org.apache.commons.compress.compressors.brotli.BrotliUtils"
+    },
+    {
+      "type": "org.apache.commons.compress.harmony.unpack200.Pack200UnpackerAdapter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.brotli.dec.BrotliInputStream"
+    },
+    {
+      "type": "org.fusesource.jansi.AnsiConsole",
+      "methods": [
+        {
+          "name": "out",
+          "parameterTypes": []
+        },
+        {
+          "name": "systemInstall",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "picocli.CommandLine$AutoHelpMixin",
+      "fields": [
+        {
+          "name": "helpRequested"
+        },
+        {
+          "name": "versionRequested"
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "/schema/toolfetch.schema.json"
+    },
+    {
+      "glob": "META-INF/services/ch.qos.logback.classic.spi.Configurator"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.URLStreamHandlerProvider"
+    },
+    {
+      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "glob": "META-INF/services/java.time.zone.ZoneRulesProvider"
+    },
+    {
+      "glob": "META-INF/services/java.util.spi.ResourceBundleControlProvider"
+    },
+    {
+      "glob": "META-INF/services/javax.xml.parsers.SAXParserFactory"
+    },
+    {
+      "glob": "META-INF/services/org.apache.maven.surefire.spi.MasterProcessChannelProcessorFactory"
+    },
+    {
+      "glob": "META-INF/services/org.assertj.core.configuration.Configuration"
+    },
+    {
+      "glob": "META-INF/services/org.assertj.core.presentation.Representation"
+    },
+    {
+      "glob": "META-INF/services/org.eclipse.jetty.http.HttpFieldPreEncoder"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.commons.support.scanning.ClasspathScanner"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.engine.TestEngine"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherSessionListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.PostDiscoveryFilter"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.TestExecutionListener"
+    },
+    {
+      "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
+    },
+    {
+      "glob": "archive/ar/sample1.ar"
+    },
+    {
+      "glob": "archive/arj/sample1.arj"
+    },
+    {
+      "glob": "archive/cpio/sample1-newc.cpio"
+    },
+    {
+      "glob": "archive/cpio/sample1-newc.cpio.gz"
+    },
+    {
+      "glob": "archive/cpio/sample1.cpio"
+    },
+    {
+      "glob": "archive/cpio/sample1.cpio.gz"
+    },
+    {
+      "glob": "archive/dump/sample1.dump"
+    },
+    {
+      "glob": "archive/jar/sample1.jar"
+    },
+    {
+      "glob": "archive/jar/sample1.jar.pack"
+    },
+    {
+      "glob": "archive/jar/sample1.jar.pack.gz"
+    },
+    {
+      "glob": "archive/jar/sample2.jar"
+    },
+    {
+      "glob": "archive/jar/sample2.jar.pack"
+    },
+    {
+      "glob": "archive/jar/sample2.jar.pack.gz"
+    },
+    {
+      "glob": "archive/jar/sample3.jar"
+    },
+    {
+      "glob": "archive/jar/sample3.jar.pack"
+    },
+    {
+      "glob": "archive/jar/sample3.jar.pack.gz"
+    },
+    {
+      "glob": "archive/tar/sample1-concat.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample1-concat.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample1-concat.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample1-concat.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample1-deflate.tar"
+    },
+    {
+      "glob": "archive/tar/sample1.tar"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.Z"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.br"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.gz.gz.gz"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.gz.xz.gz"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.lzma"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.sz"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample1.tar.zst"
+    },
+    {
+      "glob": "archive/tar/sample2-concat.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample2-concat.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample2-concat.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample2-concat.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample2-deflate.tar"
+    },
+    {
+      "glob": "archive/tar/sample2.tar"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.Z"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.br"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.gz.gz.gz"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.gz.xz.gz"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.lzma"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.sz"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample2.tar.zst"
+    },
+    {
+      "glob": "archive/tar/sample3-concat.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample3-concat.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample3-concat.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample3-concat.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample3-deflate.tar"
+    },
+    {
+      "glob": "archive/tar/sample3.tar"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.Z"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.br"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.bz2"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.gz"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.gz.gz.gz"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.gz.xz.gz"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.lz4"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.lzma"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.sz"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.xz"
+    },
+    {
+      "glob": "archive/tar/sample3.tar.zst"
+    },
+    {
+      "glob": "archive/zip/sample1-password.zip"
+    },
+    {
+      "glob": "archive/zip/sample1.zip"
+    },
+    {
+      "glob": "archive/zip/sample2-password.zip"
+    },
+    {
+      "glob": "archive/zip/sample2.zip"
+    },
+    {
+      "glob": "archive/zip/sample3-password.zip"
+    },
+    {
+      "glob": "archive/zip/sample3.zip"
+    },
+    {
+      "glob": "archunit.properties"
+    },
+    {
+      "glob": "assets"
+    },
+    {
+      "glob": "assets/swagger-ui/index.html"
+    },
+    {
+      "glob": "ch/qos/logback/classic/logback-classic-version.properties"
+    },
+    {
+      "glob": "ch/qos/logback/core/logback-core-version.properties"
+    },
+    {
+      "glob": "helpers.nashorn.js"
+    },
+    {
+      "glob": "jakarta/servlet/LocalStrings.properties"
+    },
+    {
+      "glob": "jakarta/servlet/LocalStrings_en.properties"
+    },
+    {
+      "glob": "jakarta/servlet/LocalStrings_en_US.properties"
+    },
+    {
+      "glob": "jakarta/servlet/http/LocalStrings.properties"
+    },
+    {
+      "glob": "jakarta/servlet/http/LocalStrings_en.properties"
+    },
+    {
+      "glob": "jakarta/servlet/http/LocalStrings_en_US.properties"
+    },
+    {
+      "glob": "jsv-messages.properties"
+    },
+    {
+      "glob": "jsv-messages_en.properties"
+    },
+    {
+      "glob": "jsv-messages_en_US.properties"
+    },
+    {
+      "glob": "junit-platform.properties"
+    },
+    {
+      "glob": "keystore"
+    },
+    {
+      "glob": "linux/amd64/libzstd-jni-1.5.7-7.so"
+    },
+    {
+      "glob": "logback-test.xml"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.AnnotationEngine"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.DoNotMockEnforcer"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.DoNotMockEnforcerWithType"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.InstantiatorProvider2"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.MemberAccessor"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.MockMaker"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.MockResolver"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.MockitoLogger"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.PluginSwitch"
+    },
+    {
+      "glob": "mockito-extensions/org.mockito.plugins.StackTraceCleanerProvider"
+    },
+    {
+      "glob": "org/apache/hc/client5/version.properties"
+    },
+    {
+      "glob": "org/eclipse/jetty/http/encoding.properties"
+    },
+    {
+      "glob": "org/eclipse/jetty/http/mime.properties"
+    },
+    {
+      "glob": "org/eclipse/jetty/version/build.properties"
+    },
+    {
+      "glob": "org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so"
+    },
+    {
+      "glob": "org/fusesource/jansi/jansi.properties"
+    },
+    {
+      "glob": "org/mockito/internal/creation/bytebuddy/MockMethodAdvice$ForEquals.class"
+    },
+    {
+      "glob": "org/mockito/internal/creation/bytebuddy/MockMethodAdvice$ForHashCode.class"
+    },
+    {
+      "glob": "org/mockito/internal/creation/bytebuddy/MockMethodAdvice$ForStatic.class"
+    },
+    {
+      "glob": "org/mockito/internal/creation/bytebuddy/MockMethodAdvice.class"
+    },
+    {
+      "glob": "org/mockito/internal/creation/bytebuddy/inject-MockMethodDispatcher.raw"
+    },
+    {
+      "glob": "org/publicsuffix/list/effective_tld_names.dat"
+    },
+    {
+      "glob": "schema/toolfetch.schema.json"
+    },
+    {
+      "glob": "version-info.properties"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/text/resources/LineBreakIteratorData"
+    },
+    {
+      "module": "jdk.jfr",
+      "glob": "jdk/jfr/internal/types/metadata.bin"
+    },
+    {
+      "bundle": "jakarta.servlet.LocalStrings"
+    },
+    {
+      "bundle": "jakarta.servlet.http.LocalStrings"
+    },
+    {
+      "bundle": "jsv-messages"
+    }
+  ]
+}

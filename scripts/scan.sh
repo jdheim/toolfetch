@@ -31,6 +31,7 @@ OPTIONS:
   --dt                   Dependency Tree
   -t, --jacoco-scan      Runs Tests with Jacoco Coverage Scan
   --st-native            Runs Smoke Tests for a standalone executable (native image)
+  --native-agent-scan    Native Agent Scan (generates reachability-metadata.json)
   --jacoco-html          Launch default browser to check Jacoco Coverage Scan analysis result
   --owasp-scan           OWASP Scan
   --owasp-html           Launch default browser to check OWASP Scan analysis result
@@ -59,6 +60,7 @@ readOptions() {
       --dt|--dependency-tree) dependencyTree "$@" ;;
       -t|--jacoco-scan) testsWithJacocoScan "$@" ;;
       --st-native) smokeTestsNative "$@" ;;
+      --native-agent-scan) nativeAgentScan "$@" ;;
       --jacoco-html) jacocoHtml ;;
       --owasp-scan) owaspScan "$@" ;;
       --owasp-html) owaspHtml ;;
@@ -201,6 +203,13 @@ smokeTestsNative() {
     exit 1
   fi
   run ./mvnw verify -Psmoke-tests-native "$@"
+  exit $?
+}
+
+nativeAgentScan() {
+  step "Native Agent Scan"
+  shift
+  run ./mvnw clean verify -Psetup-graalvm -Pnative-agent-scan "$@"
   exit $?
 }
 

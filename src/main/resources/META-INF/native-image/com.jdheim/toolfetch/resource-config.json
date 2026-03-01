@@ -2,19 +2,16 @@
   "resources": {
     "includes": [
       {
-        "pattern": "schema/.*"
+        "pattern": "com/jdheim/toolfetch/.*"
       },
       {
-        "pattern": "logback.xml"
+        "pattern": "schema/.*"
       },
       {
         "pattern": "version-info.properties"
       },
       {
-        "pattern": "ch/qos/logback/core/logback-core-version\\.properties"
-      },
-      {
-        "pattern": "ch/qos/logback/classic/logback-classic-version\\.properties"
+        "pattern": "logback.xml"
       }
     ]
   }

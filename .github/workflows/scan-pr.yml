@@ -1,10 +1,15 @@
 name: "Scan"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
 
 on:
   pull_request:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+concurrency:
+  group: scan-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read

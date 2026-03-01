@@ -1,10 +1,15 @@
 name: "Test Native"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
 
 on:
   pull_request:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+concurrency:
+  group: test-native-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -22,3 +27,12 @@ jobs:
 
       - name: Build and Test Native Image
         uses: ./.github/actions/native
+
+      - name: Upload JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: jreleaser-release
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

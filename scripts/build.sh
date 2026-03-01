@@ -26,9 +26,10 @@ Usage: $(basename "$0") [OPTION]...
 Builds whole project
 
 OPTIONS:
-  -d                     Dry-run JReleaser release
-  -n                     Create a standalone executable (native image)
-  --nd                   Create a standalone executable (native image) with debug enabled
+  -d                     Dry-run JReleaser
+  -n, --native           Create a standalone executable (native image)
+  --native-prepare       Builds whole project and prepares native setup
+  --native-debug         Create a standalone executable (native image) with debug enabled
 EOF
   exit 1
 }
@@ -44,9 +45,10 @@ main() {
 readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
-      -d) dryRunJReleaserRelease "$@" ;;
-      -n) isNativeImage="true" ;;
-      --nd) isNativeImage="true"; isNativeImageDebug="true" ;;
+      -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
+      -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
+      --native-prepare) enrichNativeProfiles ;;
+      --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeProfiles ;;
       -h|--help) usage ;;
       *) remainingOptions+=("${1}") ;;
     esac
@@ -54,45 +56,58 @@ readOptions() {
   done
 }
 
-dryRunJReleaserRelease() {
-  step "Dry-run JReleaser release"
-  if [[ -z "${GITHUB_TOKEN-}" ]]; then
-    echo -e "${ERROR} The GITHUB_TOKEN env variable is not set"
-    exit 1
-  fi
-  shift
-  JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-} run jreleaser release --dry-run --output-directory=target "$@"
-  exit $?
+enrichNativeProfiles() {
+  remainingOptions+=("-Psetup-graalvm" "-Pnative-image")
 }
 
 build() {
   step "Build Project"
+  run ./mvnw clean install -DskipTests "${remainingOptions[@]}"
+  local binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE=ALWAYS" )
   if [[ "${isNativeImage:-false}" == "true" ]]; then
-    local mavenCompilerSource
-    mavenCompilerSource="$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")"
-    run docker pull ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}"
-    local dockerTty mavenColors nativeImageDebugProfile nativeImageSharedLibrarySetup nativeImageSharedLibraryCopy
-    if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
-      dockerTty="-t"
-      mavenColors="--color=always"
-    fi
     if [[ "${isNativeImageDebug:-false}" == "true" ]]; then
-      nativeImageDebugProfile="-Pnative-image-debug"
-      nativeImageSharedLibrarySetup="mkdir /tmp/.graalvm-jdwp; native-image --macro:svmjdwp-library -o /tmp/.graalvm-jdwp/libsvmjdwp &&"
-      nativeImageSharedLibraryCopy="&& cp /tmp/.graalvm-jdwp/libsvmjdwp.so target/"
+      binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_DEBUG_ACTIVE=ALWAYS" )
     fi
-    run docker container run ${dockerTty:-} --rm --name "graalvm" -u "$(id -u):$(id -g)" \
-      -v "$HOME/.m2":/home/user/.m2 \
-      -v "$HOME/.config":/home/user/.config \
-      -v "$PWD":/work \
-      -w /work \
-      -e HOME="/home/user" \
-      --entrypoint "/bin/bash" \
-      ghcr.io/graalvm/native-image-community:"${mavenCompilerSource}" \
-      -lc "${nativeImageSharedLibrarySetup:-} ./mvnw clean package -Pnative-image ${nativeImageDebugProfile:-} -DskipTests ${mavenColors:-} ${remainingOptions[*]} ${nativeImageSharedLibraryCopy:-}"
-  else
-    run ./mvnw clean install -DskipTests "${remainingOptions[@]}"
+    jreleaserAssemble "${binaryEnvs[@]}"
+  elif [[ "${isJReleaserFullReleaseDryRun:-false}" == "true" ]]; then
+    jreleaserAssemble "${binaryEnvs[@]}"
+    local archiveEnvs=( "JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE=ALWAYS" )
+    jreleaserAssemble "${archiveEnvs[@]}"
+    jreleaserFullReleaseDryRun "${archiveEnvs[@]}"
   fi
+}
+
+validateJReleaserGitHubToken() {
+  if [[ -z "${GITHUB_TOKEN-}" ]]; then
+    echo -e "${ERROR} The GITHUB_TOKEN env variable is not set"
+    exit 1
+  fi
+}
+
+jreleaserAssemble() {
+  step "JReleaser: Assemble"
+  run export "$@"
+  run jreleaser assemble --output-directory=target || exit 1
+  for kv in "$@"; do
+    run unset "${kv%%=*}"
+  done
+}
+
+jreleaserFullReleaseDryRun() {
+  step "JReleaser: Dry-run Full Release"
+  local envs=( "JRELEASER_SIGNING_ACTIVE=NEVER" )
+  if [[ -f "jdheim.asc" && -f "jdheim-private.asc" && -f "jdheim.passphrase" ]]; then
+    envs=(
+      "JRELEASER_SIGNING_ACTIVE=ALWAYS"
+      "JRELEASER_GPG_PUBLIC_KEY=$(<jdheim.asc)"
+      "JRELEASER_GPG_SECRET_KEY=$(<jdheim-private.asc)"
+      "JRELEASER_GPG_PASSPHRASE=$(<jdheim.passphrase)"
+    )
+  fi
+  run export "$@"
+  export "JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-}" "${envs[@]}"
+  run jreleaser full-release --dry-run --output-directory=target
+  exit $?
 }
 
 main "$@"

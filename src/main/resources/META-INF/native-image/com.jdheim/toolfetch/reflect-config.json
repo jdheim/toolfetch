@@ -10,27 +10,6 @@
     "allPublicMethods": true
   },
   {
-    "name": "org.fusesource.jansi.AnsiConsole",
-    "methods": [
-      {
-        "name": "systemInstall",
-        "parameterTypes": []
-      },
-      {
-        "name": "out",
-        "parameterTypes": []
-      },
-      {
-        "name": "err",
-        "parameterTypes": []
-      }
-    ]
-  },
-  {
-    "name": "org.apache.commons.compress.harmony.unpack200.Pack200UnpackerAdapter",
-    "allPublicConstructors": true
-  },
-  {
     "name": "java.io.FilterInputStream",
     "fields": [
       {

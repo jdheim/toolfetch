@@ -1,9 +1,14 @@
 name: "OWASP Scan"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+concurrency:
+  group: owasp-scan-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   scan:

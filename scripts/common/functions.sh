@@ -43,6 +43,12 @@ run() {
 	echo -e "${INFO} \e[1m$\e[0m $*"; "$@"
 }
 
+## fileSize "file"
+fileSize() {
+  local file="${1}"
+  numfmt --to=iec --suffix=B --format="%.2f" "$(stat -c %s "${file}")"
+}
+
 getProjectVersion() {
   yq -r ".project.version" "jreleaser.yml" | sed "s/-.*//"
 }

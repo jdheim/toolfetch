@@ -101,7 +101,7 @@ Now, when you invoke the same command, tools will be installed like this:
 
 Currently, the following Archive Formats are supported:
 
-- `7z` - work in progress
+- `7z` - planned, work in progress
 - `tar`
 - `zip`
 - `jar`
@@ -120,6 +120,71 @@ and Compression Formats:
 - `z`
 - `zstandard`
 - concatenated streams for `bzip2`, `gzip`, `xz` and `lz4`
+
+## SBOM
+
+All releases include a **Software Bill of Materials (SBOM)** describing the dependencies used to build the binary.
+
+An SBOM is provided in two forms:
+
+- As a **standalone SBOM file** included in the release artifacts
+- **Embedded** inside the executable
+
+The distributed binaries are compressed with UPX, so the executable must first be decompressed before scanning.
+
+Install the required tools:
+
+- [UPX](https://upx.github.io)
+- [Syft](https://oss.anchore.com/docs/installation/syft)
+
+Then produce an uncompressed binary `toolfetch-raw`:
+
+```shell
+upx -d -o toolfetch-raw toolfetch
+```
+
+Next, generate the SBOM from the binary:
+
+```shell
+syft toolfetch-raw
+```
+
+## Provenance
+
+### PGP
+
+All release artifacts are signed with **Pretty Good Privacy (PGP)**. Follow these instructions to verify artifacts
+against their signatures:
+
+- Download the [public key](https://github.com/p-marcin/p-marcin/blob/main/gpg/jdheim.asc). Save it as `jdheim.asc`:
+
+```shell
+$ wget https://raw.githubusercontent.com/p-marcin/p-marcin/main/gpg/jdheim.asc
+```
+
+- Verify the fingerprint matches the following:
+
+```shell
+$ gpg --show-keys jdheim.asc
+pub   rsa4096 2026-03-01 [SC]
+      FFBE9F2EC1AF21943BBE06A35E0566252E0EC8A1
+uid                      Marcin P. (jdheim) <114195537+p-marcin@users.noreply.github.com>
+sub   rsa4096 2026-03-01 [E]
+```
+
+- Import the key with `gpg --import jdheim.asc`
+- Verify the chosen artifact with:
+
+```shell
+$ gpg toolfetch-0.0.1-linux-amd64.tar.gz.asc
+gpg: WARNING: no command supplied.  Trying to guess what you mean ...
+gpg: assuming signed data in 'toolfetch-0.0.1-linux-amd64.tar.gz'
+gpg: Signature made Sun Mar  1 18:55:02 2026 CET
+gpg:                using RSA key 5E0566252E0EC8A1
+gpg: Good signature from "Marcin P. (jdheim) <114195537+p-marcin@users.noreply.github.com>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+```
 
 ## 💖 Support
 

@@ -40,22 +40,30 @@ import picocli.CommandLine;
 
 public class ToolFetchTestBase {
 
-    static final boolean IS_DEBUG_MODE_ENABLED = Boolean.getBoolean("debug");
+    static final boolean IS_DEBUG_NATIVE_MODE_ENABLED = Boolean.getBoolean("native-debug");
+
+    static final boolean IS_FORCE_NATIVE_MODE_ENABLED = Boolean.getBoolean("force-native");
 
     static final boolean IS_QUIET_MODE_ENABLED = Boolean.getBoolean("quiet");
 
     static final Path NATIVE_IMAGE_EXEC = Path.of("target/toolfetch");
 
+    static final Path NATIVE_IMAGE_METADATA = Path.of("target/toolfetch.metadata");
+
     static final Path LIBSVMJDWP_LIBRARY = Path.of("target/libsvmjdwp.so");
 
     ExecResult execute(String... args) throws IOException, InterruptedException {
+        if (IS_FORCE_NATIVE_MODE_ENABLED) {
+            assertThat(NATIVE_IMAGE_EXEC).withFailMessage(
+                    "File not found: %s. Run: ./build.sh --native".formatted(NATIVE_IMAGE_EXEC)).exists();
+        }
         if (Files.exists(NATIVE_IMAGE_EXEC)) {
             return executeNativeImage(args);
         }
         return executeTest(args);
     }
 
-    /// Run: `./build.sh --nd` and use `-Ddebug=true` in VM Options to enable debugging of Native Image
+    /// Run: `./build.sh --native-debug` and use `-Dnative-debug=true` in VM Options to enable debugging of Native Image
     private ExecResult executeNativeImage(String[] args) throws IOException, InterruptedException {
         args = enrichArgs(args);
         Process process = new ProcessBuilder(args).redirectErrorStream(true).start();
@@ -65,9 +73,11 @@ public class ToolFetchTestBase {
     }
 
     private String[] enrichArgs(String[] args) {
-        if (IS_DEBUG_MODE_ENABLED) {
+        if (IS_DEBUG_NATIVE_MODE_ENABLED) {
             assertThat(LIBSVMJDWP_LIBRARY).withFailMessage(
-                    "File not found: %s. Run: ./build.sh --nd".formatted(LIBSVMJDWP_LIBRARY)).exists();
+                    "File not found: %s. Run: ./build.sh --native-debug".formatted(LIBSVMJDWP_LIBRARY)).exists();
+            assertThat(NATIVE_IMAGE_METADATA).withFailMessage(
+                    "File not found: %s. Run: ./build.sh --native-debug".formatted(NATIVE_IMAGE_METADATA)).exists();
             String[] debugArgs = {NATIVE_IMAGE_EXEC.toString(), "-XX:JDWPOptions=transport=dt_socket,server=y,address=5005"};
             return ArrayUtils.addAll(debugArgs, args);
         } else {

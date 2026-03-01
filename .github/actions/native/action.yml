@@ -6,7 +6,16 @@ runs:
     - name: Build Native Image
       working-directory: scripts
       shell: bash
-      run: ./build.sh -n
+      run: ./build.sh --native-prepare
+
+    - name: Assemble Native Image with JReleaser
+      uses: jreleaser/release-action@v2
+      env:
+        JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE: ALWAYS
+      with:
+        version: latest
+        setup-java: false
+        arguments: assemble --output-directory=target
 
     - name: Smoke Test Native
       working-directory: scripts

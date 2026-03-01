@@ -1,27 +1,221 @@
+environment:
+  properties:
+    graalVmDir: 'graalvm-jdk-25.0.2+10.1'
+
 project:
-  name: "toolfetch"
-  version: "0.0.1"
-  license: "Apache-2.0"
-  versionPattern: "SEMVER"
+  name: 'toolfetch'
+  version: '0.0.1'
+  versionPattern: 'SEMVER'
   snapshot:
-    pattern: ".*-ea"
+    pattern: '.*-ea'
+    fullChangelog: true
+  description: 'CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file'
+  longDescription: |
+    **ToolFetch** is a CLI for **fetching and installing external tools**
+    from release URLs (e.g. GitHub releases) using a YAML configuration file.
+
+    It is designed for:
+
+    - setting up new developer machines quickly and consistently
+    - reproducible tool installations
+  authors:
+    - 'JDHeim.com'
+  stereotype: 'CLI'
+  inceptionYear: '2026'
+  license: 'Apache-2.0'
+  copyright: '© 2026-2026 JDHeim.com'
+  links:
+    homepage: 'https://github.com/jdheim/toolfetch'
+  languages:
+    java:
+      groupId: 'com.jdheim'
+
+checksum:
+  algorithms:
+    - 'SHA_256'
+  individual: true
+
+signing:
+  pgp:
+    armored: true
+    verify: true
+    mode: 'MEMORY'
+
+platform:
+  replacements:
+    x86_64: 'amd64'
+    linux-x86_64: 'linux-amd64'
+
+files:
+  artifacts:
+    - path: '{{outputDirectory}}/sbom/{{projectName}}-{{projectVersion}}-sboms.zip'
+
+assemble:
+  archive:
+    toolfetch:
+      exported: true
+      distributionType: 'BINARY'
+      attachPlatform: true
+      formats:
+        - 'TAR_GZ'
+      options:
+        longFileMode: 'POSIX'
+        bigNumberMode: 'POSIX'
+      artifacts:
+        - path: '{{assembleDirectory}}/{{projectName}}_binary/native-image/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}'
+          transform: 'bin/{{projectName}}'
+      fileSets:
+        - input: "."
+          includes:
+            - "LICENSE"
+            - "README.md"
+  nativeImage:
+    toolfetch_binary:
+      executable: '{{projectName}}-{{projectVersion}}'
+      exported: true
+      archiving:
+        enabled: false
+      graalJdks:
+        - path: '{{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}'
+          platform: 'linux-x86_64'
+      args:
+        - '-H:+UnlockExperimentalVMOptions'
+        - '--enable-sbom=embed'
+        # TODO strict
+      mainJar:
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+      jars:
+        - pattern: '{{baseOutputDirectory}}/lib/*.jar'
+      java:
+        mainClass: 'com.jdheim.{{projectName}}.Main'
+      fileSets:
+        - input: "."
+          includes:
+            - "LICENSE"
+            - "README.md"
+    toolfetch_debug:
+      executable: '{{projectName}}-{{projectVersion}}'
+      exported: true
+      archiving:
+        enabled: false
+      graalJdks:
+        - path: '{{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}'
+          platform: 'linux-x86_64'
+      args:
+        - '-H:+UnlockExperimentalVMOptions'
+        - '-H:+JDWP'
+      mainJar:
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+      jars:
+        - pattern: '{{baseOutputDirectory}}/lib/*.jar'
+      java:
+        mainClass: 'com.jdheim.{{projectName}}.Main'
+
+hooks:
+  script:
+    success:
+      # Generate SBOM
+      - run: |
+          if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
+            if [[ -z "${binary}" ]]; then
+              echo "[sbom] Missing {{projectName}} binary"
+              exit 1
+            fi
+            if command -v syft &>/dev/null; then
+              echo "[sbom] Generate SPDX SBOM with Syft $(syft --version | awk '{print $2}')"
+              sbom="$(dirname "${binary}")/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}.spdx-json.sbom"
+              syft file:"${binary}" -o spdx-json="${sbom}"
+              sbomDirectory="{{outputDirectory}}/sbom"
+              mkdir -p "${sbomDirectory}"
+              zip -j "${sbomDirectory}/{{projectName}}-{{projectVersion}}-sboms.zip" "${sbom}"
+            else
+              echo "[sbom] Syft not installed. Skipping"
+            fi
+          fi
+        verbose: true
+        filter:
+          includes: [ 'assemble' ]
+      # Compress with UPX
+      - run: |
+          if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
+            if [[ -z "${binary}" ]]; then
+              echo "[sbom] Missing {{projectName}} binary"
+              exit 1
+            fi
+            originalFileSize=$(numfmt --to=iec --suffix=B --format="%.2f" "$(stat -c %s "${binary}")")
+            if command -v upx &>/dev/null; then
+              echo "[upx] Compress with UPX $(upx --version | head -n 1 | awk '{print $2}')"
+              upx --best "${binary}"
+              compressedFileSize=$(numfmt --to=iec --suffix=B --format="%.2f" "$(stat -c %s "${binary}")")
+              echo "[upx] ${originalFileSize} compressed to ${compressedFileSize}"
+            else
+              echo "[upx] UPX not installed. Skipping"
+            fi
+          fi
+        verbose: true
+        filter:
+          includes: [ 'assemble' ]
+      # Copy a native image to the target directory
+      - run: |
+          if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
+            echo "[native-image] Copy a native image to the target directory"
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+          fi
+        verbose: true
+        filter:
+          includes: [ 'assemble' ]
+      # Copy a native image with dependencies to the target directory (debug mode enabled)
+      - run: |
+          if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_DEBUG_ACTIVE}" == "ALWAYS" ]]; then
+            echo "[native-image] Copy a native image with dependencies to the target directory (debug mode enabled)"
+            if [[ ! -d ${HOME}/.libsvmjdwp/{{graalVmDir}} ]]; then
+              {{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}/bin/native-image --macro:svmjdwp-library
+              [[ -d ${HOME}/.libsvmjdwp ]] && rm -r ${HOME}/.libsvmjdwp
+              mkdir -p ${HOME}/.libsvmjdwp/{{graalVmDir}}
+              cp -v {{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/{{graalVmDir}}/
+            fi
+            cp -v ${HOME}/.libsvmjdwp/{{graalVmDir}}/libsvmjdwp.so {{baseOutputDirectory}}
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
+          fi
+        verbose: true
+        filter:
+          includes: [ 'assemble' ]
+    before:
+      # Validate SBOM content
+      - run: |
+          sbom="$(find {{assembleDirectory}} -type f -name "*.spdx-json.sbom" -print -quit)"
+          if [[ -z "${sbom}" ]]; then
+            echo "[sbom] Missing SBOM"
+            exit 1
+          elif ! grep -q "info.picocli-picocli" "${sbom}"; then
+            echo "[sbom] Missing libraries in SBOM"
+            exit 1
+          else
+            echo "[sbom] Valid"
+          fi
+        verbose: true
+        filter:
+          includes: [ 'release' ]
 
 release:
   github:
     releaseName: '{{tagName}}'
     overwrite: true
+    sign: true
     draft: false
     prerelease:
       enabled: true
-      pattern: ".*-ea"
+      pattern: '.*-ea'
     issues:
-      # Also add "permissions: issues: write" to GitHub Actions
       enabled: false
     changelog:
-      formatted: "ALWAYS"
-      preset: "conventional-commits"
+      formatted: 'ALWAYS'
+      preset: 'conventional-commits'
       extraProperties:
-        categorizeScopes: "true"
+        categorizeScopes: 'true'
       labelers:
         - label: 'dependencies'
           title: 'regex:^(?:deps(?:\(.*\))?!?):\s.*'
@@ -34,11 +228,11 @@ release:
             - 'dependencies'
       replacers:
         - search: 'deps: '
-      categoryTitleFormat: "### {{categoryTitle}}"
+      categoryTitleFormat: '### {{categoryTitle}}'
       contributors:
-        format: "- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}"
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
       hide:
         contributors:
-          - "p-marcin"
-          - "dependabot"
-          - "GitHub"
+          - 'p-marcin'
+          - 'dependabot'
+          - 'GitHub'

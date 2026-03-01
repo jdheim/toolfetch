@@ -1,10 +1,15 @@
 name: "Test Report"
+run-name: "${{ github.workflow }} • ${{ github.event.workflow_run.head_branch }} • ${{ github.event.workflow_run.head_commit.message || github.sha }}"
 
 on:
   workflow_run:
     workflows: [ "Scan" ]
     types:
       - completed
+
+concurrency:
+  group: test-report-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read

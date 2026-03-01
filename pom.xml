@@ -25,7 +25,13 @@
     <name>ToolFetch</name>
 
     <properties>
+        <!-- curl "https://api.foojay.io/disco/v3.0/packages?distribution=graalvm&operating_system=linux&architecture=x64" | jq -r '.result[].java_version' -->
+        <jdk.version>25.0.2</jdk.version>
+        <syft.version>1.42.1</syft.version>
+        <upx.version>5.1.1</upx.version>
+
         <!-- Project -->
+        <main.class>com.jdheim.toolfetch.Main</main.class>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -35,12 +41,13 @@
         <error-prone.args>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=com.jdheim -XepOpt:NullAway:JSpecifyMode=true</error-prone.args>
 
         <!-- Maven Surefire/Failsafe Plugin Command Line setup -->
-        <argLine>
+        <defaultArgLine> <!-- See https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
             -Xshare:off
             --enable-native-access=ALL-UNNAMED
             --add-opens=java.base/java.io=ALL-UNNAMED
             -javaagent:${org.mockito:mockito-core:jar}
-        </argLine>
+        </defaultArgLine>
+        <argLine>${defaultArgLine}</argLine>
 
         <!-- Enforce Tools -->
         <enforce-maven.version>3.9.12</enforce-maven.version>
@@ -87,11 +94,26 @@
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
-        <native-maven-plugin.version>0.11.4</native-maven-plugin.version>
+        <jdks-maven-plugin.version>1.23.0</jdks-maven-plugin.version>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
         <findsecbugs-plugin.version>1.14.0</findsecbugs-plugin.version>
     </properties>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://spdx.org/licenses/Apache-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>p-marcin</id>
+            <name>Marcin P.</name>
+        </developer>
+    </developers>
 
     <dependencyManagement>
         <dependencies>
@@ -426,7 +448,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
-                    <configuration> <!-- See https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
+                    <configuration>
                         <excludes>
                             <exclude>**/*SmokeTest.java</exclude>
                         </excludes>
@@ -436,7 +458,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin.version}</version>
-                    <configuration> <!-- See https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
+                    <configuration>
                         <includes>
                             <include>**/*IT.java</include>
                             <include>**/*SmokeTest.java</include>
@@ -523,9 +545,9 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.graalvm.buildtools</groupId>
-                    <artifactId>native-maven-plugin</artifactId>
-                    <version>${native-maven-plugin.version}</version>
+                    <groupId>org.jreleaser</groupId>
+                    <artifactId>jdks-maven-plugin</artifactId>
+                    <version>${jdks-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
@@ -598,6 +620,17 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
@@ -659,8 +692,49 @@
                                 <include>**/*SmokeTest.java</include>
                             </includes>
                             <systemPropertyVariables>
+                                <force-native>true</force-native>
                                 <quiet>true</quiet>
                             </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>native-agent-scan</id>
+            <properties>
+                <argLine>
+                    ${defaultArgLine}
+                    -agentlib:native-image-agent=access-filter-file=${project.basedir}/src/test/resources/graalvm/native-access-filter.json,caller-filter-file=${project.basedir}/src/test/resources/graalvm/native-caller-filter.json,config-output-dir=${project.basedir}/src/main/resources/META-INF/native-image/com.jdheim/toolfetch
+                </argLine>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>src/main/resources/META-INF/native-image/${project.groupId}/${project.artifactId}</directory>
+                                    <includes>
+                                        <include>reachability-metadata.json</include>
+                                    </includes>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <jvm>${project.build.directory}/jdks/graalvm/graalvm-jdk-25.0.2+10.1/bin/java</jvm>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <jvm>${project.build.directory}/jdks/graalvm/graalvm-jdk-25.0.2+10.1/bin/java</jvm>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -727,6 +801,11 @@
                 <sonar.maven.scanAll>true</sonar.maven.scanAll>
                 <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
                 <sonar.coverage.exclusions>**/com/jdheim/toolfetch/Main.java</sonar.coverage.exclusions>
+
+                <!-- Disabled Rules -->
+                <sonar.issue.ignore.multicriteria>e1</sonar.issue.ignore.multicriteria>
+                <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S8445</sonar.issue.ignore.multicriteria.e1.ruleKey>
+                <sonar.issue.ignore.multicriteria.e1.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
             </properties>
             <build>
                 <plugins>
@@ -748,9 +827,72 @@
             </build>
         </profile>
         <profile>
+            <id>setup-graalvm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jdks-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>setup-graalvm</id>
+                                <goals>
+                                    <goal>setup-disco</goal>
+                                </goals>
+                                <phase>initialize</phase>
+                                <configuration>
+                                    <pkgs>
+                                        <pkg>
+                                            <name>graalvm</name>
+                                            <distribution>graalvm</distribution>
+                                            <version>${jdk.version}</version>
+                                            <platform>linux-x86_64</platform>
+                                            <archiveType>tar.gz</archiveType>
+                                            <libcType>glibc</libcType>
+                                            <javafxBundled>false</javafxBundled>
+                                            <packageType>jdk</packageType>
+                                            <releaseStatus>ga</releaseStatus>
+                                        </pkg>
+                                    </pkgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-runtime-libs</id>
+                                <goals>
+                                    <goal>list</goal>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <includeScope>runtime</includeScope>
+                                    <excludeTransitive>false</excludeTransitive>
+                                    <outputFile>${project.build.directory}/lib/libs.txt</outputFile>
+                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                    <excludeArtifactIds>${project.artifactId}</excludeArtifactIds>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>native-image</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <useNativeGit>false</useNativeGit>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
@@ -807,45 +949,6 @@
                                     <artifactId>picocli-codegen</artifactId>
                                 </path>
                             </annotationProcessorPaths>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>io.github.git-commit-id</groupId>
-                        <artifactId>git-commit-id-maven-plugin</artifactId>
-                        <configuration>
-                            <useNativeGit>false</useNativeGit>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <configuration>
-                            <mainClass>com.jdheim.toolfetch.Main</mainClass>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>native-image-build</id>
-                                <goals>
-                                    <goal>compile-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>native-image-debug</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <configuration>
-                            <buildArgs>
-                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
-                                <buildArg>-H:+JDWP</buildArg>
-                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>

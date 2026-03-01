@@ -9,6 +9,14 @@ inputs:
     description: "Enables or disables 'Generate Workflow Stats' step"
     required: false
     default: "true"
+  install-syft:
+    description: "Enables or disables 'Install Syft' step"
+    required: false
+    default: "false"
+  install-upx:
+    description: "Enables or disables 'Install UPX' step"
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -21,7 +29,30 @@ runs:
 
     - name: Setup ENV variables
       shell: bash
-      run: echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:maven.compiler.source" "pom.xml")" >> ${GITHUB_ENV}
+      run: |
+        echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:jdk.version" "pom.xml")" >> ${GITHUB_ENV}
+        echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
+        echo "UPX_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.version" "pom.xml")" >> ${GITHUB_ENV}
+
+    - name: Install Syft
+      if: ${{ inputs.install-syft == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p "$RUNNER_TEMP/bin"
+        wget -qO- "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" \
+          | tar --extract --gzip --no-same-owner --directory="$RUNNER_TEMP/bin" syft
+        "$RUNNER_TEMP/bin/syft" --version
+        echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+    - name: Install UPX
+      if: ${{ inputs.install-upx == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p "$RUNNER_TEMP/bin"
+        wget -qO- "https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz" \
+          | tar --extract --xz --no-same-owner --directory="$RUNNER_TEMP/bin" --strip-components=1 --wildcards "*/upx"
+        "$RUNNER_TEMP/bin/upx" --version
+        echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
     - name: Setup JDK
       uses: actions/setup-java@v5

@@ -22,6 +22,7 @@
 main() {
   step "Update copyright"
   updateCopyrightInFile "LICENSE"
+  updateCopyrightInFile "jreleaser.yml"
   findAndUpdateCopyright "*.md"
   if [[ "${isUpdated:-false}" == false ]]; then
     echo -e "${WARN} Nothing to update"
