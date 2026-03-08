@@ -1,0 +1,61 @@
+name: "Call: Assemble ToolFetch SBOMs"
+
+on:
+  workflow_call:
+
+jobs:
+  toolfetch-sboms:
+    name: "Assemble ToolFetch SBOMs"
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "toolfetch-sboms-m2-repo"
+
+      - name: "Prepare Native Build"
+        working-directory: scripts
+        shell: bash
+        run: ./build.sh --native-prepare
+
+      - name: "Download ToolFetch SBOMs"
+        uses: actions/download-artifact@v8
+        with:
+          pattern: toolfetch-sbom-*
+          merge-multiple: true
+          path: target/jreleaser/sbom
+
+      - name: "Assemble Toolfetch SBOMs"
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE: ALWAYS
+        with:
+          version: latest
+          setup-java: false
+          arguments: assemble --output-directory=target
+
+      - name: "Upload Toolfetch SBOMs"
+        uses: actions/upload-artifact@v6
+        with:
+          name: toolfetch-sboms
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            target/jreleaser/sbom/toolfetch*-sboms.zip
+
+      - name: "Upload JReleaser output"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: jreleaser-toolfetch-sboms
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

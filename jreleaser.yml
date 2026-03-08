@@ -30,6 +30,13 @@ project:
     java:
       groupId: 'com.jdheim'
 
+platform:
+  replacements:
+    x86_64: 'amd64'
+    linux-x86_64: 'linux-amd64'
+    aarch_64: 'arm64'
+    linux-aarch_64: 'linux-arm64'
+
 checksum:
   algorithms:
     - 'SHA_256'
@@ -41,19 +48,26 @@ signing:
     verify: true
     mode: 'MEMORY'
 
-platform:
-  replacements:
-    x86_64: 'amd64'
-    linux-x86_64: 'linux-amd64'
-
 files:
   artifacts:
-    - path: '{{outputDirectory}}/sbom/{{projectName}}-{{projectVersion}}-sboms.zip'
+    - path: '{{outputDirectory}}/sbom/{{projectName}}-{{projectEffectiveVersion}}-sboms.zip'
+
+distributions:
+  toolfetch:
+    type: 'BINARY'
+    artifacts:
+      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectEffectiveVersion}}-linux-amd64.tar.gz'
+        platform: 'linux-x86_64'
+        extraProperties:
+          graalVMNativeImage: 'true'
+      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectEffectiveVersion}}-linux-arm64.tar.gz'
+        platform: 'linux-aarch_64'
+        extraProperties:
+          graalVMNativeImage: 'true'
 
 assemble:
   archive:
     toolfetch:
-      exported: true
       distributionType: 'BINARY'
       attachPlatform: true
       formats:
@@ -62,7 +76,7 @@ assemble:
         longFileMode: 'POSIX'
         bigNumberMode: 'POSIX'
       artifacts:
-        - path: '{{assembleDirectory}}/{{projectName}}_binary/native-image/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}'
+        - path: '{{assembleDirectory}}/{{projectName}}_binary/native-image/{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}'
           transform: 'bin/{{projectName}}'
       fileSets:
         - input: "."
@@ -71,18 +85,19 @@ assemble:
             - "README.md"
   nativeImage:
     toolfetch_binary:
-      executable: '{{projectName}}-{{projectVersion}}'
-      exported: true
+      executable: '{{projectName}}-{{projectEffectiveVersion}}'
       archiving:
         enabled: false
       graalJdks:
-        - path: '{{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}'
+        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'
+        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-arm64/{{graalVmDir}}'
+          platform: 'linux-aarch_64'
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '--enable-sbom=embed,cyclonedx,strict'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/lib/*.jar'
       java:
@@ -93,18 +108,19 @@ assemble:
             - "LICENSE"
             - "README.md"
     toolfetch_debug:
-      executable: '{{projectName}}-{{projectVersion}}'
-      exported: true
+      executable: '{{projectName}}-{{projectEffectiveVersion}}'
       archiving:
         enabled: false
       graalJdks:
-        - path: '{{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}'
+        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'
+        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-arm64/{{graalVmDir}}'
+          platform: 'linux-aarch_64'
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '-H:+JDWP'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/lib/*.jar'
       java:
@@ -116,18 +132,17 @@ hooks:
       # Generate SBOM
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
-            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable)"
             if [[ -z "${binary}" ]]; then
               echo "[sbom] Missing {{projectName}} binary"
               exit 1
             fi
             if command -v syft &>/dev/null; then
               echo "[sbom] Generate SPDX SBOM with Syft $(syft --version | awk '{print $2}')"
-              sbom="$(dirname "${binary}")/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}.spdx-json.sbom"
-              syft file:"${binary}" -o spdx-json="${sbom}"
               sbomDirectory="{{outputDirectory}}/sbom"
               mkdir -p "${sbomDirectory}"
-              zip -j "${sbomDirectory}/{{projectName}}-{{projectVersion}}-sboms.zip" "${sbom}"
+              sbom="${sbomDirectory}/{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}.spdx-json.sbom"
+              syft file:"${binary}" -o spdx-json="${sbom}"
             else
               echo "[sbom] Syft not installed. Skipping"
             fi
@@ -138,7 +153,7 @@ hooks:
       # Compress with UPX
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
-            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable)"
             if [[ -z "${binary}" ]]; then
               echo "[sbom] Missing {{projectName}} binary"
               exit 1
@@ -160,7 +175,7 @@ hooks:
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
             echo "[native-image] Copy a native image to the target directory"
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
           fi
         verbose: true
         filter:
@@ -169,42 +184,57 @@ hooks:
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_DEBUG_ACTIVE}" == "ALWAYS" ]]; then
             echo "[native-image] Copy a native image with dependencies to the target directory (debug mode enabled)"
-            if [[ ! -d ${HOME}/.libsvmjdwp/{{graalVmDir}} ]]; then
-              {{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}/bin/native-image --macro:svmjdwp-library
+            if [[ ! -d ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}} ]]; then
+              {{baseOutputDirectory}}/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/bin/native-image --macro:svmjdwp-library
               [[ -d ${HOME}/.libsvmjdwp ]] && rm -r ${HOME}/.libsvmjdwp
-              mkdir -p ${HOME}/.libsvmjdwp/{{graalVmDir}}
-              cp -v {{baseOutputDirectory}}/jdks/graalvm/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/{{graalVmDir}}/
+              mkdir -p ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}
+              cp -v {{baseOutputDirectory}}/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/
             fi
-            cp -v ${HOME}/.libsvmjdwp/{{graalVmDir}}/libsvmjdwp.so {{baseOutputDirectory}}
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
+            cp -v ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/libsvmjdwp.so {{baseOutputDirectory}}
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
           fi
         verbose: true
         filter:
           includes: [ 'assemble' ]
-    before:
-      # Validate SBOM content
+      # Assemble SBOM
       - run: |
-          sbom="$(find {{assembleDirectory}} -type f -name "*.spdx-json.sbom" -print -quit)"
-          if [[ -z "${sbom}" ]]; then
-            echo "[sbom] Missing SBOM"
-            exit 1
-          elif ! grep -q "info.picocli-picocli" "${sbom}"; then
-            echo "[sbom] Missing libraries in SBOM"
-            exit 1
-          else
-            echo "[sbom] Valid"
+          if [[ "${JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE}" == "ALWAYS" ]]; then
+            sbomDirectory="{{outputDirectory}}/sbom"
+            set +x
+            if [[ ! -d "${sbomDirectory}" ]]; then
+              echo "[sbom] Missing SBOM"
+              exit 1
+            fi
+            sboms="$(find "${sbomDirectory}" -type f -name "*.spdx-json.sbom")"
+            if [[ -z "${sboms}" ]]; then
+              echo "[sbom] Missing SBOM"
+              exit 1
+            fi
+          
+            valid=true
+            for sbom in ${sboms}; do
+              if ! grep -q "info.picocli-picocli" "${sbom}"; then
+                valid=false
+                break
+              fi
+            done
+          
+            if [[ "${valid}" != "true" ]]; then
+              echo "[sbom] Missing libraries in SBOM"
+              exit 1
+            fi
+            zip -j "${sbomDirectory}/{{projectName}}-{{projectEffectiveVersion}}-sboms.zip" ${sboms}
           fi
         verbose: true
         filter:
-          includes: [ 'release' ]
+          includes: [ 'assemble' ]
 
 release:
   github:
     releaseName: '{{tagName}}'
     overwrite: true
     sign: true
-    draft: false
     prerelease:
       enabled: true
       pattern: '.*-ea'

@@ -1,0 +1,20 @@
+name: "Scheduled: Security Scans"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+
+concurrency:
+  group: scheduled-security-scans-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  owasp-scan:
+    name: "OWASP Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan-owasp.yml@main
+    permissions:
+      contents: read
+    secrets:
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}

@@ -4,51 +4,81 @@ run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.even
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release:
+  toolfetch-binary:
+    name: "Assemble ToolFetch Binary"
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
+    permissions:
+      contents: read
+
+  test-native:
     name: "Test Native"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+    needs: toolfetch-binary
+    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
+    permissions:
+      contents: read
 
-      - name: Prepare
-        uses: ./.github/actions/prepare
-        with:
-          install-syft: "true"
-          install-upx: "true"
+  test-report-native:
+    name: "Test Report Native"
+    needs: test-native
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    uses: jdheim/toolfetch/.github/workflows/call-test-report-native.yml@main
 
-      - name: Build and Test Native Image
-        uses: ./.github/actions/native
+  toolfetch-archive:
+    name: "Assemble ToolFetch Archive"
+    needs: test-report-native
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-archive.yml@main
+    permissions:
+      contents: read
 
-      - name: Release with JReleaser
-        uses: jreleaser/release-action@v2
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
-          JRELEASER_SIGNING_ACTIVE: ALWAYS
-          JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
-        with:
-          version: latest
-          setup-java: false
-          arguments: full-release --output-directory=target
+  toolfetch-sboms:
+    name: "Assemble ToolFetch SBOM"
+    needs: test-report-native
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-sboms.yml@main
+    permissions:
+      contents: read
 
-      - name: Upload JReleaser output
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: jreleaser-release
-          path: |
-            target/jreleaser/trace.log
-            target/jreleaser/output.properties
+  release:
+    name: "Release"
+    needs: [ toolfetch-archive, toolfetch-sboms ]
+    permissions:
+      contents: write
+    uses: jdheim/toolfetch/.github/workflows/call-release.yml@main
+    secrets:
+      JDHEIM_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
+      JDHEIM_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
+      JDHEIM_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
+
+  github-slsa-provenance:
+    name: "GitHub SLSA Provenance"
+    needs: release
+    permissions:
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: jdheim/toolfetch/.github/workflows/call-github-slsa-provenance.yml@main
+    with:
+      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
+
+  slsa-provenance:
+    name: "SLSA Provenance"
+    needs: release
+    permissions:
+      contents: write
+      id-token: write
+      actions: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      upload-assets: true
+      provenance-name: toolfetch-${{ needs.release.outputs.version }}-provenance.intoto.jsonl
+      upload-tag-name: ${{ needs.release.outputs.tag_name }}
+      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
+      draft-release: 'true'

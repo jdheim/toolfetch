@@ -1,0 +1,19 @@
+name: "PR: Scan"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: pr-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: "Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan.yml@main
+    permissions:
+      contents: read
+    with:
+      maven-repo-cache-key-prefix: "pr-scan-m2-repo"

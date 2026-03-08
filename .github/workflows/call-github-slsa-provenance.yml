@@ -1,0 +1,37 @@
+name: "Call: GitHub SLSA Provenance"
+
+on:
+  workflow_call:
+    inputs:
+      base64-subjects:
+        description: "Artifacts for which to generate provenance, formatted the same as the output of sha256sum (SHA256 NAME\\n[...]) and base64 encoded."
+        required: false
+        type: string
+
+jobs:
+  build-provenance:
+    name: "GitHub SLSA Provenance"
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Download ToolFetch Archives"
+        uses: actions/download-artifact@v8
+        with:
+          pattern: toolfetch-archive-*
+          merge-multiple: true
+          path: artifacts
+
+      - name: "Create subject file"
+        shell: bash
+        env:
+          BASE64_SUBJECTS: ${{ inputs.base64-subjects }}
+        run: echo "${{ inputs.base64-subjects }}" | base64 -d > "artifacts/checksums_sha256.txt"
+
+      - name: "Attest Build Provenance"
+        uses: actions/attest@v4
+        with:
+          subject-checksums: artifacts/checksums_sha256.txt

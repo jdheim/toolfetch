@@ -1,48 +1,49 @@
-name: "Scan"
-run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+name: "Call: Scan"
 
 on:
-  pull_request:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-concurrency:
-  group: scan-${{ github.ref }}
-  cancel-in-progress: false
-
-permissions:
-  contents: read
+  workflow_call:
+    inputs:
+      maven-repo-cache-key-prefix:
+        description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
+        required: false
+        type: string
+        default: "scan-m2-repo"
 
 jobs:
   scan:
-    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         scan:
-          - name: Dependency Analyze
+          - name: "Dependency Analyze"
             id: dependency-analyze
-          - name: Sonar Scan
+          - name: "Sonar Scan"
             id: sonar-scan
-          - name: SpotBugs Scan
+          - name: "SpotBugs Scan"
             id: spotbugs-scan
     name: ${{ matrix.scan.name }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: "Checkout"
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
-      - name: Prepare
+      - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "m2-repo-${{ matrix.scan.id }}"
-          generate-workflow-stats: "false"
+          maven-repo-cache-key: "${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.scan.id }}"
 
-      - name: Scan
+      - name: "Scan"
         working-directory: scripts
-        run: ./scan.sh --${{ matrix.scan.id }}
+        env:
+          MATRIX_SCAN_ID: ${{ matrix.scan.id }}
+        run: ./scan.sh --${MATRIX_SCAN_ID}
 
-      - name: Upload ${{ matrix.scan.name }} Report
+      - name: "Upload ${{ matrix.scan.name }} Report"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() && matrix.scan.id == 'spotbugs-scan' }}
         with:
@@ -51,7 +52,7 @@ jobs:
             target/site/**
             !target/site/jacoco
 
-      - name: Upload Test Reports
+      - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
         with:
@@ -61,7 +62,7 @@ jobs:
             target/surefire-reports/**/TEST-*.xml
             target/failsafe-reports/**/TEST-*.xml
 
-      - name: Upload Jacoco Scan Report
+      - name: "Upload Jacoco Scan Report"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
         with:

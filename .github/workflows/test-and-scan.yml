@@ -1,0 +1,59 @@
+name: "Test & Scan"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: test-and-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: "Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan.yml@main
+    permissions:
+      contents: read
+
+  test-report:
+    name: "Test Report"
+    needs: scan
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    uses: jdheim/toolfetch/.github/workflows/call-test-report.yml@main
+
+  owasp-scan:
+    name: "OWASP Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan-owasp.yml@main
+    permissions:
+      contents: read
+    secrets:
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+  toolfetch-binary:
+    name: "Assemble ToolFetch Binary"
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
+    permissions:
+      contents: read
+
+  test-native:
+    name: "Test Native"
+    needs: toolfetch-binary
+    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
+    permissions:
+      contents: read
+
+  test-report-native:
+    name: "Test Report Native"
+    needs: test-native
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    uses: jdheim/toolfetch/.github/workflows/call-test-report-native.yml@main

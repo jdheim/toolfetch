@@ -1,0 +1,23 @@
+name: "Call: Test Report"
+
+on:
+  workflow_call:
+
+jobs:
+  test-report:
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    name: "Test Report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Test Reporter"
+        uses: dorny/test-reporter@v2
+        with:
+          name: "Test"
+          artifact: test-report
+          badge-title: 'Tests'
+          path: '**/TEST-*.xml'
+          reporter: java-junit

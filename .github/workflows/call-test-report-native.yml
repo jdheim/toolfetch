@@ -1,0 +1,29 @@
+name: "Call: Test Report Native"
+
+on:
+  workflow_call:
+
+jobs:
+  test-report-native:
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { runner: ubuntu-latest,    platform: linux-amd64 }
+          - { runner: ubuntu-24.04-arm, platform: linux-arm64 }
+    name: "Test Report Native • ${{ matrix.job.platform }}"
+    runs-on: ${{ matrix.job.runner }}
+    steps:
+      - name: "Smoke Test Native Reporter"
+        uses: dorny/test-reporter@v2
+        with:
+          name: "Smoke Test Native"
+          artifact: smoke-test-native-report-${{ matrix.job.platform }}
+          badge-title: 'Tests'
+          path: '**/TEST-*.xml'
+          reporter: java-junit

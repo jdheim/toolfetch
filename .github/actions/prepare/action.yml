@@ -2,13 +2,13 @@ name: "Prepare"
 
 inputs:
   maven-repo-cache-key:
-    description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache."
+    description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
     required: false
-    default: "m2-repo"
+    default: "default-m2-repo"
   generate-workflow-stats:
     description: "Enables or disables 'Generate Workflow Stats' step"
     required: false
-    default: "true"
+    default: "false"
   install-syft:
     description: "Enables or disables 'Install Syft' step"
     required: false
@@ -21,46 +21,58 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install Dependencies with APT
+    - name: "Install Dependencies with APT"
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: jq yq xmlstarlet
-        version: 1.0
+        version: default-1.0
 
-    - name: Setup ENV variables
+    - name: "Setup ENV variables"
       shell: bash
       run: |
+        case "$RUNNER_ARCH" in
+          X64)   ARCH=amd64 ;;
+          ARM64) ARCH=arm64 ;;
+          *) echo "Unsupported RUNNER_ARCH: $RUNNER_ARCH"; exit 1 ;;
+        esac
+        echo "ARCH=${ARCH}" >> "$GITHUB_ENV"
         echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:jdk.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
+        echo "SYFT_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
         echo "UPX_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.version" "pom.xml")" >> ${GITHUB_ENV}
+        echo "UPX_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
 
-    - name: Install Syft
+    - name: "Install Syft"
       if: ${{ inputs.install-syft == 'true' }}
       shell: bash
       run: |
         mkdir -p "$RUNNER_TEMP/bin"
-        wget -qO- "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" \
-          | tar --extract --gzip --no-same-owner --directory="$RUNNER_TEMP/bin" syft
+        wget -O "$RUNNER_TEMP/syft_${SYFT_VERSION}_linux_${ARCH}.tar.gz" "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_${ARCH}.tar.gz"
+        echo "${SYFT_SHA256}  $RUNNER_TEMP/syft_${SYFT_VERSION}_linux_${ARCH}.tar.gz" | sha256sum -c
+        tar --extract --gzip --no-same-owner --directory="$RUNNER_TEMP/bin" \
+          --file="$RUNNER_TEMP/syft_${SYFT_VERSION}_linux_${ARCH}.tar.gz" syft
         "$RUNNER_TEMP/bin/syft" --version
         echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-    - name: Install UPX
+    - name: "Install UPX"
       if: ${{ inputs.install-upx == 'true' }}
       shell: bash
       run: |
         mkdir -p "$RUNNER_TEMP/bin"
-        wget -qO- "https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz" \
-          | tar --extract --xz --no-same-owner --directory="$RUNNER_TEMP/bin" --strip-components=1 --wildcards "*/upx"
+        wget -O "$RUNNER_TEMP/upx-${UPX_VERSION}-${ARCH}_linux.tar.xz" "https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${ARCH}_linux.tar.xz"
+        echo "${UPX_SHA256}  $RUNNER_TEMP/upx-${UPX_VERSION}-${ARCH}_linux.tar.xz" | sha256sum -c
+        tar --extract --xz --no-same-owner --directory="$RUNNER_TEMP/bin" \
+          --file="$RUNNER_TEMP/upx-${UPX_VERSION}-${ARCH}_linux.tar.xz" --strip-components=1 --wildcards "*/upx"
         "$RUNNER_TEMP/bin/upx" --version
         echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-    - name: Setup JDK
+    - name: "Setup JDK"
       uses: actions/setup-java@v5
       with:
         java-version: ${{ env.JDK_VERSION }}
         distribution: temurin
 
-    - name: Cache Maven Repository
+    - name: "Cache Maven Repository"
       uses: actions/cache@v5
       with:
         path: ~/.m2/repository
@@ -68,7 +80,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-
 
-    - name: Generate Workflow Stats
+    - name: "Generate Workflow Stats"
       if: ${{ inputs.generate-workflow-stats == 'true' }}
       shell: bash
       run: |

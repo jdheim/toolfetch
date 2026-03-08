@@ -1,0 +1,77 @@
+name: "Call: Assemble ToolFetch Binary"
+
+on:
+  workflow_call:
+    inputs:
+      maven-repo-cache-key-prefix:
+        description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
+        required: false
+        type: string
+        default: "toolfetch-binary-m2-repo"
+
+jobs:
+  toolfetch-binary:
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { runner: ubuntu-latest,    platform: linux-amd64 }
+          - { runner: ubuntu-24.04-arm, platform: linux-arm64 }
+    name: "Assemble ToolFetch Binary • ${{ matrix.job.platform }}"
+    runs-on: ${{ matrix.job.runner }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}"
+          install-syft: "true"
+          install-upx: "true"
+
+      - name: "Prepare Native Build"
+        working-directory: scripts
+        shell: bash
+        run: ./build.sh --native-prepare
+
+      - name: "Assemble ToolFetch Binary"
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE: ALWAYS
+        with:
+          version: latest
+          setup-java: false
+          arguments: assemble --output-directory=target
+
+      - name: "Upload Toolfetch Binary"
+        uses: actions/upload-artifact@v6
+        with:
+          name: toolfetch-binary-${{ matrix.job.platform }}
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            target/jreleaser/assemble/toolfetch_binary/native-image/toolfetch*${{ matrix.job.platform }}
+
+      - name: "Upload Toolfetch SBOM"
+        uses: actions/upload-artifact@v6
+        with:
+          name: toolfetch-sbom-${{ matrix.job.platform }}
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            target/jreleaser/sbom/*.spdx-json.sbom
+
+      - name: "Upload JReleaser output"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: jreleaser-toolfetch-binary-${{ matrix.job.platform }}
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

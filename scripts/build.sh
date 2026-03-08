@@ -73,7 +73,8 @@ build() {
     jreleaserAssemble "${binaryEnvs[@]}"
     local archiveEnvs=( "JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE=ALWAYS" )
     jreleaserAssemble "${archiveEnvs[@]}"
-    jreleaserFullReleaseDryRun "${archiveEnvs[@]}"
+    jreleaserAssemble "JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE=ALWAYS"
+    jreleaserFullReleaseDryRun "${archiveEnvs[@]}" "JRELEASER_SELECT_CURRENT_PLATFORM=true"
   fi
 }
 

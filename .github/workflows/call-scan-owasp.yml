@@ -1,43 +1,43 @@
-name: "OWASP Scan"
-run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+name: "Call: OWASP Scan"
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-concurrency:
-  group: owasp-scan-${{ github.ref }}
-  cancel-in-progress: false
+  workflow_call:
+    secrets:
+      NVD_API_KEY:
+        required: true
 
 jobs:
-  scan:
+  owasp-scan:
     name: "OWASP Scan"
+    timeout-minutes: 15
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: "Checkout"
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
-      - name: Prepare
+      - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "m2-repo-owasp-scan"
-          generate-workflow-stats: "false"
+          maven-repo-cache-key: "owasp-scan-m2-repo"
 
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
-      - name: Install .NET SDK required by AssemblyAnalyzer
+      - name: "Install .NET SDK required by AssemblyAnalyzer"
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: dotnet-runtime-8.0
-          version: 1.0
+          version: owasp-scan-1.0
 
-      - name: Scan
+      - name: "OWASP Scan"
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         working-directory: scripts
         run: ./scan.sh --owasp-scan
 
-      - name: Upload OWASP Scan Report
+      - name: "Upload OWASP Scan Report"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:

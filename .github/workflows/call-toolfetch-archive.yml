@@ -1,0 +1,66 @@
+name: "Call: Assemble ToolFetch Archive"
+
+on:
+  workflow_call:
+
+jobs:
+  toolfetch-archive:
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { runner: ubuntu-latest,    platform: linux-amd64 }
+          - { runner: ubuntu-24.04-arm, platform: linux-arm64 }
+    name: "Assemble ToolFetch Archive • ${{ matrix.job.platform }}"
+    runs-on: ${{ matrix.job.runner }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "toolfetch-archive-${{ matrix.job.runner }}-m2-repo"
+
+      - name: "Prepare Native Build"
+        working-directory: scripts
+        shell: bash
+        run: ./build.sh --native-prepare
+
+      - name: "Download ToolFetch Binary"
+        uses: actions/download-artifact@v8
+        with:
+          name: toolfetch-binary-${{ matrix.job.platform }}
+          path: target/jreleaser/assemble/toolfetch_binary/native-image
+
+      - name: "Assemble Toolfetch Archive"
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
+        with:
+          version: latest
+          setup-java: false
+          arguments: assemble --output-directory=target
+
+      - name: "Upload Toolfetch Archive"
+        uses: actions/upload-artifact@v6
+        with:
+          name: toolfetch-archive-${{ matrix.job.platform }}
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            target/jreleaser/assemble/toolfetch/archive/toolfetch*${{ matrix.job.platform }}.tar.gz
+
+      - name: "Upload JReleaser output"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: jreleaser-toolfetch-archive-${{ matrix.job.platform }}
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

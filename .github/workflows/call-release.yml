@@ -1,0 +1,89 @@
+name: "Call: Release"
+
+on:
+  workflow_call:
+    secrets:
+      JDHEIM_GPG_PUBLIC_KEY:
+        required: true
+      JDHEIM_GPG_SECRET_KEY:
+        required: true
+      JDHEIM_GPG_PASSPHRASE:
+        required: true
+    outputs:
+      version:
+        description: "Release Version"
+        value: ${{ jobs.release.outputs.version }}
+      tag_name:
+        description: "Release Tag"
+        value: ${{ jobs.release.outputs.tag_name }}
+      base64_subjects:
+        description: "Base64-encoded release subjects"
+        value: ${{ jobs.release.outputs.base64_subjects }}
+
+jobs:
+  release:
+    name: "Release"
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.slsa.outputs.version }}
+      tag_name: ${{ steps.slsa.outputs.tag_name }}
+      base64_subjects: ${{ steps.slsa.outputs.base64_subjects }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: "release-m2-repo"
+
+      - name: "Download ToolFetch Archives"
+        uses: actions/download-artifact@v8
+        with:
+          pattern: toolfetch-archive-*
+          merge-multiple: true
+          path: target/jreleaser/assemble/toolfetch/archive
+
+      - name: "Download ToolFetch SBOMs"
+        uses: actions/download-artifact@v8
+        with:
+          name: toolfetch-sboms
+          path: target/jreleaser/sbom
+
+      - name: "Release with JReleaser"
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
+          JRELEASER_SIGNING_ACTIVE: ALWAYS
+          JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
+          JRELEASER_DRAFT: true
+        with:
+          version: latest
+          setup-java: false
+          arguments: full-release --output-directory=target
+
+      - name: "Collect SLSA outputs"
+        id: slsa
+        shell: bash
+        run: |
+          echo "version=$(grep "^projectVersion=" "target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$(grep "^tagName=" "target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "base64_subjects=$(cat "target/jreleaser/checksums/checksums_sha256.txt" | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+      - name: "Upload JReleaser output"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: jreleaser-release
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

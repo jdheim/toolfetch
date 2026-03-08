@@ -25,11 +25,6 @@
     <name>ToolFetch</name>
 
     <properties>
-        <!-- curl "https://api.foojay.io/disco/v3.0/packages?distribution=graalvm&operating_system=linux&architecture=x64" | jq -r '.result[].java_version' -->
-        <jdk.version>25.0.2</jdk.version>
-        <syft.version>1.42.1</syft.version>
-        <upx.version>5.1.1</upx.version>
-
         <!-- Project -->
         <main.class>com.jdheim.toolfetch.Main</main.class>
         <maven.compiler.source>25</maven.compiler.source>
@@ -52,6 +47,16 @@
         <!-- Enforce Tools -->
         <enforce-maven.version>3.9.12</enforce-maven.version>
         <enforce-java.version>${maven.compiler.source}</enforce-java.version>
+
+        <!-- GitHub Actions -->
+        <syft.version>1.42.2</syft.version>
+        <syft.sha256.linux-amd64>1d3cc98b13ce3dfb6083ef42f64f1033e40d7dea292e8ea85ed1cf88efb2f542</syft.sha256.linux-amd64>
+        <syft.sha256.linux-arm64>49aa164f953adcca6d80d6ce6d2a61d3226be72046a0b3ddd02d9c28c49c916d</syft.sha256.linux-arm64>
+        <upx.version>5.1.1</upx.version>
+        <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
+        <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
+        <!-- curl "https://api.foojay.io/disco/v3.0/packages?distribution=graalvm&operating_system=linux&architecture=x64" | jq -r '.result[].java_version' -->
+        <jdk.version>25.0.2</jdk.version>
 
         <!-- Dependencies -->
         <commons-io.version>2.21.0</commons-io.version>
@@ -847,14 +852,24 @@
                                 </goals>
                                 <phase>initialize</phase>
                                 <configuration>
+                                    <selectCurrentPlatform>true</selectCurrentPlatform>
                                     <pkgs>
                                         <pkg>
-                                            <name>graalvm</name>
+                                            <name>graalvm-linux-amd64</name>
                                             <distribution>graalvm</distribution>
                                             <version>${jdk.version}</version>
                                             <platform>linux-x86_64</platform>
                                             <archiveType>tar.gz</archiveType>
-                                            <libcType>glibc</libcType>
+                                            <javafxBundled>false</javafxBundled>
+                                            <packageType>jdk</packageType>
+                                            <releaseStatus>ga</releaseStatus>
+                                        </pkg>
+                                        <pkg>
+                                            <name>graalvm-linux-arm64</name>
+                                            <distribution>graalvm</distribution>
+                                            <version>${jdk.version}</version>
+                                            <platform>linux-aarch64</platform>
+                                            <archiveType>tar.gz</archiveType>
                                             <javafxBundled>false</javafxBundled>
                                             <packageType>jdk</packageType>
                                             <releaseStatus>ga</releaseStatus>
