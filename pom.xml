@@ -90,6 +90,7 @@
         <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
         <!-- Other Maven Plugins -->
         <dependency-check-maven.version>12.2.0</dependency-check-maven.version>
+        <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
         <git-commit-id-maven-plugin.version>9.0.2</git-commit-id-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
@@ -476,6 +477,11 @@
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
                     <version>${dependency-check-maven.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>io.github.git-commit-id</groupId>
@@ -875,6 +881,37 @@
                                     <outputFile>${project.build.directory}/lib/libs.txt</outputFile>
                                     <outputDirectory>${project.build.directory}/lib</outputDirectory>
                                     <excludeArtifactIds>${project.artifactId}</excludeArtifactIds>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <!-- @Patch The SBOM feature could not associate 168 type(s) to a component.
+                                    All types must be matched to a component when strict SBOM is enabled.
+                                    If an unassociated type contains a vulnerability, SBOM scanning will not detect it.
+                                    To fix this, ensure that GAV coordinates (Group ID, Artifact ID, and Version) are defined
+                                    in the 'pom.properties' or 'MANIFEST.MF' files using standard formats -->
+                                <id>patch-picocli-for-strict-graalvm-sbom</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>-c</argument>
+                                        <argument>
+                                            <![CDATA[
+                                                mkdir -p ${project.build.directory}/picocli-patch/META-INF/maven/info.picocli/picocli &&
+                                                printf "groupId=info.picocli\nartifactId=picocli\nversion=${picocli.version}\n" > ${project.build.directory}/picocli-patch/META-INF/maven/info.picocli/picocli/pom.properties &&
+                                                jar ufv ${project.build.directory}/lib/picocli-${picocli.version}.jar -C ${project.build.directory}/picocli-patch/ META-INF/
+                                            ]]>
+                                        </argument>
+                                    </arguments>
                                 </configuration>
                             </execution>
                         </executions>

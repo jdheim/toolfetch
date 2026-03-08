@@ -80,8 +80,7 @@ assemble:
           platform: 'linux-x86_64'
       args:
         - '-H:+UnlockExperimentalVMOptions'
-        - '--enable-sbom=embed'
-        # TODO strict
+        - '--enable-sbom=embed,cyclonedx,strict'
       mainJar:
         path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
       jars:
