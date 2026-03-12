@@ -91,8 +91,7 @@ public class ArchiveExtractService implements ExtractService {
             }
 
             String entryName = stripEntryName(archiveEntry, topLevelDir);
-            Path target = destinationPath.resolve(entryName).normalize();
-            zipSlipCheck(target, destinationPath, entryName);
+            Path target = resolveSecureTargetPath(destinationPath, entryName);
             extractEntry(ais, target);
         }
     }
@@ -109,11 +108,15 @@ public class ArchiveExtractService implements ExtractService {
     }
 
     /// See [Zip Slip vulnerability](https://security.snyk.io/research/zip-slip-vulnerability)
-    private void zipSlipCheck(Path target, Path destinationPath, String entryName) {
-        if (!target.startsWith(destinationPath)) {
+    private Path resolveSecureTargetPath(Path destinationPath, String entryName) {
+        Path normalizedDestination = destinationPath.toAbsolutePath().normalize();
+        Path normalizedTarget = normalizedDestination.resolve(entryName).normalize();
+        if (!normalizedTarget.startsWith(normalizedDestination)) {
             throw new UnsupportedOperationException(
-                    "Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"".formatted(destinationPath, entryName, target));
+                    "Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"".formatted(normalizedDestination, entryName,
+                            normalizedTarget));
         }
+        return normalizedTarget;
     }
 
     void extractEntry(ArchiveInputStream<ArchiveEntry> ais, Path target) throws IOException {
