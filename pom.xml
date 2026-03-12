@@ -62,7 +62,7 @@
         <commons-io.version>2.21.0</commons-io.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
-        <xz.version>1.11</xz.version>
+        <xz.version>1.12</xz.version>
         <brotli.version>0.1.2</brotli.version>
         <zstd.version>1.5.7-7</zstd.version>
         <error-prone.version>2.48.0</error-prone.version>
