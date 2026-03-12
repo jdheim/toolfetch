@@ -9,8 +9,8 @@
         <img src="https://slsa.dev/images/gh-badge-level3.svg" alt="SLSA: Level 3"/>
     </a>
     <br/>
-    <a href="https://github.com/jdheim/toolfetch/actions/workflows/test-and-scan.yml" rel="noreferrer">
-        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/test-and-scan.yml?label=Tests%20%26%20Scans&logo=github&logoColor=white&branch=main" alt="Tests & Scans"/>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/tests-and-scans.yml?label=Tests%20%26%20Scans&logo=github&logoColor=white&branch=main" alt="Tests & Scans"/>
     </a>
     <a href="https://github.com/jdheim/toolfetch/actions/workflows/scheduled-security-scans.yml" rel="noreferrer">
         <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scheduled-security-scans.yml?label=Security%20%20Scans&logo=github&logoColor=white&branch=main" alt="Security Scans"/>

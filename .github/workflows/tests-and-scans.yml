@@ -1,4 +1,4 @@
-name: "Test & Scan"
+name: "Tests & Scans"
 run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
 
 on:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 concurrency:
-  group: test-and-scan-${{ github.ref }}
+  group: tests-and-scans-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
