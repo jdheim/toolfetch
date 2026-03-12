@@ -68,7 +68,7 @@
         <error-prone.version>2.48.0</error-prone.version>
         <nullaway.version>0.13.1</nullaway.version>
         <jspecify.version>1.0.0</jspecify.version>
-        <json-schema-validator.version>3.0.0</json-schema-validator.version>
+        <json-schema-validator.version>3.0.1</json-schema-validator.version>
         <jackson-tools.version>3.1.0</jackson-tools.version>
         <jackson.version>2.21</jackson.version>
         <picocli.version>4.7.7</picocli.version>
