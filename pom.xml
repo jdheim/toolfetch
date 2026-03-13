@@ -100,6 +100,7 @@
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
+        <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
         <jdks-maven-plugin.version>1.23.0</jdks-maven-plugin.version>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
@@ -556,6 +557,11 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${license-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.jreleaser</groupId>
                     <artifactId>jdks-maven-plugin</artifactId>
                     <version>${jdks-maven-plugin.version}</version>
@@ -838,6 +844,69 @@
             </build>
         </profile>
         <profile>
+            <id>add-third-party</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>add-third-party</id>
+                                <goals>
+                                    <goal>add-third-party</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/third-party</outputDirectory>
+                            <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
+                            <includedScopes>runtime,compile</includedScopes>
+                            <includeTransitiveDependencies>true</includeTransitiveDependencies>
+                            <sortArtifactByName>true</sortArtifactByName>
+                            <failOnMissing>true</failOnMissing>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-libs</id>
+                                <goals>
+                                    <goal>list</goal>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <!-- runtime include scope gives runtime and compile dependencies -->
+                                    <includeScope>runtime</includeScope>
+                                    <excludeTransitive>false</excludeTransitive>
+                                    <outputFile>${project.build.directory}/third-party/LIBS.txt</outputFile>
+                                    <outputDirectory>${project.build.directory}/third-party/lib</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy-libs-sources</id>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <!-- runtime include scope gives runtime and compile dependencies -->
+                                    <includeScope>runtime</includeScope>
+                                    <classifier>sources</classifier>
+                                    <excludeTransitive>false</excludeTransitive>
+                                    <outputDirectory>${project.build.directory}/third-party/sources</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>setup-graalvm</id>
             <build>
                 <plugins>
@@ -880,27 +949,6 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-runtime-libs</id>
-                                <goals>
-                                    <goal>list</goal>
-                                    <goal>copy-dependencies</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <includeScope>runtime</includeScope>
-                                    <excludeTransitive>false</excludeTransitive>
-                                    <outputFile>${project.build.directory}/lib/libs.txt</outputFile>
-                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                                    <excludeArtifactIds>${project.artifactId}</excludeArtifactIds>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <executions>
@@ -921,9 +969,9 @@
                                         <argument>-c</argument>
                                         <argument>
                                             <![CDATA[
-                                                mkdir -p ${project.build.directory}/picocli-patch/META-INF/maven/info.picocli/picocli &&
-                                                printf "groupId=info.picocli\nartifactId=picocli\nversion=${picocli.version}\n" > ${project.build.directory}/picocli-patch/META-INF/maven/info.picocli/picocli/pom.properties &&
-                                                jar ufv ${project.build.directory}/lib/picocli-${picocli.version}.jar -C ${project.build.directory}/picocli-patch/ META-INF/
+                                                mkdir -p ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli &&
+                                                printf "groupId=info.picocli\nartifactId=picocli\nversion=${picocli.version}\n" > ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli/pom.properties &&
+                                                jar ufv ${project.build.directory}/third-party/lib/picocli-${picocli.version}.jar -C ${project.build.directory}/third-party/picocli-patch/ META-INF/
                                             ]]>
                                         </argument>
                                     </arguments>

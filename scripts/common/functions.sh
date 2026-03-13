@@ -43,6 +43,13 @@ run() {
 	echo -e "${INFO} \e[1m$\e[0m $*"; "$@"
 }
 
+trim() {
+  local string="${1}"
+  string="${string#"${string%%[![:space:]]*}"}"
+  string="${string%"${string##*[![:space:]]}"}"
+  echo "${string}"
+}
+
 ## fileSize "file"
 fileSize() {
   local file="${1}"
