@@ -82,7 +82,10 @@ assemble:
         - input: "."
           includes:
             - "LICENSE"
+            - "NOTICE"
             - "README.md"
+        - input: "target/third-party/license"
+          output: "licenses"
   nativeImage:
     toolfetch_binary:
       executable: '{{projectName}}-{{projectEffectiveVersion}}'
@@ -99,14 +102,9 @@ assemble:
       mainJar:
         path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
       jars:
-        - pattern: '{{baseOutputDirectory}}/lib/*.jar'
+        - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
       java:
         mainClass: 'com.jdheim.{{projectName}}.Main'
-      fileSets:
-        - input: "."
-          includes:
-            - "LICENSE"
-            - "README.md"
     toolfetch_debug:
       executable: '{{projectName}}-{{projectEffectiveVersion}}'
       archiving:
@@ -122,7 +120,7 @@ assemble:
       mainJar:
         path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
       jars:
-        - pattern: '{{baseOutputDirectory}}/lib/*.jar'
+        - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
       java:
         mainClass: 'com.jdheim.{{projectName}}.Main'
 

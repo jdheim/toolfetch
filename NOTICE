@@ -1,0 +1,109 @@
+ToolFetch
+Copyright 2026-2026 JDHeim.com
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org).
+
+---
+
+The following components are included in this product:
+
+Apache Commons Codec
+https://commons.apache.org/proper/commons-codec/
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2002-2025 The Apache Software Foundation
+
+Apache Commons Compress
+https://commons.apache.org/proper/commons-compress/
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2002-2025 The Apache Software Foundation
+
+Apache Commons IO
+https://commons.apache.org/proper/commons-io/
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2002-2025 The Apache Software Foundation
+
+Apache Commons Lang
+https://commons.apache.org/proper/commons-lang/
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2001-2025 The Apache Software Foundation
+
+Internet Time Utility
+https://github.com/ethlo/itu
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright (C) 2017 Morten Haraldsen (ethlo)
+
+Jackson-annotations
+https://github.com/FasterXML/jackson
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
+
+Jackson-core
+https://github.com/FasterXML/jackson-core
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
+
+jackson-databind
+https://github.com/FasterXML/jackson
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
+
+Jansi
+https://fusesource.github.io/jansi
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright (C) 2009-2017 the original author(s).
+
+JsonSchemaValidator
+https://github.com/networknt/json-schema-validator
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright (c) 2016 Network New Technologies Inc.
+
+JSpecify annotations
+https://jspecify.org/
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2022 The JSpecify Authors.
+
+Logback Classic Module
+https://logback.qos.ch
+Licensed under EPL-2.0 (https://spdx.org/licenses/EPL-2.0.html)
+Copyright (C) 1999-2026, QOS.ch. All rights reserved.
+
+Logback Core Module
+https://logback.qos.ch
+Licensed under EPL-2.0 (https://spdx.org/licenses/EPL-2.0.html)
+Copyright (C) 1999-2026, QOS.ch. All rights reserved.
+
+org.brotli:dec
+https://brotli.org
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+Copyright 2015 Google Inc. All Rights Reserved.
+
+picocli
+https://picocli.info
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright 2017 Remko Popma
+
+SLF4J API Module
+https://www.slf4j.org
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
+
+SnakeYAML Engine
+https://bitbucket.org/snakeyaml/snakeyaml-engine
+Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
+Copyright (c) 2018, SnakeYAML
+
+XZ for Java
+https://tukaani.org/xz/java.html
+Licensed under 0BSD (https://spdx.org/licenses/0BSD.html)
+Copyright (c) The XZ for Java authors and contributors
+
+zstd-jni
+https://github.com/luben/zstd-jni
+Licensed under BSD-2-Clause (https://spdx.org/licenses/BSD-2-Clause.html)
+Copyright (c) 2015-present, Luben Karavelov/ All rights reserved
+
+zstd-jni bundles the Zstandard software
+https://github.com/facebook/zstd
+Licensed under BSD-3-Clause (https://spdx.org/licenses/BSD-3-Clause.html)
+Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
