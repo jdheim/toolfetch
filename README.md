@@ -300,6 +300,6 @@ Thank you for being amazing!
 
 ## ©️ License
 
-© 2026-2026 JDHeim.com
+Copyright 2026 JDHeim.com
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for full license terms.

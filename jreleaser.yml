@@ -23,7 +23,7 @@ project:
   stereotype: 'CLI'
   inceptionYear: '2026'
   license: 'Apache-2.0'
-  copyright: '© 2026-2026 JDHeim.com'
+  copyright: 'Copyright 2026 JDHeim.com'
   links:
     homepage: 'https://github.com/jdheim/toolfetch'
   languages:
