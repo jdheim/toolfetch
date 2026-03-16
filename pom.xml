@@ -44,8 +44,13 @@
         <upx.version>5.1.1</upx.version>
         <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
         <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
-        <!-- curl "https://api.foojay.io/disco/v3.0/packages?distribution=graalvm&operating_system=linux&architecture=x64" | jq -r '.result[].java_version' -->
-        <jdk.version>25.0.2</jdk.version>
+
+        <!-- GraalVM JDKs: also update in jreleaser.yml -->
+        <graalvm-jdk.version>25.0.2</graalvm-jdk.version>
+        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.2_linux-x64_bin.tar.gz.sha256 -->
+        <graalvm-jdk.sha256.linux-amd64>af545b1bc12ecd24a5ba95e2370da2163e87c4cf13991a482d5b176bf4165c12</graalvm-jdk.sha256.linux-amd64>
+        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.2_linux-aarch64_bin.tar.gz.sha256 -->
+        <graalvm-jdk.sha256.linux-arm64>e0e18106fa1d8628d8ba21f548865211d7c8608a3423f7b25cb2aa4eef9abf10</graalvm-jdk.sha256.linux-arm64>
 
         <!-- Dependencies -->
         <commons-io.version>2.21.0</commons-io.version>
@@ -94,6 +99,7 @@
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
         <findsecbugs-plugin.version>1.14.0</findsecbugs-plugin.version>
+        <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
     </properties>
 
     <licenses>
@@ -577,6 +583,11 @@
                     <artifactId>findsecbugs-plugin</artifactId>
                     <version>${findsecbugs-plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${versions-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -733,14 +744,14 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <jvm>${project.build.directory}/jdks/graalvm/graalvm-jdk-25.0.2+10.1/bin/java</jvm>
+                            <jvm>${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}/bin/java</jvm>
                         </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <jvm>${project.build.directory}/jdks/graalvm/graalvm-jdk-25.0.2+10.1/bin/java</jvm>
+                            <jvm>${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}/bin/java</jvm>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -892,51 +903,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>setup-graalvm</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jreleaser</groupId>
-                        <artifactId>jdks-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>setup-graalvm</id>
-                                <goals>
-                                    <goal>setup-disco</goal>
-                                </goals>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <selectCurrentPlatform>true</selectCurrentPlatform>
-                                    <pkgs>
-                                        <pkg>
-                                            <name>graalvm-linux-amd64</name>
-                                            <distribution>graalvm</distribution>
-                                            <version>${jdk.version}</version>
-                                            <platform>linux-x86_64</platform>
-                                            <archiveType>tar.gz</archiveType>
-                                            <javafxBundled>false</javafxBundled>
-                                            <packageType>jdk</packageType>
-                                            <releaseStatus>ga</releaseStatus>
-                                        </pkg>
-                                        <pkg>
-                                            <name>graalvm-linux-arm64</name>
-                                            <distribution>graalvm</distribution>
-                                            <version>${jdk.version}</version>
-                                            <platform>linux-aarch64</platform>
-                                            <archiveType>tar.gz</archiveType>
-                                            <javafxBundled>false</javafxBundled>
-                                            <packageType>jdk</packageType>
-                                            <releaseStatus>ga</releaseStatus>
-                                        </pkg>
-                                    </pkgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
@@ -961,6 +927,68 @@
                                                 mkdir -p ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli &&
                                                 printf "groupId=info.picocli\nartifactId=picocli\nversion=${picocli.version}\n" > ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli/pom.properties &&
                                                 jar ufv ${project.build.directory}/third-party/lib/picocli-${picocli.version}.jar -C ${project.build.directory}/third-party/picocli-patch/ META-INF/
+                                            ]]>
+                                        </argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>setup-graalvm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jdks-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>setup-graalvm-jdk</id>
+                                <goals>
+                                    <goal>setup-jdks</goal>
+                                </goals>
+                                <phase>initialize</phase>
+                                <configuration>
+                                    <selectCurrentPlatform>true</selectCurrentPlatform>
+                                    <jdks>
+                                        <jdk>
+                                            <name>graalvm-linux-amd64</name>
+                                            <platform>linux-x86_64</platform>
+                                            <url>https://download.oracle.com/graalvm/${maven.compiler.source}/archive/graalvm-jdk-${graalvm-jdk.version}_linux-x64_bin.tar.gz</url>
+                                            <checksum>${graalvm-jdk.sha256.linux-amd64}</checksum>
+                                        </jdk>
+                                        <jdk>
+                                            <name>graalvm-linux-arm64</name>
+                                            <platform>linux-aarch64</platform>
+                                            <url>https://download.oracle.com/graalvm/${maven.compiler.source}/archive/graalvm-jdk-${graalvm-jdk.version}_linux-aarch64_bin.tar.gz</url>
+                                            <checksum>${graalvm-jdk.sha256.linux-arm64}</checksum>
+                                        </jdk>
+                                    </jdks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>rename-graalvm-jdk</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>initialize</phase>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>-c</argument>
+                                        <argument>
+                                            <![CDATA[
+                                                mv ${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}+* \
+                                                    ${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}
                                             ]]>
                                         </argument>
                                     </arguments>
@@ -1042,6 +1070,30 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>linux-amd64</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <graalvm.platform>linux-amd64</graalvm.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-arm64</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <graalvm.platform>linux-arm64</graalvm.platform>
+            </properties>
         </profile>
     </profiles>
 

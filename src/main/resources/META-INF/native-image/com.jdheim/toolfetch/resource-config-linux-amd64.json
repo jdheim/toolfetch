@@ -1,0 +1,12 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "linux/amd64/libzstd-jni-.*\\.so"
+      },
+      {
+        "pattern": "org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so"
+      }
+    ]
+  }
+}

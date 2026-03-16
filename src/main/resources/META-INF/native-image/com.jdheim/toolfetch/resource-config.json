@@ -12,9 +12,6 @@
       },
       {
         "pattern": "logback.xml"
-      },
-      {
-        "pattern": "linux/(amd64|aarch64)/libzstd-jni-.*\\.so"
       }
     ]
   }

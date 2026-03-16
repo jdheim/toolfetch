@@ -1,0 +1,93 @@
+name: "Call: Version Bump"
+
+on:
+  workflow_call:
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID:
+        required: true
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY:
+        required: true
+    inputs:
+      version-bump-type:
+        description: "Part of the version to bump: major, minor, or patch"
+        required: true
+        type: string
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: string
+
+jobs:
+  version-bump:
+    name: "Version Bump"
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate Token of jdheim-actions[bot]"
+        id: jdheim-actions-bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+
+      - name: "Get Version"
+        id: get-version
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq '.project.version' "jreleaser.yml"
+
+      - name: "Bump Version"
+        env:
+          VERSION: ${{ steps.get-version.outputs.result }}
+          VERSION_BUMP_TYPE: ${{ inputs.version-bump-type }}
+        shell: bash
+        run: |
+          if [[ -z "${VERSION}" ]]; then
+            BUMPED_VERSION="0.0.1"
+          else
+            IFS='.' read -r major minor patch <<< "${VERSION%%-*}"
+            case "${VERSION_BUMP_TYPE}" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+              *) echo "Invalid version-bump-type: ${VERSION_BUMP_TYPE}"
+                echo "Allowed values: major, minor, patch"
+                exit 1 ;;
+            esac
+            BUMPED_VERSION="${major}.${minor}.${patch}"
+          fi
+          echo "BUMPED_VERSION=${BUMPED_VERSION}" >> "$GITHUB_ENV"
+
+      - name: "Set Version in JReleaser"
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.project.version = strenv(BUMPED_VERSION)' "jreleaser.yml"
+
+      - name: "Set Version in Maven"
+        shell: bash
+        run: ./mvnw versions:set -DnewVersion="${BUMPED_VERSION}" -DgenerateBackupPoms=false
+
+      - name: "Verify changes"
+        shell: bash
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No changes to commit. Version increment failed"
+            exit 1
+          fi
+
+      - name: "Commit and Push"
+        uses: IAreKyleW00t/verified-bot-commit@v2
+        if: ${{ inputs.draft-release != 'true' }}
+        with:
+          message: "chore: Bump version to ${{ env.BUMPED_VERSION }}"
+          ref: ${{ github.ref_name }}
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          files: |
+            **

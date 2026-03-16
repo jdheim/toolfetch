@@ -47,7 +47,11 @@ fileSize() {
 }
 
 getProjectVersion() {
-  yq -r ".project.version" "jreleaser.yml" | sed "s/-.*//"
+  if command -v yq >/dev/null; then
+    yq -r '.project.version' "jreleaser.yml"
+  else
+    grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'"
+  fi
 }
 
 getProjectArtifactId() {
@@ -56,10 +60,6 @@ getProjectArtifactId() {
 
 getProjectGroupId() {
   xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:groupId" "pom.xml"
-}
-
-getProjectModules() {
-  xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:modules/n:module" "pom.xml"
 }
 
 ## updatePropertyInXmlFile "pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:version" "0.0.1"

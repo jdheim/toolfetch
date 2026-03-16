@@ -36,7 +36,7 @@ runs:
           *) echo "Unsupported RUNNER_ARCH: $RUNNER_ARCH"; exit 1 ;;
         esac
         echo "ARCH=${ARCH}" >> "$GITHUB_ENV"
-        echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:jdk.version" "pom.xml")" >> ${GITHUB_ENV}
+        echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
         echo "UPX_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.version" "pom.xml")" >> ${GITHUB_ENV}

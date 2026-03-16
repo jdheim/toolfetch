@@ -1,7 +1,6 @@
 environment:
   properties:
-    graalVmDir: 'graalvm-jdk-25.0.2+10.1'
-
+    graalVmDir: 'graalvm-jdk-25.0.2'
 project:
   name: 'toolfetch'
   version: '0.0.1'
@@ -29,42 +28,36 @@ project:
   languages:
     java:
       groupId: 'com.jdheim'
-
 platform:
   replacements:
     x86_64: 'amd64'
     linux-x86_64: 'linux-amd64'
     aarch_64: 'arm64'
     linux-aarch_64: 'linux-arm64'
-
 checksum:
   algorithms:
     - 'SHA_256'
   individual: true
-
 signing:
   pgp:
     armored: true
     verify: true
     mode: 'MEMORY'
-
 files:
   artifacts:
-    - path: '{{outputDirectory}}/sbom/{{projectName}}-{{projectEffectiveVersion}}-sboms.zip'
-
+    - path: '{{outputDirectory}}/sbom/{{projectName}}-{{projectVersion}}-sboms.zip'
 distributions:
   toolfetch:
     type: 'BINARY'
     artifacts:
-      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectEffectiveVersion}}-linux-amd64.tar.gz'
+      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectVersion}}-linux-amd64.tar.gz'
         platform: 'linux-x86_64'
         extraProperties:
           graalVMNativeImage: 'true'
-      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectEffectiveVersion}}-linux-arm64.tar.gz'
+      - path: '{{assembleDirectory}}/{{projectName}}/archive/{{projectName}}-{{projectVersion}}-linux-arm64.tar.gz'
         platform: 'linux-aarch_64'
         extraProperties:
           graalVMNativeImage: 'true'
-
 assemble:
   archive:
     toolfetch:
@@ -76,7 +69,7 @@ assemble:
         longFileMode: 'POSIX'
         bigNumberMode: 'POSIX'
       artifacts:
-        - path: '{{assembleDirectory}}/{{projectName}}_binary/native-image/{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}'
+        - path: '{{assembleDirectory}}/{{projectName}}_binary/native-image/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}'
           transform: 'bin/{{projectName}}'
       fileSets:
         - input: "."
@@ -88,7 +81,7 @@ assemble:
           output: "licenses"
   nativeImage:
     toolfetch_binary:
-      executable: '{{projectName}}-{{projectEffectiveVersion}}'
+      executable: '{{projectName}}-{{projectVersion}}'
       archiving:
         enabled: false
       graalJdks:
@@ -99,14 +92,16 @@ assemble:
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '--enable-sbom=embed,cyclonedx,strict'
+        - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
+        - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
       java:
         mainClass: 'com.jdheim.{{projectName}}.Main'
     toolfetch_debug:
-      executable: '{{projectName}}-{{projectEffectiveVersion}}'
+      executable: '{{projectName}}-{{projectVersion}}'
       archiving:
         enabled: false
       graalJdks:
@@ -117,20 +112,21 @@ assemble:
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '-H:+JDWP'
+        - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
+        - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectEffectiveVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
       java:
         mainClass: 'com.jdheim.{{projectName}}.Main'
-
 hooks:
   script:
     success:
       # Generate SBOM
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
-            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable)"
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
             if [[ -z "${binary}" ]]; then
               echo "[sbom] Missing {{projectName}} binary"
               exit 1
@@ -139,7 +135,7 @@ hooks:
               echo "[sbom] Generate SPDX SBOM with Syft $(syft --version | awk '{print $2}')"
               sbomDirectory="{{outputDirectory}}/sbom"
               mkdir -p "${sbomDirectory}"
-              sbom="${sbomDirectory}/{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}.spdx-json.sbom"
+              sbom="${sbomDirectory}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}.spdx-json.sbom"
               syft file:"${binary}" -o spdx-json="${sbom}"
             else
               echo "[sbom] Syft not installed. Skipping"
@@ -151,7 +147,7 @@ hooks:
       # Compress with UPX
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
-            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable)"
+            binary="$(find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable)"
             if [[ -z "${binary}" ]]; then
               echo "[sbom] Missing {{projectName}} binary"
               exit 1
@@ -173,7 +169,7 @@ hooks:
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
             echo "[native-image] Copy a native image to the target directory"
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
           fi
         verbose: true
         filter:
@@ -189,8 +185,8 @@ hooks:
               cp -v {{baseOutputDirectory}}/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/
             fi
             cp -v ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/libsvmjdwp.so {{baseOutputDirectory}}
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectEffectiveVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
           fi
         verbose: true
         filter:
@@ -209,7 +205,7 @@ hooks:
               echo "[sbom] Missing SBOM"
               exit 1
             fi
-          
+
             valid=true
             for sbom in ${sboms}; do
               if ! grep -q "info.picocli-picocli" "${sbom}"; then
@@ -217,17 +213,16 @@ hooks:
                 break
               fi
             done
-          
+
             if [[ "${valid}" != "true" ]]; then
               echo "[sbom] Missing libraries in SBOM"
               exit 1
             fi
-            zip -j "${sbomDirectory}/{{projectName}}-{{projectEffectiveVersion}}-sboms.zip" ${sboms}
+            zip -j "${sbomDirectory}/{{projectName}}-{{projectVersion}}-sboms.zip" ${sboms}
           fi
         verbose: true
         filter:
           includes: [ 'assemble' ]
-
 release:
   github:
     releaseName: '{{tagName}}'
@@ -262,4 +257,5 @@ release:
         contributors:
           - 'p-marcin'
           - 'dependabot'
-          - 'GitHub'
+          - 'jdheim-actions'
+          - 'github-actions'

@@ -26,7 +26,6 @@ EOF
 main() {
   cd ..
   readOptions "$@"
-  scripts/common/updateVersion.sh "$(getProjectVersion)"
   build
 }
 

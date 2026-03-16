@@ -9,6 +9,11 @@ on:
         required: true
       JDHEIM_GPG_PASSPHRASE:
         required: true
+    inputs:
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: string
     outputs:
       version:
         description: "Release Version"
@@ -65,7 +70,7 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
           JRELEASER_SIGNING_ACTIVE: ALWAYS
           JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
-          JRELEASER_DRAFT: true
+          JRELEASER_DRAFT: ${{ inputs.draft-release }}
         with:
           version: latest
           setup-java: false

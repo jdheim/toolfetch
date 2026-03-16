@@ -3,6 +3,24 @@ run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.even
 
 on:
   workflow_dispatch:
+    inputs:
+      version-bump-type:
+        description: "Part of the version to bump"
+        required: true
+        type: choice
+        options:
+          - "patch"
+          - "minor"
+          - "major"
+        default: "patch"
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "false"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -56,6 +74,21 @@ jobs:
       JDHEIM_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
       JDHEIM_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
       JDHEIM_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
+    with:
+      draft-release: ${{ inputs.draft-release }}
+
+  version-bump:
+    name: "Version Bump"
+    needs: release
+    permissions:
+      contents: write
+    uses: jdheim/toolfetch/.github/workflows/call-version-bump.yml@main
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+    with:
+      version-bump-type: ${{ inputs.version-bump-type }}
+      draft-release: ${{ inputs.draft-release }}
 
   github-slsa-provenance:
     name: "GitHub SLSA Provenance"
@@ -81,4 +114,4 @@ jobs:
       provenance-name: toolfetch-${{ needs.release.outputs.version }}-provenance.intoto.jsonl
       upload-tag-name: ${{ needs.release.outputs.tag_name }}
       base64-subjects: ${{ needs.release.outputs.base64_subjects }}
-      draft-release: 'true'
+      draft-release: ${{ inputs.draft-release }}

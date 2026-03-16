@@ -13,7 +13,10 @@
         <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/tests-and-scans.yml?label=Tests%20%26%20Scans&logo=github&logoColor=white&branch=main" alt="Tests & Scans"/>
     </a>
     <a href="https://github.com/jdheim/toolfetch/actions/workflows/scheduled-security-scans.yml" rel="noreferrer">
-        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scheduled-security-scans.yml?label=Security%20%20Scans&logo=github&logoColor=white&branch=main" alt="Security Scans"/>
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/scheduled-security-scans.yml?label=Security%20Scans&logo=github&logoColor=white&branch=main" alt="Security Scans"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/github-code-scanning/codeql" rel="noreferrer">
+        <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/github-code-scanning/codeql?label=CodeQL&logo=github&logoColor=white&branch=main" alt="CodeQL"/>
     </a>
 </p>
 
