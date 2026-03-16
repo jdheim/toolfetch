@@ -83,6 +83,7 @@ generateNotice() {
     generateMissingCopyrightForBundledLib
     uniqueSpdxLicenses+=("${spdxLicense}")
   done < "${THIRD_PARTY}"
+  normalizeLineEndings
   unpackLicenses
 
   if [[ "${oldNoticeSha256Sum}" != "$(sha256sum "${NOTICE}")" ]]; then
@@ -277,6 +278,10 @@ Licensed under BSD-3-Clause (https://spdx.org/licenses/BSD-3-Clause.html)
 Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
 EOF
   fi
+}
+
+normalizeLineEndings() {
+  sed -i 's/\r$//' "${NOTICE}"
 }
 
 unpackLicenses() {
