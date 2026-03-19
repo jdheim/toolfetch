@@ -94,6 +94,7 @@
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
+        <native-maven-plugin.version>0.11.5</native-maven-plugin.version>
         <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
         <jdks-maven-plugin.version>1.23.0</jdks-maven-plugin.version>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
@@ -550,6 +551,11 @@
                             <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-annotations</ignoredNonTestScopedDependency>
                         </ignoredNonTestScopedDependencies>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>${native-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -1066,6 +1072,34 @@
                                     <artifactId>picocli-codegen</artifactId>
                                 </path>
                             </annotationProcessorPaths>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>native-image-with-maven</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>native-image-build</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>${main.class}</mainClass>
+                            <buildArgs>
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>--enable-sbom=embed,cyclonedx,strict</buildArg>
+                                <buildArg>-H:ResourceConfigurationFiles=${project.build.outputDirectory}/META-INF/native-image/com.jdheim/toolfetch/resource-config-${graalvm.platform}.json</buildArg>
+                                <buildArg>--emit=build-report=${project.build.directory}/${project.artifactId}-${project.version}-${graalvm.platform}-build-report.html</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>

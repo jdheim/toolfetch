@@ -34,6 +34,7 @@ readOptions() {
     case "${1}" in
       -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
       -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
+      --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-25.0.2"; remainingOptions+=("-Psetup-graalvm" "-Pnative-image" "-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true") ;;
       --native-prepare) enrichNativeProfiles ;;
       --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeProfiles ;;
       -h|--help) usage ;;
