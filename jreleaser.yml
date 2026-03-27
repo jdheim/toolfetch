@@ -98,8 +98,6 @@ assemble:
         path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
-      java:
-        mainClass: 'com.jdheim.{{projectName}}.Main'
     toolfetch_debug:
       executable: '{{projectName}}-{{projectVersion}}'
       archiving:
@@ -118,8 +116,6 @@ assemble:
         path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
-      java:
-        mainClass: 'com.jdheim.{{projectName}}.Main'
 hooks:
   script:
     success:
