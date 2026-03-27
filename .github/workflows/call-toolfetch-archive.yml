@@ -38,7 +38,7 @@ jobs:
           name: toolfetch-binary-${{ matrix.job.platform }}
           path: target/jreleaser/assemble/toolfetch_binary/native-image
 
-      - name: "Assemble Toolfetch Archive"
+      - name: "Assemble ToolFetch Archive"
         uses: jreleaser/release-action@v2
         env:
           JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
@@ -47,7 +47,7 @@ jobs:
           setup-java: false
           arguments: assemble --output-directory=target
 
-      - name: "Upload Toolfetch Archive"
+      - name: "Upload ToolFetch Archive"
         uses: actions/upload-artifact@v6
         with:
           name: toolfetch-archive-${{ matrix.job.platform }}

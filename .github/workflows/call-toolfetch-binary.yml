@@ -49,7 +49,7 @@ jobs:
           setup-java: false
           arguments: assemble --output-directory=target
 
-      - name: "Upload Toolfetch Binary"
+      - name: "Upload ToolFetch Binary"
         uses: actions/upload-artifact@v6
         with:
           name: toolfetch-binary-${{ matrix.job.platform }}
@@ -58,7 +58,7 @@ jobs:
           path: |
             target/jreleaser/assemble/toolfetch_binary/native-image/toolfetch*${{ matrix.job.platform }}
 
-      - name: "Upload Toolfetch SBOM"
+      - name: "Upload ToolFetch SBOM"
         uses: actions/upload-artifact@v6
         with:
           name: toolfetch-sbom-${{ matrix.job.platform }}

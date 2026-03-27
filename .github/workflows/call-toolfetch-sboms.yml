@@ -33,7 +33,7 @@ jobs:
           merge-multiple: true
           path: target/jreleaser/sbom
 
-      - name: "Assemble Toolfetch SBOMs"
+      - name: "Assemble ToolFetch SBOMs"
         uses: jreleaser/release-action@v2
         env:
           JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE: ALWAYS
@@ -42,7 +42,7 @@ jobs:
           setup-java: false
           arguments: assemble --output-directory=target
 
-      - name: "Upload Toolfetch SBOMs"
+      - name: "Upload ToolFetch SBOMs"
         uses: actions/upload-artifact@v6
         with:
           name: toolfetch-sboms

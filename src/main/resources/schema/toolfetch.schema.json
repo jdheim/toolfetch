@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://jdheim.com/schema/toolfetch.schema.json",
-  "title": "Toolfetch",
+  "title": "ToolFetch",
   "description": "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file",
   "type": "object",
   "required": [
