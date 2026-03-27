@@ -45,7 +45,7 @@ jobs:
         env:
           JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE: ALWAYS
         with:
-          version: latest
+          version: early-access # @Patch https://github.com/jreleaser/jreleaser/issues/2094
           setup-java: false
           arguments: assemble --output-directory=target
 
