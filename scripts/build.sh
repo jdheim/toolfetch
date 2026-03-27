@@ -17,6 +17,7 @@ Builds whole project
 OPTIONS:
   -d                     Dry-run JReleaser
   -n, --native           Create a standalone executable (native image)
+  --native-maven         Create a standalone executable (native image) using native-maven-plugin
   --native-prepare       Builds whole project and prepares native setup
   --native-debug         Create a standalone executable (native image) with debug enabled
 EOF
