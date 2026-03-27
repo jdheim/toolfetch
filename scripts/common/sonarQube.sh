@@ -14,6 +14,11 @@ readonly SONAR_HOST_PORT="${SONAR_HOST_URL##*:}"
 readonly SONAR_ADMIN_USER="admin"
 readonly SONAR_ADMIN_OLD_PASS="${SONAR_ADMIN_USER}"
 
+SONAR_IMAGE="sonarqube:community"
+if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+    SONAR_IMAGE="public.ecr.aws/docker/library/sonarqube:community"
+fi
+
 sonarQubeStart() {
   step "SonarQube Start"
   SONAR_ADMIN_NEW_PASS="Admin$(getProjectArtifactId)1!"
@@ -23,8 +28,8 @@ sonarQubeStart() {
   local sonarQubeId
   sonarQubeId="$(sonarQubeId)"
   if [[ -z "${sonarQubeId}" ]]; then
-    run docker pull sonarqube:community
-    run docker container run -d --rm --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" sonarqube:community
+    run docker pull "${SONAR_IMAGE}"
+    run docker container run -d --rm --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" "${SONAR_IMAGE}"
     sonarQubeHealthcheck
     changeAdminPassword
   else
