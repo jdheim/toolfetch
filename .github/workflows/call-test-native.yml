@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: "test-native-m2-repo"
+      release-type:
+        description: "Release type"
+        required: false
+        type: string
+        default: "SNAPSHOT"
 
 jobs:
   test-native:
@@ -31,7 +36,8 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}"
+          maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}
+          release-type: ${{ inputs.release-type }}
 
       - name: "Download ToolFetch Binary"
         uses: actions/download-artifact@v8

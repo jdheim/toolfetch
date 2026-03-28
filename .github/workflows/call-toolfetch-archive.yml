@@ -2,6 +2,12 @@ name: "Call: Assemble ToolFetch Archive"
 
 on:
   workflow_call:
+    inputs:
+      release-type:
+        description: "Release type"
+        required: false
+        type: string
+        default: "SNAPSHOT"
 
 jobs:
   toolfetch-archive:
@@ -25,7 +31,8 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "toolfetch-archive-${{ matrix.job.runner }}-m2-repo"
+          maven-repo-cache-key: toolfetch-archive-${{ matrix.job.runner }}-m2-repo
+          release-type: ${{ inputs.release-type }}
 
       - name: "Prepare Native Build"
         working-directory: scripts

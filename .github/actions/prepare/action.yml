@@ -17,6 +17,10 @@ inputs:
     description: "Enables or disables 'Install UPX' step"
     required: false
     default: "false"
+  release-type:
+    description: "Release type"
+    required: false
+    default: "SNAPSHOT"
 
 runs:
   using: composite
@@ -27,15 +31,35 @@ runs:
         packages: jq yq xmlstarlet
         version: default-1.0
 
+    - name: "Get Project Version"
+      id: get-project-version
+      uses: mikefarah/yq@v4
+      with:
+        cmd: yq -r '.project.version' "jreleaser.yml"
+
     - name: "Setup ENV variables"
       shell: bash
+      env:
+        PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
+        RELEASE_TYPE: ${{ inputs.release-type }}
       run: |
-        case "$RUNNER_ARCH" in
+        case "${RUNNER_ARCH}" in
           X64)   ARCH=amd64 ;;
           ARM64) ARCH=arm64 ;;
-          *) echo "Unsupported RUNNER_ARCH: $RUNNER_ARCH"; exit 1 ;;
+          *)     echo "Unsupported RUNNER_ARCH: ${RUNNER_ARCH}"; exit 1 ;;
         esac
-        echo "ARCH=${ARCH}" >> "$GITHUB_ENV"
+        echo "ARCH=${ARCH}" >> ${GITHUB_ENV}
+        if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
+          echo "Project Version could not be resolved"
+          exit 1
+        fi
+        case "${RELEASE_TYPE}" in
+          SNAPSHOT) PROJECT_VERSION="${PROJECT_VERSION}" ;;
+          EA)       PROJECT_VERSION="${PROJECT_VERSION%%-*}-EA" ;;
+          GA)       PROJECT_VERSION="${PROJECT_VERSION%%-*}" ;;
+          *)        echo "Unsupported RELEASE_TYPE: ${RELEASE_TYPE}"; exit 1 ;;
+        esac
+        echo "PROJECT_VERSION=${PROJECT_VERSION}" >> ${GITHUB_ENV}
         echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
@@ -79,6 +103,17 @@ runs:
         key: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-
+
+    - name: "Set Project Version in JReleaser"
+      if: ${{ inputs.release-type != 'SNAPSHOT' }}
+      uses: mikefarah/yq@v4
+      with:
+        cmd: yq -i '.project.version = strenv(PROJECT_VERSION)' "jreleaser.yml"
+
+    - name: "Set Project Version in Maven"
+      if: ${{ inputs.release-type != 'SNAPSHOT' }}
+      shell: bash
+      run: ./mvnw versions:set -DnewVersion="${PROJECT_VERSION}" -DgenerateBackupPoms=false
 
     - name: "Generate Workflow Stats"
       if: ${{ inputs.generate-workflow-stats == 'true' }}

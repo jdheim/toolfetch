@@ -16,4 +16,4 @@ jobs:
     permissions:
       contents: read
     with:
-      maven-repo-cache-key-prefix: "pr-scan-m2-repo"
+      maven-repo-cache-key-prefix: pr-scan-m2-repo

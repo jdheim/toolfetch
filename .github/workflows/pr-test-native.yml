@@ -16,7 +16,7 @@ jobs:
     permissions:
       contents: read
     with:
-      maven-repo-cache-key-prefix: "pr-toolfetch-binary-m2-repo"
+      maven-repo-cache-key-prefix: pr-toolfetch-binary-m2-repo
 
   test-native:
     name: "Test Native"
@@ -25,4 +25,4 @@ jobs:
     permissions:
       contents: read
     with:
-      maven-repo-cache-key-prefix: "pr-test-native-m2-repo"
+      maven-repo-cache-key-prefix: pr-test-native-m2-repo

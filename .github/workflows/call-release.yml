@@ -10,6 +10,10 @@ on:
       JDHEIM_GPG_PASSPHRASE:
         required: true
     inputs:
+      release-type:
+        description: "Release type"
+        required: true
+        type: string
       draft-release:
         description: "Create draft release"
         required: true
@@ -46,7 +50,8 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "release-m2-repo"
+          maven-repo-cache-key: release-m2-repo
+          release-type: ${{ inputs.release-type }}
 
       - name: "Download ToolFetch Archives"
         uses: actions/download-artifact@v8

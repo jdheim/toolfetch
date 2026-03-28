@@ -3,10 +3,10 @@ environment:
     graalVmDir: 'graalvm-jdk-25.0.2'
 project:
   name: 'toolfetch'
-  version: '0.0.1'
+  version: '0.0.1-SNAPSHOT'
   versionPattern: 'SEMVER'
   snapshot:
-    pattern: '.*-ea'
+    pattern: '.*-(EA|SNAPSHOT)'
     fullChangelog: true
   description: 'CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file'
   longDescription: |
@@ -95,7 +95,7 @@ assemble:
         - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
         - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
     toolfetch_debug:
@@ -113,7 +113,7 @@ assemble:
         - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
         - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersionNumber}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
 hooks:
@@ -223,10 +223,11 @@ release:
   github:
     releaseName: '{{tagName}}'
     overwrite: true
+    update:
+      enabled: false
     sign: true
     prerelease:
-      enabled: true
-      pattern: '.*-ea'
+      pattern: '.*-(EA|SNAPSHOT)'
     issues:
       enabled: false
     changelog:

@@ -34,7 +34,7 @@ class ToolFetchVersionProviderTest {
 
     static final String JAVA_VERSION = "\\d{2}(\\.\\d+){1,2}";
 
-    static final String TOOLFETCH_VERSION = "\\d+\\.\\d+\\.\\d+";
+    static final String TOOLFETCH_VERSION = "\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?";
 
     static final String ISO_8601_UTC = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
 

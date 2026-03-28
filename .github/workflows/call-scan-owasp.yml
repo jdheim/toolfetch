@@ -22,7 +22,7 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "owasp-scan-m2-repo"
+          maven-repo-cache-key: owasp-scan-m2-repo
 
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
       - name: "Install .NET SDK required by AssemblyAnalyzer"

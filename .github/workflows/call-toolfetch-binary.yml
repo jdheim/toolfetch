@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: "toolfetch-binary-m2-repo"
+      release-type:
+        description: "Release type"
+        required: false
+        type: string
+        default: "SNAPSHOT"
 
 jobs:
   toolfetch-binary:
@@ -31,9 +36,10 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}"
-          install-syft: "true"
-          install-upx: "true"
+          maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}
+          install-syft: true
+          install-upx: true
+          release-type: ${{ inputs.release-type }}
 
       - name: "Prepare Native Build"
         working-directory: scripts

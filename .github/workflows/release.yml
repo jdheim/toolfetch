@@ -4,22 +4,30 @@ run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.even
 on:
   workflow_dispatch:
     inputs:
-      version-bump-type:
-        description: "Part of the version to bump"
+      project-version-bump-type:
+        description: "Part of the project version to bump"
         required: true
         type: choice
         options:
-          - "patch"
-          - "minor"
-          - "major"
-        default: "patch"
+          - "PATCH"
+          - "MINOR"
+          - "MAJOR"
+        default: "PATCH"
+      release-type:
+        description: "Release type"
+        required: true
+        type: choice
+        options:
+          - "EA"
+          - "GA"
+        default: "EA"
       draft-release:
         description: "Create draft release"
         required: true
         type: choice
         options:
-          - "true"
           - "false"
+          - "true"
         default: "false"
 
 concurrency:
@@ -29,16 +37,20 @@ concurrency:
 jobs:
   toolfetch-binary:
     name: "Assemble ToolFetch Binary"
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
     permissions:
       contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
 
   test-native:
     name: "Test Native"
     needs: toolfetch-binary
-    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
     permissions:
       contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
 
   test-report-native:
     name: "Test Report Native"
@@ -53,16 +65,20 @@ jobs:
   toolfetch-archive:
     name: "Assemble ToolFetch Archive"
     needs: test-report-native
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-archive.yml@main
     permissions:
       contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-archive.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
 
   toolfetch-sboms:
     name: "Assemble ToolFetch SBOM"
     needs: test-report-native
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-sboms.yml@main
     permissions:
       contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-sboms.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
 
   release:
     name: "Release"
@@ -75,19 +91,21 @@ jobs:
       JDHEIM_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
       JDHEIM_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
     with:
+      release-type: ${{ inputs.release-type }}
       draft-release: ${{ inputs.draft-release }}
 
-  version-bump:
-    name: "Version Bump"
+  project-version-bump:
+    name: "Project Version Bump"
+    if: ${{ inputs.release-type == 'GA' }}
     needs: release
     permissions:
       contents: write
-    uses: jdheim/toolfetch/.github/workflows/call-version-bump.yml@main
+    uses: jdheim/toolfetch/.github/workflows/call-project-version-bump.yml@main
     secrets:
       JDHEIM_ACTIONS_BOT_CLIENT_ID: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
       JDHEIM_ACTIONS_BOT_PRIVATE_KEY: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
     with:
-      version-bump-type: ${{ inputs.version-bump-type }}
+      project-version-bump-type: ${{ inputs.project-version-bump-type }}
       draft-release: ${{ inputs.draft-release }}
 
   github-slsa-provenance:

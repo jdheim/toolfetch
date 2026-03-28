@@ -1,0 +1,93 @@
+name: "Call: Project Version Bump"
+
+on:
+  workflow_call:
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID:
+        required: true
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY:
+        required: true
+    inputs:
+      project-version-bump-type:
+        description: "Part of the project version to bump: MAJOR, MINOR, or PATCH"
+        required: true
+        type: string
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: string
+
+jobs:
+  project-version-bump:
+    name: "Project Version Bump"
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate Token of jdheim-actions[bot]"
+        id: jdheim-actions-bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+
+      - name: "Get Project Version"
+        id: get-project-version
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -r '.project.version' "jreleaser.yml"
+
+      - name: "Bump Project Version"
+        env:
+          PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
+          PROJECT_VERSION_BUMP_TYPE: ${{ inputs.project-version-bump-type }}
+        shell: bash
+        run: |
+          if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
+            echo "Project Version Bump failed as it could not be resolved"
+            exit 1
+          fi
+          IFS='.' read -r major minor patch <<< "${PROJECT_VERSION%%-*}"
+          case "${PROJECT_VERSION_BUMP_TYPE}" in
+            MAJOR) major=$((major + 1)); minor=0; patch=0 ;;
+            MINOR) minor=$((minor + 1)); patch=0 ;;
+            PATCH) patch=$((patch + 1)) ;;
+            *) echo "Invalid project-version-bump-type: ${PROJECT_VERSION_BUMP_TYPE}"
+              echo "Allowed values: MAJOR, MINOR, PATCH"
+              exit 1 ;;
+          esac
+          BUMPED_PROJECT_VERSION="${major}.${minor}.${patch}-SNAPSHOT"
+          echo "BUMPED_PROJECT_VERSION=${BUMPED_PROJECT_VERSION}" >> "$GITHUB_ENV"
+
+      - name: "Set Project Version in JReleaser"
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.project.version = strenv(BUMPED_PROJECT_VERSION)' "jreleaser.yml"
+
+      - name: "Set Project Version in Maven"
+        shell: bash
+        run: ./mvnw versions:set -DnewVersion="${BUMPED_PROJECT_VERSION}" -DgenerateBackupPoms=false
+
+      - name: "Verify changes"
+        shell: bash
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No changes to commit. Project Version Bump failed"
+            exit 1
+          fi
+
+      - name: "Commit and Push"
+        uses: IAreKyleW00t/verified-bot-commit@v2
+        if: ${{ inputs.draft-release != 'true' }}
+        with:
+          message: "chore: Bump Project Version to ${{ env.BUMPED_PROJECT_VERSION }}"
+          ref: ${{ github.ref_name }}
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          files: |
+            **

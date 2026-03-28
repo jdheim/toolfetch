@@ -35,7 +35,7 @@ jobs:
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: "${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.scan.id }}"
+          maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.scan.id }}
 
       - name: "Scan"
         working-directory: scripts
