@@ -188,7 +188,7 @@ sonarQubeQualityGateStatus() {
         else .
         end // "-"
       ) \(.errorThreshold // "-")"'
-  if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     {
       echo -n "### Status: "
       status="$(echo "${response}" | jq -r '.projectStatus.status')"

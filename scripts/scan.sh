@@ -72,16 +72,16 @@ dependencyAnalyze() {
   step "Dependency Analyze"
   shift
   local exitCode
-  if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
-    run ./mvnw dependency:analyze -DfailOnWarning "$@"
-    exitCode=$?
-  else
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/dependency-analyze.log"
     set +o errexit
     run ./mvnw dependency:analyze -DfailOnWarning "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]ERROR\[]]"
+  else
+    run ./mvnw dependency:analyze -DfailOnWarning "$@"
+    exitCode=$?
   fi
   exit "${exitCode}"
 }
@@ -103,16 +103,16 @@ owaspScan() {
   step "Owasp Scan"
   shift
   local exitCode
-  if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
-    run ./mvnw clean verify -Powasp-scan -DskipTests "$@"
-    exitCode=$?
-  else
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/owasp-scan.log"
     set +o errexit
     run ./mvnw clean verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] Check for updates complete"
+  else
+    run ./mvnw clean verify -Powasp-scan -DskipTests "$@"
+    exitCode=$?
   fi
   exit "${exitCode}"
 }
@@ -149,16 +149,16 @@ spotBugsScan() {
   step "SpotBugs Scan"
   shift
   local exitCode
-  if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
-    run ./mvnw clean verify -Pspotbugs-scan -DskipTests "$@"
-    exitCode=$?
-  else
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/spotbugs-scan.log"
     set +o errexit
     run ./mvnw clean verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(getProjectArtifactId) ---"
+  else
+    run ./mvnw clean verify -Pspotbugs-scan -DskipTests "$@"
+    exitCode=$?
   fi
   exit "${exitCode}"
 }
