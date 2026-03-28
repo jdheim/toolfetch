@@ -20,6 +20,7 @@ class ToolFetchHappySmokeTest extends ToolFetchTestBase {
     void testVersionAndHelp(String option) throws Exception {
         ExecResult execResult = execute(option);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+        assertLogbackInit(execResult);
     }
 
 }

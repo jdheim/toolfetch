@@ -121,8 +121,10 @@ public class ToolFetchTestBase {
                 line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(Level.ERROR)));
     }
 
-    record ExecResult(int exitCode, List<String> logs) {
-
+    void assertLogbackInit(ExecResult execResult) {
+        assertThat(execResult.logs()).noneMatch(line -> line.contains("logback"));
     }
+
+    record ExecResult(int exitCode, List<String> logs) {}
 
 }
