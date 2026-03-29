@@ -1,0 +1,27 @@
+name: "Scheduled: Clear Cache"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ github.event.pull_request.title || github.event.head_commit.message || github.sha }}"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
+
+concurrency:
+  group: scheduled-clear-cache-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  clear-cache:
+    name: "Clear Cache"
+    timeout-minutes: 15
+    permissions:
+      actions: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Clear Cache"
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: gh cache delete --all --succeed-on-no-caches --repo "${GH_REPOSITORY}"

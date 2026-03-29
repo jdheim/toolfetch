@@ -9,15 +9,11 @@
 [[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
 readonly SONAR_CONTAINER_NAME="sonarqube"
+readonly SONAR_IMAGE="sonarqube:community"
 readonly SONAR_HOST_URL="http://localhost:9000"
 readonly SONAR_HOST_PORT="${SONAR_HOST_URL##*:}"
 readonly SONAR_ADMIN_USER="admin"
 readonly SONAR_ADMIN_OLD_PASS="${SONAR_ADMIN_USER}"
-
-SONAR_IMAGE="sonarqube:community"
-if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    SONAR_IMAGE="public.ecr.aws/docker/library/sonarqube:community"
-fi
 
 sonarQubeStart() {
   step "SonarQube Start"
@@ -28,7 +24,7 @@ sonarQubeStart() {
   local sonarQubeId
   sonarQubeId="$(sonarQubeId)"
   if [[ -z "${sonarQubeId}" ]]; then
-    run docker pull "${SONAR_IMAGE}"
+    run docker image pull "${SONAR_IMAGE}"
     run docker container run -d --rm --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" "${SONAR_IMAGE}"
     sonarQubeHealthcheck
     changeAdminPassword

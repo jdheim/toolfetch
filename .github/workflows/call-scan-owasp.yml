@@ -29,7 +29,7 @@ jobs:
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: dotnet-runtime-8.0
-          version: owasp-scan-1.0
+          version: owasp-scan-1.1
 
       - name: "OWASP Scan"
         env:

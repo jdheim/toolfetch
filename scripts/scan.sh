@@ -128,7 +128,7 @@ sonarScan() {
   step "Sonar Scan"
   shift
   set +o errexit
-  run ./mvnw clean verify -Pjacoco-scan -Psonar-scan "$@"
+  run ./mvnw clean verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
   local exitCode=$?
   set -o errexit
   sonarQubeQualityGateStatus

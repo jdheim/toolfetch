@@ -17,9 +17,18 @@ jobs:
     permissions:
       contents: read
 
+  sonar-scan:
+    name: "Sonar Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan-sonar.yml@main
+    permissions:
+      contents: read
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
   test-report:
     name: "Test Report"
-    needs: scan
+    needs: sonar-scan
     if: ${{ !cancelled() }}
     permissions:
       contents: read

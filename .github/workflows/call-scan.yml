@@ -20,8 +20,6 @@ jobs:
         scan:
           - name: "Dependency Analyze"
             id: dependency-analyze
-          - name: "Sonar Scan"
-            id: sonar-scan
           - name: "SpotBugs Scan"
             id: spotbugs-scan
     name: ${{ matrix.scan.name }}
@@ -48,13 +46,33 @@ jobs:
         if: ${{ !cancelled() && matrix.scan.id == 'spotbugs-scan' }}
         with:
           name: ${{ matrix.scan.id }}-report
-          path: |
-            target/site/**
-            !target/site/jacoco
+          path: target/site/spotbugs.html
+
+  jacoco-scan:
+    name: "Jacoco Scan"
+    if: ${{ github.event_name == 'pull_request' }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-jacoco-scan
+
+      - name: "Scan"
+        working-directory: scripts
+        run: ./scan.sh --jacoco-scan
 
       - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6
-        if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
+        if: ${{ !cancelled() }}
         with:
           name: test-report
           if-no-files-found: error
@@ -64,9 +82,8 @@ jobs:
 
       - name: "Upload Jacoco Scan Report"
         uses: actions/upload-artifact@v6
-        if: ${{ !cancelled() && matrix.scan.id == 'sonar-scan' }}
+        if: ${{ !cancelled() }}
         with:
           name: jacoco-scan-report
           if-no-files-found: error
-          path: |
-            target/site/jacoco/**
+          path: target/site/jacoco/**

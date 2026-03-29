@@ -28,8 +28,8 @@ runs:
     - name: "Install Dependencies with APT"
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: jq yq xmlstarlet
-        version: default-1.0
+        packages: xmlstarlet
+        version: default-1.1
 
     - name: "Get Project Version"
       id: get-project-version
@@ -37,11 +37,8 @@ runs:
       with:
         cmd: yq -r '.project.version' "jreleaser.yml"
 
-    - name: "Setup ENV variables"
+    - name: "Setup ARCH ENV variable"
       shell: bash
-      env:
-        PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
-        RELEASE_TYPE: ${{ inputs.release-type }}
       run: |
         case "${RUNNER_ARCH}" in
           X64)   ARCH=amd64 ;;
@@ -49,6 +46,13 @@ runs:
           *)     echo "Unsupported RUNNER_ARCH: ${RUNNER_ARCH}"; exit 1 ;;
         esac
         echo "ARCH=${ARCH}" >> ${GITHUB_ENV}
+
+    - name: "Setup PROJECT_VERSION ENV variable"
+      shell: bash
+      env:
+        PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
+        RELEASE_TYPE: ${{ inputs.release-type }}
+      run: |
         if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
           echo "Project Version could not be resolved"
           exit 1
@@ -60,6 +64,10 @@ runs:
           *)        echo "Unsupported RELEASE_TYPE: ${RELEASE_TYPE}"; exit 1 ;;
         esac
         echo "PROJECT_VERSION=${PROJECT_VERSION}" >> ${GITHUB_ENV}
+
+    - name: "Setup ENV variables from pom.xml"
+      shell: bash
+      run: |
         echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
         echo "SYFT_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
