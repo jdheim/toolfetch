@@ -248,6 +248,15 @@ release:
       replacers:
         - search: 'deps: '
       categoryTitleFormat: '### {{categoryTitle}}'
+      contributorsTitleFormat: '### Contributors'
+      content: |
+        ## Changelog
+        
+        {{changelogChanges}}
+        {{changelogContributors}}
+        ## Verify Releases
+
+        See [VERIFICATION.md](VERIFICATION.md) for details.
       contributors:
         format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
       hide:
