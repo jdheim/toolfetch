@@ -65,6 +65,11 @@ public class WebDownloadService implements DownloadService {
     @Override
     public Optional<Path> download(Configuration configuration, Tool tool) {
         LOG.info("> Install {}...", tool.id());
+        Path destinationPath = destinationResolver.resolve(configuration, tool);
+        if (Files.exists(destinationPath)) {
+            LOG.warn("Destination Path already exists: \"{}\". Skipping {}", destinationPath, tool.id());
+            return Optional.empty();
+        }
         URI toolUri = uriTransformer.transform(tool);
         if (toolUri == null) {
             LOG.warn("URI could not be resolved. Skipping {}", tool.id());

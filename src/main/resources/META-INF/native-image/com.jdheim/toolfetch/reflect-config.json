@@ -10,6 +10,17 @@
     "allPublicMethods": true
   },
   {
+    "name": "com.jdheim.toolfetch.model.Checksums",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.util.Map"
+        ]
+      }
+    ]
+  },
+  {
     "name": "java.io.FilterInputStream",
     "fields": [
       {

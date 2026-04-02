@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Consumer;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -102,6 +103,22 @@ public final class ArchiveUtils {
         try {
             zaos.putArchiveEntry(archiveEntry);
             zaos.closeArchiveEntry();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static String computeMessageDigest(Path path, String algorithm) {
+        try (InputStream in = Files.newInputStream(path)) {
+            return new DigestUtils(algorithm).digestAsHex(in);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static String computeMessageDigest(byte[] bytes, String algorithm) {
+        try (InputStream in = new ByteArrayInputStream(bytes)) {
+            return new DigestUtils(algorithm).digestAsHex(in);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

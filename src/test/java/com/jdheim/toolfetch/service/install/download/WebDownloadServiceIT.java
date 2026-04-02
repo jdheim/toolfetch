@@ -16,6 +16,7 @@ import static com.jdheim.toolfetch.util.archive.ArchiveUtils.addZipEntryFile;
 import static com.jdheim.toolfetch.util.archive.ArchiveUtils.createZip;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -165,7 +166,7 @@ class WebDownloadServiceIT {
         Tool tool = configuration.tools().getFirst();
         stubWireMockToServeZip(mockUrl);
         webDownloadService = spy(webDownloadService);
-        when(webDownloadService.createDirectories(configuration, tool)).thenThrow(new IOException("I/O error occurred"));
+        doThrow(new IOException("I/O error occurred")).when(webDownloadService).createDirectories(configuration, tool);
 
         Optional<Path> path = webDownloadService.download(configuration, tool);
 

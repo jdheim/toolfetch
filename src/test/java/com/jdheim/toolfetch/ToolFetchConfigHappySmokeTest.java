@@ -18,12 +18,14 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.model.Checksums;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.Tool;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
@@ -32,6 +34,7 @@ import com.jdheim.toolfetch.util.archive.ArchiveUtils;
 import com.jdheim.toolfetch.util.assertion.AssertionUtils;
 import com.jdheim.toolfetch.util.config.ConfigurationDumper;
 import com.jdheim.toolfetch.util.wiremock.WireMockStubber;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
@@ -130,9 +133,15 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String id = "toolfetch";
         String version = "1.0.0";
         String url = "http://localhost:%d/download/${version}/%s.zip".formatted(httpPort, id);
-        Tool tool = new Tool(id, version, url, null);
+        byte[] archiveBytes = createArchiveBytes();
+        String sha256 = ArchiveUtils.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_256);
+        String sha384 = ArchiveUtils.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_384);
+        String sha512 = ArchiveUtils.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_512);
+        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
+        Checksums checksums = new Checksums(checksumValues);
+        Tool tool = new Tool(id, version, url, null, checksums);
         Path archiveName = Path.of(getArchiveName(tool));
-        WireMockStubber.stubFor(version, archiveName, createArchiveBytes());
+        WireMockStubber.stubFor(version, archiveName, archiveBytes);
         List<Tool> tools = List.of(tool);
         return new Configuration(tempDir.toString(), tools);
     }
@@ -176,7 +185,12 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         WireMockStubber.stubFor(archiveName, ArchiveUtils.readTestFile(archivePath));
         String id = archiveName.toString().replace('.', '-');
         String url = "http://localhost:%d/download/%s".formatted(httpPort, archiveName);
-        return new Tool(id, null, url, null);
+        String sha256 = ArchiveUtils.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_256);
+        String sha384 = ArchiveUtils.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_384);
+        String sha512 = ArchiveUtils.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_512);
+        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
+        Checksums checksums = new Checksums(checksumValues);
+        return new Tool(id, null, url, null, checksums);
     }
 
     private boolean isExcluded(String archiveName) {

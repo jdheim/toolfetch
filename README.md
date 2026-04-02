@@ -74,7 +74,7 @@ When you invoke the command again, tools will be installed like this:
 
 ---
 
-You can add optional `destination` key for specific tool in order to install it somewhere else:
+You can optionally define a `destination` key for a specific tool to install it somewhere else:
 
 ```yaml
 destination: "/opt"
@@ -95,6 +95,25 @@ Now, when you invoke the same command, tools will be installed like this:
 |-- firefox
 |-- tools
     |-- kitty
+```
+
+---
+
+You can optionally define a `checksums` key for a specific tool to verify the downloaded archive before it is extracted:
+
+```yaml
+destination: "/opt"
+tools:
+  - id: kitty
+    version: "0.44.0"
+    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
+    checksums:
+      sha256: "5b502801c8814c9fc5a2e8d9cfdf1c2ec5ee78b3e647f898704ad537a2ff452d"
+  - id: firefox
+    version: "146.0.1"
+    url: "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz"
+    checksums:
+      sha256: "36a4dc0e3be8af2d49d8388021abf790976d2398162b9d13a6d758cc8c37f8dd"
 ```
 
 ## Archive and Compression Formats
@@ -120,6 +139,14 @@ and Compression Formats:
 - `z`
 - `zstandard`
 - concatenated streams for `bzip2`, `gzip`, `xz` and `lz4`
+
+## Checksum Verification Formats
+
+Currently, the following Checksum Verification Formats are supported:
+
+- `sha256`
+- `sha384`
+- `sha512`
 
 ## SBOM
 

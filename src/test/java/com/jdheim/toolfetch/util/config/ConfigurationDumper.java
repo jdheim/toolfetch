@@ -53,7 +53,7 @@ public final class ConfigurationDumper {
                 .content()
                 .containsOnlyOnce("destination:")
                 .containsOnlyOnce("tools:")
-                .contains("- id:", "url:")
+                .contains("- id:", "url:", "checksums:", "sha256:", "sha384:", "sha512:")
                 .doesNotContain("null");
     }
 

@@ -51,6 +51,41 @@
             "type": "string",
             "minLength": 1,
             "pattern": ".*\\S.*"
+          },
+          "checksums": {
+            "type": "object",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              },
+              "sha384": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{96}$"
+              },
+              "sha512": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{128}$"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "sha256"
+                ]
+              },
+              {
+                "required": [
+                  "sha384"
+                ]
+              },
+              {
+                "required": [
+                  "sha512"
+                ]
+              }
+            ],
+            "additionalProperties": false
           }
         },
         "allOf": [
