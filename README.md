@@ -18,6 +18,10 @@
     <a href="https://github.com/jdheim/toolfetch/actions/workflows/github-code-scanning/codeql" rel="noreferrer">
         <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/github-code-scanning/codeql?label=CodeQL&logo=github&logoColor=white&branch=main" alt="CodeQL"/>
     </a>
+    <br/>
+    <a href="https://github.com/jdheim/toolfetch/releases" rel="noreferrer">
+        <img src="https://img.shields.io/github/downloads/jdheim/toolfetch/total?label=Downloads&logo=github&logoColor=white" alt="Downloads"/>
+    </a>
 </p>
 
 ## ToolFetch
