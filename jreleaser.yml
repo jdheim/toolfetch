@@ -3,7 +3,7 @@ environment:
     graalVmDir: 'graalvm-jdk-25.0.2'
 project:
   name: 'toolfetch'
-  version: '0.0.1-SNAPSHOT'
+  version: '0.0.2-SNAPSHOT'
   versionPattern: 'SEMVER'
   snapshot:
     pattern: '.*-(EA|SNAPSHOT)'
@@ -139,7 +139,7 @@ hooks:
           fi
         verbose: true
         filter:
-          includes: [ 'assemble' ]
+          includes: ['assemble']
       # Compress with UPX
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
@@ -160,7 +160,7 @@ hooks:
           fi
         verbose: true
         filter:
-          includes: [ 'assemble' ]
+          includes: ['assemble']
       # Copy a native image to the target directory
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
@@ -169,7 +169,7 @@ hooks:
           fi
         verbose: true
         filter:
-          includes: [ 'assemble' ]
+          includes: ['assemble']
       # Copy a native image with dependencies to the target directory (debug mode enabled)
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_DEBUG_ACTIVE}" == "ALWAYS" ]]; then
@@ -186,7 +186,7 @@ hooks:
           fi
         verbose: true
         filter:
-          includes: [ 'assemble' ]
+          includes: ['assemble']
       # Assemble SBOM
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE}" == "ALWAYS" ]]; then
@@ -218,7 +218,7 @@ hooks:
           fi
         verbose: true
         filter:
-          includes: [ 'assemble' ]
+          includes: ['assemble']
 release:
   github:
     releaseName: '{{tagName}}'
@@ -251,7 +251,7 @@ release:
       contributorsTitleFormat: '### Contributors'
       content: |
         ## Changelog
-        
+
         {{changelogChanges}}
         {{changelogContributors}}
         ## Verify Releases
