@@ -8,6 +8,8 @@ package com.jdheim.toolfetch.service.install.extract;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.Tool;
 import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
@@ -16,9 +18,12 @@ import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveU
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +87,10 @@ public class ArchiveExtractService implements ExtractService {
             String entryName = stripEntryName(archiveEntry, topLevelDir);
             Path target = resolveSecureTargetPath(destinationPath, entryName);
             extractEntry(ais, target);
+            Integer unixPermissions = readUnixPermissions(archiveEntry);
+            if (unixPermissions != null) {
+                applyUnixPermissions(target, unixPermissions);
+            }
         }
     }
 
@@ -92,6 +101,13 @@ public class ArchiveExtractService implements ExtractService {
                 return StringUtils.EMPTY;
             }
             entryName = Strings.CS.removeStart(entryName, topLevelDir);
+        }
+        return entryName;
+    }
+
+    String normalize(String entryName) {
+        if (StringUtils.isNotEmpty(entryName) && !entryName.endsWith(SLASH)) {
+            entryName = entryName + SLASH;
         }
         return entryName;
     }
@@ -120,11 +136,42 @@ public class ArchiveExtractService implements ExtractService {
         Files.copy(ais, target);
     }
 
-    String normalize(String entryName) {
-        if (StringUtils.isNotEmpty(entryName) && !entryName.endsWith(SLASH)) {
-            entryName = entryName + SLASH;
+    private @Nullable Integer readUnixPermissions(ArchiveEntry archiveEntry) {
+        if (archiveEntry instanceof TarArchiveEntry tarEntry) {
+            return tarEntry.getMode();
         }
-        return entryName;
+        if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
+            int mode = zipEntry.getUnixMode();
+            return mode != 0 ? mode : null;
+        }
+        return null;
+    }
+
+    private void applyUnixPermissions(Path target, int unixPermissions) throws IOException {
+        int perms = unixPermissions & 0770;
+
+        try {
+            Set<PosixFilePermission> posixPermissions = Files.getPosixFilePermissions(target);
+
+            posixPermissions.remove(PosixFilePermission.OWNER_READ);
+            posixPermissions.remove(PosixFilePermission.OWNER_WRITE);
+            posixPermissions.remove(PosixFilePermission.OWNER_EXECUTE);
+            posixPermissions.remove(PosixFilePermission.GROUP_READ);
+            posixPermissions.remove(PosixFilePermission.GROUP_WRITE);
+            posixPermissions.remove(PosixFilePermission.GROUP_EXECUTE);
+
+            if ((perms & 0400) != 0) posixPermissions.add(PosixFilePermission.OWNER_READ);
+            if ((perms & 0200) != 0) posixPermissions.add(PosixFilePermission.OWNER_WRITE);
+            if ((perms & 0100) != 0) posixPermissions.add(PosixFilePermission.OWNER_EXECUTE);
+
+            if ((perms & 0040) != 0) posixPermissions.add(PosixFilePermission.GROUP_READ);
+            if ((perms & 0020) != 0) posixPermissions.add(PosixFilePermission.GROUP_WRITE);
+            if ((perms & 0010) != 0) posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
+
+            Files.setPosixFilePermissions(target, posixPermissions);
+        } catch (UnsupportedOperationException _) {
+            // Non-POSIX filesystem (e.g. Windows)
+        }
     }
 
 }
