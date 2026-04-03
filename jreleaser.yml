@@ -254,7 +254,7 @@ release:
 
         {{changelogChanges}}
         {{changelogContributors}}
-        ## Verify Releases
+        ## Verify Release
 
         See [VERIFICATION.md](VERIFICATION.md) for details.
       contributors:

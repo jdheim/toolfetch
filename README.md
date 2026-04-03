@@ -124,10 +124,12 @@ tools:
 
 Currently, the following Archive Formats are supported:
 
-- `7z` - planned, work in progress
 - `tar`
 - `zip`
 - `jar`
+
+> [!WARNING]  
+> `7z` support is planned
 
 and Compression Formats:
 
@@ -151,6 +153,31 @@ Currently, the following Checksum Verification Formats are supported:
 - `sha256`
 - `sha384`
 - `sha512`
+
+## Custom Certificate Authorities
+
+> [!WARNING]  
+> TrustStore configuration support in `toolfetch.yaml` is planned
+
+If your organization uses custom Certificate Authorities, you may need to configure a Java TrustStore.
+
+Pass JVM options directly to `toolfetch`:
+
+- `-Djavax.net.ssl.trustStore=path/to/truststore`
+- `-Djavax.net.ssl.trustStorePassword=changeit`
+
+Otherwise, you may encounter an exception like:
+
+```text
+(certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+```
+
+## Installation
+
+1. Download the latest release for your OS/architecture from [Releases](https://github.com/jdheim/toolfetch/releases)
+2. Move the `toolfetch` binary to a directory in your `$PATH` (e.g., system-wide: `/usr/local/bin` or user-specific:
+   `$HOME/.local/bin`)
+3. Make sure it is executable: `chmod +x toolfetch`
 
 ## Verify Releases
 
