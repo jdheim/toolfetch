@@ -50,7 +50,7 @@ jobs:
         env:
           MATRIX_JOB_PLATFORM: ${{ matrix.job.platform }}
         run: |
-          mv target/toolfetch-*-${MATRIX_JOB_PLATFORM} target/toolfetch
+          mv target/toolfetch-${PROJECT_VERSION}-${MATRIX_JOB_PLATFORM} target/toolfetch
           chmod +x target/toolfetch
 
       - name: "Smoke Test Native"

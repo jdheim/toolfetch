@@ -45,6 +45,13 @@ jobs:
           name: toolfetch-binary-${{ matrix.job.platform }}
           path: target/jreleaser/assemble/toolfetch_binary/native-image
 
+      - name: "Restore ToolFetch Binary Permissions"
+        shell: bash
+        env:
+          MATRIX_JOB_PLATFORM: ${{ matrix.job.platform }}
+        run: |
+          chmod +x target/jreleaser/assemble/toolfetch_binary/native-image/toolfetch-${PROJECT_VERSION}-${MATRIX_JOB_PLATFORM}
+
       - name: "Assemble ToolFetch Archive"
         uses: jreleaser/release-action@v2
         env:

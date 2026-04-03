@@ -177,7 +177,6 @@ Otherwise, you may encounter an exception like:
 1. Download the latest release for your OS/architecture from [Releases](https://github.com/jdheim/toolfetch/releases)
 2. Move the `toolfetch` binary to a directory in your `$PATH` (e.g., system-wide: `/usr/local/bin` or user-specific:
    `$HOME/.local/bin`)
-3. Make sure it is executable: `chmod +x toolfetch`
 
 ## Verify Releases
 
