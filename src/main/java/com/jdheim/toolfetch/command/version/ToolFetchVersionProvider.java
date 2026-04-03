@@ -16,7 +16,7 @@ import picocli.CommandLine;
 /// Provides version information for a command
 public class ToolFetchVersionProvider implements CommandLine.IVersionProvider {
 
-    private static final String VERSION_SEPARATOR = "---------------------------------------------------------------";
+    private static final String VERSION_SEPARATOR = "--------------------------------------------------------------------";
 
     @Override
     public String[] getVersion() {

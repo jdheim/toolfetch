@@ -30,7 +30,7 @@ import org.mockito.MockedStatic;
 /// OOC Tests for [ToolFetchVersionProvider]
 class ToolFetchVersionProviderTest {
 
-    static final String VERSION_SEPARATOR = "---------------------------------------------------------------";
+    static final String VERSION_SEPARATOR = "--------------------------------------------------------------------";
 
     static final String JAVA_VERSION = "\\d{2}(\\.\\d+){1,2}";
 
