@@ -34,7 +34,19 @@ It is designed for:
 - setting up new developer machines quickly and consistently
 - reproducible tool installations
 
----
+![Demo](assets/demo.gif)
+
+## Installation
+
+1. Download the latest release for your OS/architecture from [Releases](https://github.com/jdheim/toolfetch/releases)
+2. Move the `toolfetch` binary to a directory in your `$PATH` (e.g., system-wide: `/usr/local/bin` or user-specific:
+   `$HOME/.local/bin`)
+
+## Verify Releases
+
+See [VERIFICATION.md](VERIFICATION.md) for details.
+
+## Usage
 
 Given the following configuration file named `toolfetch.yaml`:
 
@@ -171,16 +183,6 @@ Otherwise, you may encounter an exception like:
 ```text
 (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 ```
-
-## Installation
-
-1. Download the latest release for your OS/architecture from [Releases](https://github.com/jdheim/toolfetch/releases)
-2. Move the `toolfetch` binary to a directory in your `$PATH` (e.g., system-wide: `/usr/local/bin` or user-specific:
-   `$HOME/.local/bin`)
-
-## Verify Releases
-
-See [VERIFICATION.md](VERIFICATION.md) for details.
 
 ## 💖 Support
 
