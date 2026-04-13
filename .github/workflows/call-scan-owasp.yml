@@ -9,7 +9,7 @@ on:
 jobs:
   owasp-scan:
     name: "OWASP Scan"
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -23,6 +23,7 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           maven-repo-cache-key: owasp-scan-m2-repo
+          maven-repo-cache-restore-previous-date: true
 
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
       - name: "Install .NET SDK required by AssemblyAnalyzer"

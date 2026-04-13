@@ -5,6 +5,10 @@ inputs:
     description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
     required: false
     default: "default-m2-repo"
+  maven-repo-cache-restore-previous-date:
+    description: "Enables or disables restoring the most recent cache from a previous date"
+    required: false
+    default: "false"
   generate-workflow-stats:
     description: "Enables or disables 'Generate Workflow Stats' step"
     required: false
@@ -104,12 +108,27 @@ runs:
         java-version: ${{ env.JDK_VERSION }}
         distribution: temurin
 
+    - name: "Get Date"
+      id: get-date
+      run: echo "current-date=$(date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+      shell: bash
+
     - name: "Cache Maven Repository"
+      if: ${{ inputs.maven-repo-cache-restore-previous-date != 'true' }}
       uses: actions/cache@v5
       with:
         path: ~/.m2/repository
-        key: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ steps.get-date.outputs.current-date }}-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ steps.get-date.outputs.current-date }}-
+
+    - name: "Cache Maven Repository (restore previous date allowed)"
+      if: ${{ inputs.maven-repo-cache-restore-previous-date == 'true' }}
+      uses: actions/cache@v5
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ steps.get-date.outputs.current-date }}-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
+          ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-${{ steps.get-date.outputs.current-date }}-
           ${{ runner.os }}-${{ inputs.maven-repo-cache-key }}-
 
     - name: "Set Project Version in JReleaser"
