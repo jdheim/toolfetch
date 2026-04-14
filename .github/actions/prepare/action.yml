@@ -140,7 +140,7 @@ runs:
     - name: "Set Project Version in Maven"
       if: ${{ inputs.release-type != 'SNAPSHOT' }}
       shell: bash
-      run: ./mvnw versions:set -DnewVersion="${PROJECT_VERSION}" -DgenerateBackupPoms=false
+      run: ./mvnw -ntp versions:set -DnewVersion="${PROJECT_VERSION}" -DgenerateBackupPoms=false
 
     - name: "Generate Workflow Stats"
       if: ${{ inputs.generate-workflow-stats == 'true' }}
@@ -148,6 +148,6 @@ runs:
       run: |
         echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
         echo "- Java **$(java --version | grep "openjdk" | awk '{print $2}')**" >> ${GITHUB_STEP_SUMMARY}
-        echo "- Maven **$(./mvnw --batch-mode --version | grep "Apache Maven" | awk '{print $3}')**" >> ${GITHUB_STEP_SUMMARY}
+        echo "- Maven **$(./mvnw -ntp --version | grep "Apache Maven" | awk '{print $3}')**" >> ${GITHUB_STEP_SUMMARY}
         echo "- Docker Client **$(docker version --format "{{.Client.Version}}")**" >> ${GITHUB_STEP_SUMMARY}
         echo "- Docker Server **$(docker version --format "{{.Server.Version}}")**" >> ${GITHUB_STEP_SUMMARY}

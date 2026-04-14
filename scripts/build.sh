@@ -51,7 +51,7 @@ enrichNativeProfiles() {
 
 build() {
   step "Build Project"
-  run ./mvnw clean install -DskipTests -Padd-third-party "${remainingOptions[@]}"
+  run ./mvnw -ntp clean install -DskipTests -Padd-third-party "${remainingOptions[@]}"
   scripts/common/updateNotice.sh
   local binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE=ALWAYS" )
   if [[ "${isNativeImage:-false}" == "true" ]]; then

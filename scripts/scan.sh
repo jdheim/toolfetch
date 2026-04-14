@@ -75,12 +75,12 @@ dependencyAnalyze() {
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/dependency-analyze.log"
     set +o errexit
-    run ./mvnw dependency:analyze -DfailOnWarning "$@" | tee "${logFile}"
+    run ./mvnw -ntp dependency:analyze -DfailOnWarning "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]ERROR\[]]"
   else
-    run ./mvnw dependency:analyze -DfailOnWarning "$@"
+    run ./mvnw -ntp dependency:analyze -DfailOnWarning "$@"
     exitCode=$?
   fi
   exit "${exitCode}"
@@ -89,7 +89,7 @@ dependencyAnalyze() {
 dependencyTree() {
   step "Dependency Tree"
   shift
-  run ./mvnw dependency:tree "$@"
+  run ./mvnw -ntp dependency:tree "$@"
   exit $?
 }
 
@@ -106,12 +106,12 @@ owaspScan() {
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/owasp-scan.log"
     set +o errexit
-    run ./mvnw clean verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
+    run ./mvnw -ntp clean verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] Check for updates complete"
   else
-    run ./mvnw clean verify -Powasp-scan -DskipTests "$@"
+    run ./mvnw -ntp clean verify -Powasp-scan -DskipTests "$@"
     exitCode=$?
   fi
   exit "${exitCode}"
@@ -128,7 +128,7 @@ sonarScan() {
   step "Sonar Scan"
   shift
   set +o errexit
-  run ./mvnw clean verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
+  run ./mvnw -ntp clean verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
   local exitCode=$?
   set -o errexit
   sonarQubeQualityGateStatus
@@ -152,12 +152,12 @@ spotBugsScan() {
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/spotbugs-scan.log"
     set +o errexit
-    run ./mvnw clean verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
+    run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(getProjectArtifactId) ---"
   else
-    run ./mvnw clean verify -Pspotbugs-scan -DskipTests "$@"
+    run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests "$@"
     exitCode=$?
   fi
   exit "${exitCode}"
@@ -166,7 +166,7 @@ spotBugsScan() {
 spotBugsGui() {
   step "SpotBugs Scan and launch GUI to check analysis result"
   shift
-  run ./mvnw clean verify -Pspotbugs-scan -DskipTests -Dspotbugs.failOnError=false spotbugs:gui "$@"
+  run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests -Dspotbugs.failOnError=false spotbugs:gui "$@"
   exit $?
 }
 
@@ -179,7 +179,7 @@ spotBugsHtml() {
 testsWithJacocoScan() {
   step "Tests with Jacoco Coverage Scan"
   shift
-  run ./mvnw clean verify -Pjacoco-scan "$@"
+  run ./mvnw -ntp clean verify -Pjacoco-scan "$@"
   exit $?
 }
 
@@ -191,21 +191,21 @@ smokeTestsNative() {
     echo -e "${ERROR} Executable \"${binary}\" does not exist. Run: ./build.sh -n "
     exit 1
   fi
-  run ./mvnw verify -Psmoke-tests-native "$@"
+  run ./mvnw -ntp verify -Psmoke-tests-native "$@"
   exit $?
 }
 
 nativeAgentScan() {
   step "Native Agent Scan"
   shift
-  run ./mvnw clean verify -Psetup-graalvm -Pnative-agent-scan "$@"
+  run ./mvnw -ntp clean verify -Psetup-graalvm -Pnative-agent-scan "$@"
   exit $?
 }
 
 versionUpdate() {
   step "Version update"
   shift
-  run ./mvnw versions:update-properties \
+  run ./mvnw -ntp versions:update-properties \
     -pl . \
     -DgenerateBackupPoms=false \
     -Dmaven.version.ignore="${MAVEN_VERSION_IGNORE}" "$@"
@@ -215,7 +215,7 @@ versionUpdate() {
 versionCheck() {
   step "Version check"
   shift
-  run ./mvnw versions:display-property-updates \
+  run ./mvnw -ntp versions:display-property-updates \
     -pl . \
     -Dmaven.version.ignore="${MAVEN_VERSION_IGNORE}" "$@"
   exit $?
@@ -223,7 +223,7 @@ versionCheck() {
 
 scan() {
   step "Scan Project"
-  run ./mvnw clean verify \
+  run ./mvnw -ntp clean verify \
     -Pjacoco-scan \
     -Powasp-scan \
     -Pspotbugs-scan \
@@ -232,7 +232,7 @@ scan() {
   sonarQubeStart
   step "Sonar Scan"
   set +o errexit
-  run ./mvnw verify -Psonar-scan -DskipTests "${remainingOptions[@]}"
+  run ./mvnw -ntp verify -Psonar-scan -DskipTests "${remainingOptions[@]}"
   local exitCode=$?
   set -o errexit
   sonarQubeQualityGateStatus

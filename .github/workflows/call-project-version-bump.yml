@@ -72,7 +72,7 @@ jobs:
 
       - name: "Set Project Version in Maven"
         shell: bash
-        run: ./mvnw versions:set -DnewVersion="${BUMPED_PROJECT_VERSION}" -DgenerateBackupPoms=false
+        run: ./mvnw -ntp versions:set -DnewVersion="${BUMPED_PROJECT_VERSION}" -DgenerateBackupPoms=false
 
       - name: "Verify changes"
         shell: bash
