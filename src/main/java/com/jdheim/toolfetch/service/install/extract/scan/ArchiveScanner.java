@@ -8,10 +8,11 @@ package com.jdheim.toolfetch.service.install.extract.scan;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveUncompressor;
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
+import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
 import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -25,16 +26,20 @@ public class ArchiveScanner implements PathScanner {
 
     @Override
     public String scan(Path archivePath) throws IOException {
-        try (ArchiveInputStream<ArchiveEntry> ais = uncompressor.uncompress(archivePath)) {
-            return scanStream(ais);
+        try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
+            return scanStream(acis);
         }
     }
 
-    private String scanStream(ArchiveInputStream<ArchiveEntry> ais) throws IOException {
+    private String scanStream(ArchiveWithCompressorInputStream acis) throws IOException {
         ArchiveEntry archiveEntry;
         Path topLevelDir = null;
-        while ((archiveEntry = ais.getNextEntry()) != null) {
-            if (!ais.canReadEntryData(archiveEntry) || archiveEntry.isDirectory()) continue;
+        int totalArchiveEntries = 0;
+
+        while ((archiveEntry = acis.getNextEntry()) != null) {
+            if (!acis.canReadEntryData(archiveEntry) || archiveEntry.isDirectory()) continue;
+
+            ArchiveZipBombValidator.validateEntryCount(++totalArchiveEntries);
 
             topLevelDir = scanEntry(archiveEntry, topLevelDir);
             if (topLevelDir == null) {

@@ -6,18 +6,20 @@
 package com.jdheim.toolfetch.service.install.extract;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
 import com.jdheim.toolfetch.service.install.extract.scan.PathScanner;
 import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveUncompressor;
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
+import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
 import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.io.FileUtils;
@@ -32,6 +34,8 @@ public class ArchiveExtractService implements ExtractService {
     private static final Logger LOG = LoggerFactory.getLogger(ArchiveExtractService.class);
 
     private static final String SLASH = "/";
+
+    private static final int EXTRACT_BUFFER_SIZE = 8192;
 
     private final PathScanner pathScanner;
 
@@ -67,16 +71,19 @@ public class ArchiveExtractService implements ExtractService {
 
     private void extract(Path archivePath, Path destinationPath) throws IOException {
         String topLevelDir = normalize(pathScanner.scan(archivePath));
-        try (ArchiveInputStream<ArchiveEntry> ais = uncompressor.uncompress(archivePath)) {
-            extractStream(ais, destinationPath, topLevelDir);
+        try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
+            extractStream(acis, destinationPath, topLevelDir);
         }
     }
 
-    private void extractStream(ArchiveInputStream<ArchiveEntry> ais, Path destinationPath, String topLevelDir) throws
+    private void extractStream(ArchiveWithCompressorInputStream acis, Path destinationPath, String topLevelDir) throws
             IOException {
         ArchiveEntry archiveEntry;
-        while ((archiveEntry = ais.getNextEntry()) != null) {
-            boolean canReadEntryData = ais.canReadEntryData(archiveEntry);
+        int totalArchiveEntries = 0;
+        long totalExtractedArchiveSize = 0L;
+
+        while ((archiveEntry = acis.getNextEntry()) != null) {
+            boolean canReadEntryData = acis.canReadEntryData(archiveEntry);
             if (!canReadEntryData || archiveEntry.isDirectory()) {
                 if (!canReadEntryData) {
                     LOG.warn("Can't read archive entry at \"{}\". Skipping", archiveEntry);
@@ -84,9 +91,13 @@ public class ArchiveExtractService implements ExtractService {
                 continue;
             }
 
+            ArchiveZipBombValidator.validateEntryCount(++totalArchiveEntries);
+
             String entryName = stripEntryName(archiveEntry, topLevelDir);
             Path target = resolveSecureTargetPath(destinationPath, entryName);
-            extractEntry(ais, target);
+
+            totalExtractedArchiveSize = extractEntry(acis, archiveEntry, target, totalExtractedArchiveSize);
+
             Integer unixPermissions = readUnixPermissions(archiveEntry);
             if (unixPermissions != null) {
                 applyUnixPermissions(target, unixPermissions);
@@ -124,7 +135,8 @@ public class ArchiveExtractService implements ExtractService {
         return normalizedTarget;
     }
 
-    void extractEntry(ArchiveInputStream<ArchiveEntry> ais, Path target) throws IOException {
+    long extractEntry(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry, Path target,
+            long totalExtractedArchiveSize) throws IOException {
         Path parent = target.getParent();
         if (parent == null) {
             throw new UnsupportedOperationException(
@@ -133,7 +145,19 @@ public class ArchiveExtractService implements ExtractService {
         if (!Files.exists(parent)) {
             Files.createDirectories(parent);
         }
-        Files.copy(ais, target);
+        byte[] extractBuffer = new byte[EXTRACT_BUFFER_SIZE];
+
+        try (OutputStream out = Files.newOutputStream(target)) {
+            int bytesRead;
+            while ((bytesRead = acis.read(extractBuffer)) > 0) {
+                ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry);
+                totalExtractedArchiveSize += bytesRead;
+                ArchiveZipBombValidator.validateTotalSize(totalExtractedArchiveSize);
+                out.write(extractBuffer, 0, bytesRead);
+            }
+        }
+
+        return totalExtractedArchiveSize;
     }
 
     private @Nullable Integer readUnixPermissions(ArchiveEntry archiveEntry) {

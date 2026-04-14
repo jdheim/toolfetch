@@ -13,6 +13,7 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.compress.compressors.pack200.Pack200CompressorInputStream;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class Pack200ArchiveUncompressor extends AutoDetectArchiveUncompressor {
 
@@ -26,18 +27,19 @@ public class Pack200ArchiveUncompressor extends AutoDetectArchiveUncompressor {
     }
 
     @Override
-    protected InputStream createCompressorInputStream(BufferedInputStream bis, Path archivePath) throws IOException {
+    protected ImmutablePair<BufferedInputStream, CompressorInputStream> createCompressorInputStream(BufferedInputStream bis,
+            Path archivePath) throws IOException {
         try {
             if (isPack200(archivePath)) {
-                return getPack200InputStream(bis);
+                return ImmutablePair.of(getPack200InputStream(bis), null);
             } else if (isPack200Gz(archivePath)) {
                 CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(bis);
-                return getPack200InputStream(new BufferedInputStream(cis));
+                return ImmutablePair.of(getPack200InputStream(new BufferedInputStream(cis)), cis);
             }
         } catch (CompressorException _) {
-            return bis;
+            return ImmutablePair.of(bis, null);
         }
-        return bis;
+        return ImmutablePair.of(bis, null);
     }
 
     private boolean isPack200(Path archivePath) {

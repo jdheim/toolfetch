@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -20,6 +21,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class AutoDetectArchiveUncompressor implements Uncompressor {
 
@@ -37,32 +39,38 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
     }
 
     @Override
-    public ArchiveInputStream<ArchiveEntry> uncompress(Path archivePath) throws IOException {
+    public ArchiveWithCompressorInputStream uncompress(Path archivePath) throws IOException {
         InputStream in = Files.newInputStream(archivePath);
         BufferedInputStream bis = new BufferedInputStream(in);
-        InputStream cis = createCompressorInputStream(bis, archivePath);
-        return ARCHIVE_STREAM_FACTORY.createArchiveInputStream(detect(cis), cis);
+        ImmutablePair<BufferedInputStream, CompressorInputStream> cis = createCompressorInputStream(bis, archivePath);
+        BufferedInputStream bufferedCis = cis.getLeft();
+        ArchiveInputStream<ArchiveEntry> ais = ARCHIVE_STREAM_FACTORY.createArchiveInputStream(detect(bufferedCis), bufferedCis);
+        CompressorInputStream lastCis = cis.getRight();
+        return new ArchiveWithCompressorInputStream(ais, lastCis);
     }
 
     /// Creates Compressor InputStream with `mark`/`reset` support
     ///
     /// @param bis         InputStream with `mark`/`reset` support
     /// @param archivePath May be used for further computation in overriding classes
-    protected InputStream createCompressorInputStream(BufferedInputStream bis, Path archivePath) throws IOException {
+    protected ImmutablePair<BufferedInputStream, CompressorInputStream> createCompressorInputStream(BufferedInputStream bis,
+            Path archivePath) throws IOException {
         ArchiveUncompressProgress progress = new ArchiveUncompressProgress(false, bis);
+        CompressorInputStream lastCis = null;
         while (!progress.finished()) {
             try {
                 CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(progress.stream());
+                lastCis = cis;
                 progress = new ArchiveUncompressProgress(false, new BufferedInputStream(cis));
             } catch (CompressorException _) {
                 progress = new ArchiveUncompressProgress(true, progress.stream());
             }
         }
-        return progress.stream();
+        return ImmutablePair.of(progress.stream(), lastCis);
     }
 
-    private String detect(InputStream in) throws ArchiveException {
-        String archiverName = ArchiveStreamFactory.detect(in);
+    private String detect(BufferedInputStream bis) throws ArchiveException {
+        String archiverName = ArchiveStreamFactory.detect(bis);
         if (EXCLUDED_ARCHIVERS.contains(archiverName)) {
             throw new ArchiveException("No Archiver found for the stream signature");
         }

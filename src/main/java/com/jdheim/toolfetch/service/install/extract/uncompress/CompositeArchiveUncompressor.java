@@ -8,9 +8,8 @@ package com.jdheim.toolfetch.service.install.extract.uncompress;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import org.apache.commons.compress.archivers.ArchiveEntry;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
 
 public class CompositeArchiveUncompressor extends AutoDetectArchiveUncompressor {
 
@@ -26,7 +25,7 @@ public class CompositeArchiveUncompressor extends AutoDetectArchiveUncompressor 
     }
 
     @Override
-    public ArchiveInputStream<ArchiveEntry> uncompress(Path archivePath) throws IOException {
+    public ArchiveWithCompressorInputStream uncompress(Path archivePath) throws IOException {
         for (Uncompressor uncompressor : getUncompressors()) {
             if (uncompressor.isApplicable(archivePath)) {
                 return uncompressor.uncompress(archivePath);

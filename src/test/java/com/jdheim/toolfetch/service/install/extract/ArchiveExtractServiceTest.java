@@ -15,6 +15,7 @@ import java.util.List;
 import ch.qos.logback.classic.Level;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -55,9 +56,11 @@ class ArchiveExtractServiceTest {
     @Test
     void testExtractEntry_MissingTargetParent_ZipSlip() throws IOException {
         Path target = Path.of("toolfetch.txt");
-        try (ArchiveInputStream<ArchiveEntry> ais = mock()) {
+        try (ArchiveInputStream<ArchiveEntry> ais = mock();
+             ArchiveWithCompressorInputStream acis = new ArchiveWithCompressorInputStream(ais, null)) {
+            ArchiveEntry archiveEntry = mock();
             assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
-                            () -> archiveExtractService.extractEntry(ais, target))
+                            () -> archiveExtractService.extractEntry(acis, archiveEntry, target, 0))
                     .withMessage(
                             "Detected Zip Slip vulnerability: Archive Entry \"toolfetch.txt\" does not have parent directory");
         }
@@ -66,8 +69,10 @@ class ArchiveExtractServiceTest {
     @Test
     void testExtractEntry_TargetExists() throws IOException {
         Path target = tempDir.resolve("test1.txt");
-        try (ArchiveInputStream<ArchiveEntry> ais = mock()) {
-            archiveExtractService.extractEntry(ais, target);
+        try (ArchiveInputStream<ArchiveEntry> ais = mock();
+             ArchiveWithCompressorInputStream acis = new ArchiveWithCompressorInputStream(ais, null)) {
+            ArchiveEntry archiveEntry = mock();
+            archiveExtractService.extractEntry(acis, archiveEntry, target, 0);
             assertThat(target).isEmptyFile();
         }
     }

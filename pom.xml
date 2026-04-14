@@ -235,6 +235,17 @@
                 <artifactId>snakeyaml-engine</artifactId>
                 <version>${snakeyaml-engine.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-annotations</artifactId>
+                <version>${spotbugs.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -348,6 +359,10 @@
         <dependency>
             <groupId>org.snakeyaml</groupId>
             <artifactId>snakeyaml-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
         </dependency>
 
         <dependency>
@@ -917,6 +932,7 @@
                             <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
                             <includedScopes>runtime,compile</includedScopes>
                             <includeTransitiveDependencies>true</includeTransitiveDependencies>
+                            <excludedGroups>com.github.spotbugs|org.jspecify</excludedGroups>
                             <sortArtifactByName>true</sortArtifactByName>
                             <failOnMissing>true</failOnMissing>
                         </configuration>
@@ -936,6 +952,7 @@
                                     <!-- runtime include scope gives runtime and compile dependencies -->
                                     <includeScope>runtime</includeScope>
                                     <excludeTransitive>false</excludeTransitive>
+                                    <excludeGroupIds>com.github.spotbugs,org.jspecify</excludeGroupIds>
                                     <outputFile>${project.build.directory}/third-party/LIBS.txt</outputFile>
                                     <outputDirectory>${project.build.directory}/third-party/lib</outputDirectory>
                                 </configuration>
@@ -951,6 +968,7 @@
                                     <includeScope>runtime</includeScope>
                                     <classifier>sources</classifier>
                                     <excludeTransitive>false</excludeTransitive>
+                                    <excludeGroupIds>com.github.spotbugs,org.jspecify</excludeGroupIds>
                                     <outputDirectory>${project.build.directory}/third-party/sources</outputDirectory>
                                 </configuration>
                             </execution>

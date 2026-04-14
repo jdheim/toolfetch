@@ -148,7 +148,7 @@ toSpdxLicenses() {
 
 toSpdxLicense() {
   for pattern in "${!SPDX_LICENSES[@]}"; do
-    if [[ "$license" =~ ${pattern} ]]; then
+    if [[ "${license,,}" =~ ${pattern,,} ]]; then
       echo "${SPDX_LICENSES[${pattern}]}"
       return 0
     fi

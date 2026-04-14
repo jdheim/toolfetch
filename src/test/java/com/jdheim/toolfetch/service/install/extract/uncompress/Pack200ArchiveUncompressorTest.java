@@ -33,8 +33,8 @@ class Pack200ArchiveUncompressorTest {
     @ValueSource(strings = {"toolfetch.gz", "toolfetch.pack.gz"})
     void testUncompress(String archiveName) throws IOException {
         BufferedInputStream bis = new BufferedInputStream(InputStream.nullInputStream());
-        InputStream cis = uncompressor.createCompressorInputStream(bis, tempDir.resolve(archiveName));
-        assertThat(cis).isEqualTo(bis);
+        BufferedInputStream bufferedCis = uncompressor.createCompressorInputStream(bis, tempDir.resolve(archiveName)).getLeft();
+        assertThat(bufferedCis).isEqualTo(bis);
     }
 
 }

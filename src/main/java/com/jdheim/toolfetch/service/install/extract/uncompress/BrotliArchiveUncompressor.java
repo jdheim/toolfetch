@@ -6,11 +6,11 @@
 package com.jdheim.toolfetch.service.install.extract.uncompress;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.nio.file.Path;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class BrotliArchiveUncompressor extends AutoDetectArchiveUncompressor {
 
@@ -22,13 +22,14 @@ public class BrotliArchiveUncompressor extends AutoDetectArchiveUncompressor {
     }
 
     @Override
-    protected InputStream createCompressorInputStream(BufferedInputStream bis, Path archivePath) {
+    protected ImmutablePair<BufferedInputStream, CompressorInputStream> createCompressorInputStream(BufferedInputStream bis,
+            Path archivePath) {
         try {
             CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(CompressorStreamFactory.BROTLI,
                     bis);
-            return new BufferedInputStream(cis);
+            return ImmutablePair.of(new BufferedInputStream(cis), cis);
         } catch (CompressorException _) {
-            return bis;
+            return ImmutablePair.of(bis, null);
         }
     }
 
