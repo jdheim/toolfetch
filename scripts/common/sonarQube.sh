@@ -24,8 +24,7 @@ sonarQubeStart() {
   local sonarQubeId
   sonarQubeId="$(sonarQubeId)"
   if [[ -z "${sonarQubeId}" ]]; then
-    run docker image pull "${SONAR_IMAGE}"
-    run docker container run -d --rm --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" "${SONAR_IMAGE}"
+    run docker container run -d --rm --pull "always" --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" "${SONAR_IMAGE}"
     sonarQubeHealthcheck
     changeAdminPassword
   else
