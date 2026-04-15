@@ -22,7 +22,7 @@
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <toolfetch.build.jvm>${java.version} (${java.vendor} ${java.vm.version})</toolfetch.build.jvm>
+        <toolfetch.build.graalvm>${java.version} (${java.vendor} ${java.vm.version})</toolfetch.build.graalvm>
         <error-prone.args>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=com.jdheim -XepOpt:NullAway:JSpecifyMode=true</error-prone.args>
         <jacoco.check.skip>false</jacoco.check.skip>
 
@@ -1083,7 +1083,7 @@
                                                     /java.vendor =/     { java_vendor=$2 }
                                                     /java.vm.version =/ { java_vm_version=$2 }
                                                     END {
-                                                        printf "toolfetch.build.jvm=%s (%s %s)\n", java_version, java_vendor, java_vm_version
+                                                        printf "toolfetch.build.graalvm=%s (%s %s)\n", java_version, java_vendor, java_vm_version
                                                     }
                                                 ' > "${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-version.properties"]]>
                                         </argument>

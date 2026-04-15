@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 public enum ToolFetchInfo {
 
     TITLE("toolfetch.title", "ToolFetch"),
-    VERSION("toolfetch.version", "dev"),
+    VERSION("toolfetch.version", "X.X.X-DEV"),
     BUILD_TIME("toolfetch.build.time", "-"),
     BUILD_REVISION("toolfetch.build.revision", "dev"),
-    BUILD_JVM("toolfetch.build.jvm", "-");
+    BUILD_GRAALVM("toolfetch.build.graalvm", "-");
 
     private static final Logger LOG = LoggerFactory.getLogger(ToolFetchInfo.class);
 

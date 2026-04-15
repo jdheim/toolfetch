@@ -32,7 +32,7 @@ class ToolFetchVersionProviderTest {
 
     static final String VERSION_SEPARATOR = "--------------------------------------------------------------------";
 
-    static final String JAVA_VERSION = "\\d{2}(\\.\\d+){1,2}";
+    static final String GRAALVM_VERSION = "\\d{2}(\\.\\d+){1,2}";
 
     static final String TOOLFETCH_VERSION = "\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?";
 
@@ -64,8 +64,9 @@ class ToolFetchVersionProviderTest {
                         row -> assertThat(row).matches("ToolFetch %s by JDHeim.com".formatted(TOOLFETCH_VERSION)),
                         row -> assertThat(row).isEqualTo(VERSION_SEPARATOR),
                         row -> assertThat(row).matches("Build Time:\t" + ISO_8601_UTC),
-                        row -> assertThat(row).matches("Revision:\t(%s|dev)".formatted(GIT_REVISION)),
-                        row -> assertThat(row).matches("JVM:\t\t%s \\(.* %s.*\\)".formatted(JAVA_VERSION, JAVA_VERSION)),
+                        row -> assertThat(row).matches("Build Revision:\t(%s|dev)".formatted(GIT_REVISION)),
+                        row -> assertThat(row).matches(
+                                "Build GraalVM:\t%s \\(.* %s.*\\)".formatted(GRAALVM_VERSION, GRAALVM_VERSION)),
                         row -> assertThat(row).isEqualTo(VERSION_SEPARATOR));
     }
 
@@ -104,10 +105,10 @@ class ToolFetchVersionProviderTest {
         String[] actualVersion = provider.getVersion();
         assertThat(actualVersion).hasSize(7)
                 .satisfiesExactly(row -> assertThat(row).isEqualTo(VERSION_SEPARATOR),
-                        row -> assertThat(row).matches("ToolFetch dev by JDHeim.com"),
+                        row -> assertThat(row).matches("ToolFetch X.X.X-DEV by JDHeim.com"),
                         row -> assertThat(row).isEqualTo(VERSION_SEPARATOR), row -> assertThat(row).matches("Build Time:\t-"),
-                        row -> assertThat(row).matches("Revision:\tdev"), row -> assertThat(row).matches("JVM:\t\t-"),
-                        row -> assertThat(row).isEqualTo(VERSION_SEPARATOR));
+                        row -> assertThat(row).matches("Build Revision:\tdev"),
+                        row -> assertThat(row).matches("Build GraalVM:\t-"), row -> assertThat(row).isEqualTo(VERSION_SEPARATOR));
     }
 
     @Test

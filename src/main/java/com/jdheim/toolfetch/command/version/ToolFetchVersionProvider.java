@@ -5,7 +5,7 @@
 
 package com.jdheim.toolfetch.command.version;
 
-import static com.jdheim.toolfetch.command.version.ToolFetchInfo.BUILD_JVM;
+import static com.jdheim.toolfetch.command.version.ToolFetchInfo.BUILD_GRAALVM;
 import static com.jdheim.toolfetch.command.version.ToolFetchInfo.BUILD_REVISION;
 import static com.jdheim.toolfetch.command.version.ToolFetchInfo.BUILD_TIME;
 import static com.jdheim.toolfetch.command.version.ToolFetchInfo.TITLE;
@@ -22,8 +22,8 @@ public class ToolFetchVersionProvider implements CommandLine.IVersionProvider {
     public String[] getVersion() {
         String titleWithVersion = "%s %s by JDHeim.com".formatted(TITLE.value(), VERSION.value());
         String buildTime = "Build Time:\t" + BUILD_TIME.value();
-        String revision = "Revision:\t" + BUILD_REVISION.value();
-        String jvm = "JVM:\t\t" + BUILD_JVM.value();
+        String revision = "Build Revision:\t" + BUILD_REVISION.value();
+        String jvm = "Build GraalVM:\t" + BUILD_GRAALVM.value();
 
         return new String[]{
                 VERSION_SEPARATOR, titleWithVersion, VERSION_SEPARATOR, buildTime, revision, jvm, VERSION_SEPARATOR
