@@ -106,12 +106,12 @@ owaspScan() {
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/owasp-scan.log"
     set +o errexit
-    run ./mvnw -ntp clean verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
+    run ./mvnw -ntp verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] Check for updates complete"
   else
-    run ./mvnw -ntp clean verify -Powasp-scan -DskipTests "$@"
+    run ./mvnw -ntp verify -Powasp-scan -DskipTests "$@"
     exitCode=$?
   fi
   exit "${exitCode}"
@@ -128,7 +128,7 @@ sonarScan() {
   step "Sonar Scan"
   shift
   set +o errexit
-  run ./mvnw -ntp clean verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
+  run ./mvnw -ntp verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
   local exitCode=$?
   set -o errexit
   sonarQubeQualityGateStatus
@@ -152,12 +152,12 @@ spotBugsScan() {
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     local logFile="target/spotbugs-scan.log"
     set +o errexit
-    run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
+    run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
     githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(getProjectArtifactId) ---"
   else
-    run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests "$@"
+    run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@"
     exitCode=$?
   fi
   exit "${exitCode}"
@@ -166,7 +166,7 @@ spotBugsScan() {
 spotBugsGui() {
   step "SpotBugs Scan and launch GUI to check analysis result"
   shift
-  run ./mvnw -ntp clean verify -Pspotbugs-scan -DskipTests -Dspotbugs.failOnError=false spotbugs:gui "$@"
+  run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests -Dspotbugs.failOnError=false spotbugs:gui "$@"
   exit $?
 }
 
@@ -179,7 +179,7 @@ spotBugsHtml() {
 testsWithJacocoScan() {
   step "Tests with Jacoco Coverage Scan"
   shift
-  run ./mvnw -ntp clean verify -Pjacoco-scan "$@"
+  run ./mvnw -ntp verify -Pjacoco-scan "$@"
   exit $?
 }
 
@@ -198,7 +198,7 @@ smokeTestsNative() {
 nativeAgentScan() {
   step "Native Agent Scan"
   shift
-  run ./mvnw -ntp clean verify -Psetup-graalvm -Pnative-agent-scan "$@"
+  run ./mvnw -ntp verify -Psetup-graalvm -Pnative-agent-scan "$@"
   exit $?
 }
 
@@ -223,7 +223,7 @@ versionCheck() {
 
 scan() {
   step "Scan Project"
-  run ./mvnw -ntp clean verify \
+  run ./mvnw -ntp verify \
     -Pjacoco-scan \
     -Powasp-scan \
     -Pspotbugs-scan \

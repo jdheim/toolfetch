@@ -15,11 +15,12 @@ Usage: $(basename "$0") [OPTION]...
 Builds whole project
 
 OPTIONS:
+  -c                     Perform clean build
   -d                     Dry-run JReleaser
   -n, --native           Create a standalone executable (native image)
+  --native-debug         Create a standalone executable (native image) with debug enabled
   --native-maven         Create a standalone executable (native image) using native-maven-plugin
   --native-prepare       Builds whole project and prepares native setup
-  --native-debug         Create a standalone executable (native image) with debug enabled
 EOF
   exit 1
 }
@@ -33,6 +34,7 @@ main() {
 readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
+      -c) phases=("clean") ;;
       -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
       -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
       --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-25.0.2"; remainingOptions+=("-Psetup-graalvm" "-Pnative-image" "-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true") ;;
@@ -43,6 +45,7 @@ readOptions() {
     esac
     shift
   done
+  phases+=("verify")
 }
 
 enrichNativeProfiles() {
@@ -51,7 +54,7 @@ enrichNativeProfiles() {
 
 build() {
   step "Build Project"
-  run ./mvnw -ntp clean install -DskipTests -Padd-third-party "${remainingOptions[@]}"
+  run ./mvnw -ntp "${phases[@]}" -DskipTests -Padd-third-party "${remainingOptions[@]}"
   scripts/common/updateNotice.sh
   local binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE=ALWAYS" )
   if [[ "${isNativeImage:-false}" == "true" ]]; then
