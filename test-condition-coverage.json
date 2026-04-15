@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "namedLogo": "junit5",
-  "logoColor": "#25A162",
+  "namedLogo": "sonarqubeserver",
+  "logoColor": "white",
   "label": "Test Condition Coverage (%)",
   "message": "92.6",
   "color": "brightgreen"
