@@ -7,6 +7,7 @@
 #
 
 [[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
+[[ -f "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh"
 
 readonly SONAR_CONTAINER_NAME="sonarqube"
 readonly SONAR_IMAGE="sonarqube:community"
@@ -15,30 +16,30 @@ readonly SONAR_HOST_PORT="${SONAR_HOST_URL##*:}"
 readonly SONAR_ADMIN_USER="admin"
 readonly SONAR_ADMIN_OLD_PASS="${SONAR_ADMIN_USER}"
 
-sonarQubeStart() {
+sonarqubeStart() {
   step "SonarQube Start"
   SONAR_ADMIN_NEW_PASS="Admin$(getProjectArtifactId)1!"
   SONAR_TOKEN_NAME="$(getProjectArtifactId)"
   SONAR_PROJECT_NAME="$(getProjectGroupId):$(getProjectArtifactId)"
   SONAR_QUALITY_GATE_NAME="$(getProjectArtifactId)"
-  local sonarQubeId
-  sonarQubeId="$(sonarQubeId)"
-  if [[ -z "${sonarQubeId}" ]]; then
+  local sonarqubeId
+  sonarqubeId="$(sonarqubeId)"
+  if [[ -z "${sonarqubeId}" ]]; then
     run docker container run -d --rm --pull "always" --name "${SONAR_CONTAINER_NAME}" -p "${SONAR_HOST_PORT}":"${SONAR_HOST_PORT}" "${SONAR_IMAGE}"
-    sonarQubeHealthcheck
+    sonarqubeHealthcheck
     changeAdminPassword
   else
     revokeToken
   fi
   generateToken
-  if [[ -z "${sonarQubeId}" ]]; then
+  if [[ -z "${sonarqubeId}" ]]; then
     createProject
     createQualityGate
     assignQualityGateToProject
   fi
 }
 
-sonarQubeHealthcheck() {
+sonarqubeHealthcheck() {
   local timeout=120
   local start duration
   echo -en "${INFO} SonarQube Healthcheck [timeout=${timeout}s] ..."
@@ -157,32 +158,57 @@ assignQualityGateToProject() {
     "${SONAR_HOST_URL}/api/qualitygates/select"
 }
 
-sonarQubeQualityGateStatus() {
-  step "SonarQube QualityGate Status"
+sonarqubeQualityGateStatus() {
   local response status
   response="$(curl -fsS -u "${SONAR_TOKEN}:" -G \
     --data-urlencode "projectKey=${SONAR_PROJECT_NAME}" \
     "${SONAR_HOST_URL}/api/qualitygates/project_status")"
-  echo "${response}" | jq -r 'def metricLabel: {
-    "coverage": "Test Coverage (%)",
-    "branch_coverage": "Test Condition Coverage (%)",
-    "duplicated_lines_density": "Duplicated Lines Density (%)",
-    "violations": "Code Issues",
-    "security_hotspots_reviewed": "Security Hotspots Reviewed (%)"
-  }[.] // .;
-  def colorStatus:
-    if . == "OK" then "\u001b[1;32m" + . + "\u001b[0m"
-    elif . == "WARN" then "\u001b[1;33m" + . + "\u001b[0m"
-    elif . == "ERROR" then "\u001b[1;31m" + . + "\u001b[0m"
-    else .
-    end;
-  .projectStatus.conditions[]
-  | "[\(.status | colorStatus)] \(.metricKey | metricLabel): \(.actualValue // "-") \(
-      .comparator | if . == "LT" then "is less than"
-        elif . == "GT" then "is greater than"
-        else .
-        end // "-"
-      ) \(.errorThreshold // "-")"'
+
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+    actualTestCoverage=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="coverage") | .actualValue) // "0.0"')
+    actualTestConditionCoverage=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="branch_coverage") | .actualValue) // "0.0"')
+    actualDuplicatedLinesDensityStatus=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="duplicated_lines_density") | .status) // "OK"')
+    actualDuplicatedLinesDensity=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="duplicated_lines_density") | .actualValue) // "0.0"')
+    actualSonarCodeIssuesStatus=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="violations") | .status) // "OK"')
+    actualSonarCodeIssues=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="violations") | .actualValue) // "0"')
+    actualSonarSecurityHotspotsStatus=$(jq -r -n --argjson data "${response}" 'first($data.projectStatus.conditions[]? | select(.metricKey=="security_hotspots_reviewed") | .status) // "OK"')
+    createPercentageBadge "test-coverage" "sonarqubeserver" "Test Coverage (%)" "${actualTestCoverage}"
+    createPercentageBadge "test-condition-coverage" "sonarqubeserver" "Test Condition Coverage (%)" "${actualTestConditionCoverage}"
+    createStatusBadge "duplicated-lines" "sonarqubeserver" "Duplicated Lines (%)" "${actualDuplicatedLinesDensityStatus}" "${actualDuplicatedLinesDensity}"
+    createStatusBadge "sonarqube-code-issues" "sonarqubeserver" "SonarQube Code Issues" "${actualSonarCodeIssuesStatus}" "${actualSonarCodeIssues}"
+    createStatusBadge "sonarqube-security-hotspots" "sonarqubeserver" "SonarQube Security Hotspots" "${actualSonarSecurityHotspotsStatus}"
+  fi
+
+  step "SonarQube QualityGate Status"
+  jq -r -n --argjson data "${response}" '
+    def orderedMetrics: [
+      { key: "coverage", label: "Test Coverage (%)" },
+      { key: "branch_coverage", label: "Test Condition Coverage (%)" },
+      { key: "duplicated_lines_density", label: "Duplicated Lines (%)" },
+      { key: "violations", label: "Code Issues" },
+      { key: "security_hotspots_reviewed", label: "Security Hotspots Reviewed (%)" }
+    ];
+
+    def colorStatus:
+      if . == "OK" then "\u001b[1;32m" + . + "\u001b[0m"
+      elif . == "WARN" then "\u001b[1;33m" + . + "\u001b[0m"
+      elif . == "ERROR" then "\u001b[1;31m" + . + "\u001b[0m"
+      else .
+      end;
+
+    orderedMetrics[] | .key as $metricKey | .label as $metricLabel
+      | first($data.projectStatus.conditions[]? | select(.metricKey == $metricKey)) as $condition
+      | select($condition != null)
+      | "[\($condition.status | colorStatus)] \(
+            $metricLabel): \(
+            $condition.actualValue // "-") \(
+            $condition.comparator | if . == "LT" then "is less than"
+              elif . == "GT" then "is greater than"
+              else .
+              end // "-") \(
+            $condition.errorThreshold // "-")"
+  '
+
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     {
       echo -n "### Status: "
@@ -195,28 +221,31 @@ sonarQubeQualityGateStatus() {
       echo
       echo "| Metric | Status | Actual | Comparator | Threshold |"
       echo "|---|---:|---:|---:|---|"
-      echo "${response}" | jq -r 'def metricLabel:
-        {
-          "coverage": "Test Coverage (%)",
-          "branch_coverage": "Test Condition Coverage (%)",
-          "duplicated_lines_density": "Duplicated Lines Density (%)",
-          "violations": "Code Issues",
-          "security_hotspots_reviewed": "Security Hotspots Reviewed (%)"
-        }[.] // .;
-        .projectStatus.conditions[] | [
-        (.metricKey | metricLabel),
-        .status,
-        (.actualValue // "-"),
-        (.comparator
-          | if . == "LT" then "is less than"
-            elif . == "GT" then "is greater than"
-            else .
-            end // "-"),
-        (.errorThreshold // "-")
-        ] | @tsv' \
-      | while IFS=$'\t' read -r metricKey status actualValue comparator errorThreshold; do
-        echo "| \`${metricKey}\` | **${status}** | \`${actualValue}\` | \`${comparator}\` | \`${errorThreshold}\` |"
-      done
+      jq -r -n --argjson data "${response}" '
+        def orderedMetrics: [
+          { key: "coverage", label: "Test Coverage (%)" },
+          { key: "branch_coverage", label: "Test Condition Coverage (%)" },
+          { key: "duplicated_lines_density", label: "Duplicated Lines (%)" },
+          { key: "violations", label: "Code Issues" },
+          { key: "security_hotspots_reviewed", label: "Security Hotspots Reviewed (%)" }
+        ];
+
+        orderedMetrics[] | .key as $metricKey | .label as $metricLabel
+          | first($data.projectStatus.conditions[]? | select(.metricKey == $metricKey)) as $condition
+          | select($condition != null)
+          | [
+            $metricLabel,
+            ($condition.status // "-"),
+            ($condition.actualValue // "-"),
+            ($condition.comparator | if . == "LT" then "is less than"
+                elif . == "GT" then "is greater than"
+                else .
+                end // "-"),
+            ($condition.errorThreshold // "-")
+          ] | @tsv
+      ' | while IFS=$'\t' read -r metricKey status actualValue comparator errorThreshold; do
+            echo "| \`${metricKey}\` | **${status}** | \`${actualValue}\` | \`${comparator}\` | \`${errorThreshold}\` |"
+          done
       echo
       echo "<details><summary>Raw JSON Response</summary>"
       echo
@@ -229,18 +258,18 @@ sonarQubeQualityGateStatus() {
   fi
 }
 
-sonarQubeStop() {
+sonarqubeStop() {
   step "SonarQube Stop"
-  local sonarQubeId
-  sonarQubeId="$(sonarQubeId)"
-  if [[ -n "${sonarQubeId}" ]]; then
-    run docker container stop "${sonarQubeId}"
+  local sonarqubeId
+  sonarqubeId="$(sonarqubeId)"
+  if [[ -n "${sonarqubeId}" ]]; then
+    run docker container stop "${sonarqubeId}"
   else
     echo -e "${WARN} Nothing to stop"
   fi
   exit $?
 }
 
-sonarQubeId() {
+sonarqubeId() {
   docker container ls --filter "name=^${SONAR_CONTAINER_NAME}$" --filter "status=running" --format "{{.ID}}"
 }

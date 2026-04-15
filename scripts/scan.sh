@@ -7,7 +7,7 @@
 #
 
 [[ -f "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/common/sonarQube.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/sonarQube.sh"
+[[ -f "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh"
 
 usage() {
   cat << EOF
@@ -24,9 +24,9 @@ OPTIONS:
   --jacoco-html          Launch default browser to check Jacoco Coverage Scan analysis result
   --owasp-scan           OWASP Scan
   --owasp-html           Launch default browser to check OWASP Scan analysis result
-  --sonar-scan           Runs Tests with Sonar Scan
-  --sonar-html           Launch default browser to check Sonar Scan analysis result
-  --sonar-stop           Stop SonarQube server
+  --sonarqube-scan       Runs Tests with SonarQube Scan
+  --sonarqube-html       Launch default browser to check SonarQube Scan analysis result
+  --sonarqube-stop       Stop SonarQube server
   --spotbugs-scan        SpotBugs Scan
   --spotbugs-gui         SpotBugs Scan and launch GUI to check analysis result
   --spotbugs-html        Launch default browser to check SpotBugs Scan analysis result
@@ -53,9 +53,9 @@ readOptions() {
       --jacoco-html) jacocoHtml ;;
       --owasp-scan) owaspScan "$@" ;;
       --owasp-html) owaspHtml ;;
-      --sonar-scan) sonarScan "$@" ;;
-      --sonar-html) sonarHtml ;;
-      --sonar-stop) sonarQubeStop ;;
+      --sonarqube-scan) sonarqubeScan "$@" ;;
+      --sonarqube-html) sonarqubeHtml ;;
+      --sonarqube-stop) sonarqubeStop ;;
       --spotbugs-scan) spotBugsScan "$@" ;;
       --spotbugs-gui) spotBugsGui "$@" ;;
       --spotbugs-html) spotBugsHtml ;;
@@ -123,20 +123,21 @@ owaspHtml() {
   exit $?
 }
 
-sonarScan() {
-  sonarQubeStart
-  step "Sonar Scan"
+sonarqubeScan() {
+  sonarqubeStart
+  step "SonarQube Scan"
   shift
   set +o errexit
-  run ./mvnw -ntp verify -Pjacoco-scan -Psonar-scan -Djacoco.check.skip=true "$@"
+  run ./mvnw -ntp verify -Pjacoco-scan -Psonarqube-scan -Djacoco.check.skip=true "$@"
   local exitCode=$?
   set -o errexit
-  sonarQubeQualityGateStatus
+  (( exitCode >= 128 )) && exit "${exitCode}"
+  sonarqubeQualityGateStatus
   exit ${exitCode}
 }
 
-sonarHtml() {
-  step "Launch default browser to check Sonar Scan analysis result"
+sonarqubeHtml() {
+  step "Launch default browser to check SonarQube Scan analysis result"
   if [[ -f "target/sonar/report-task.txt" ]]; then
     run open "$(grep "dashboardUrl=" "target/sonar/report-task.txt" | sed "s/dashboardUrl=//")"
   else
@@ -229,13 +230,13 @@ scan() {
     -Pspotbugs-scan \
     dependency:analyze -DfailOnWarning \
     "${remainingOptions[@]}"
-  sonarQubeStart
-  step "Sonar Scan"
+  sonarqubeStart
+  step "SonarQube Scan"
   set +o errexit
-  run ./mvnw -ntp verify -Psonar-scan -DskipTests "${remainingOptions[@]}"
+  run ./mvnw -ntp verify -Psonarqube-scan -DskipTests "${remainingOptions[@]}"
   local exitCode=$?
   set -o errexit
-  sonarQubeQualityGateStatus
+  sonarqubeQualityGateStatus
   exit ${exitCode}
 }
 

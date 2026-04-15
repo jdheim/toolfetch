@@ -1,16 +1,17 @@
-name: "Call: Sonar Scan"
+name: "Call: Jacoco Scan"
 
 on:
   workflow_call:
-    secrets:
-      DOCKERHUB_USERNAME:
-        required: true
-      DOCKERHUB_TOKEN:
-        required: true
+    inputs:
+      maven-repo-cache-key:
+        description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
+        required: false
+        type: string
+        default: "jacoco-scan-m2-repo"
 
 jobs:
-  sonar-scan:
-    name: "Sonar Scan"
+  jacoco-scan:
+    name: "Jacoco Scan"
     timeout-minutes: 15
     permissions:
       contents: read
@@ -20,22 +21,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-          fetch-depth: 0
 
       - name: "Prepare"
         uses: ./.github/actions/prepare
         with:
-          maven-repo-cache-key: sonar-scan-m2-repo
+          maven-repo-cache-key: ${{ inputs.maven-repo-cache-key }}
 
-      - name: "Log in to DockerHub"
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: "Sonar Scan"
+      - name: "Jacoco Scan"
         working-directory: scripts
-        run: ./scan.sh --sonar-scan
+        run: ./scan.sh --jacoco-scan
 
       - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6

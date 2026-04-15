@@ -11,14 +11,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sonar-scan:
-    name: "Sonar Scan"
-    uses: jdheim/toolfetch/.github/workflows/call-scan-sonar.yml@main
+  sonarqube-scan:
+    name: "SonarQube Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan-sonarqube.yml@main
     permissions:
       contents: read
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  test-report:
+    name: "Test Report"
+    needs: sonarqube-scan
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    uses: jdheim/toolfetch/.github/workflows/call-test-report.yml@main
+
+  publish-badges:
+    name: "Publish Badges"
+    needs: sonarqube-scan
+    permissions:
+      contents: write
+    uses: jdheim/toolfetch/.github/workflows/call-publish-badges.yml@main
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
 
   owasp-scan:
     name: "OWASP Scan"

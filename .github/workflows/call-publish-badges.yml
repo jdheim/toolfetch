@@ -1,0 +1,53 @@
+# Initialize badges branch
+# git checkout --orphan badges && git rm -rf . ':!.gitignore' ':!.idea' && git add . && git commit -m "chore: Initialize badges branch" && git push origin badges
+name: "Call: Publish Badges"
+
+on:
+  workflow_call:
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID:
+        required: true
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY:
+        required: true
+
+jobs:
+  publish-badges:
+    name: "Publish Badges"
+    if: ${{ github.ref == 'refs/heads/main' }}
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate Token of jdheim-actions[bot]"
+        id: jdheim-actions-bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          ref: badges
+
+      - name: "Clean Badges"
+        shell: bash
+        run: git rm -rf . ':!.gitignore' ':!README.md'
+
+      - name: "Download Badges"
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*-badges"
+          merge-multiple: true
+          path: .
+
+      - name: "Commit and Push"
+        uses: IAreKyleW00t/verified-bot-commit@v2
+        with:
+          message: "chore: Publish Badges"
+          ref: refs/heads/badges
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          files: |
+            **

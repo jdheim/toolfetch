@@ -1,0 +1,64 @@
+name: "Call: SonarQube Scan"
+
+on:
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  sonarqube-scan:
+    name: "SonarQube Scan"
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: "Prepare"
+        uses: ./.github/actions/prepare
+        with:
+          maven-repo-cache-key: sonarqube-scan-m2-repo
+
+      - name: "Log in to DockerHub"
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "SonarQube Scan"
+        working-directory: scripts
+        run: ./scan.sh --sonarqube-scan
+
+      - name: "Upload Test Reports"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: test-report
+          if-no-files-found: error
+          path: |
+            target/surefire-reports/**/TEST-*.xml
+            target/failsafe-reports/**/TEST-*.xml
+
+      - name: "Upload Jacoco Scan Report"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: jacoco-scan-report
+          if-no-files-found: error
+          path: target/site/jacoco/**
+
+      - name: "Upload Badges"
+        uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: sonarqube-scan-badges
+          if-no-files-found: error
+          path: target/badges/**

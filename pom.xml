@@ -880,7 +880,7 @@
             </build>
         </profile>
         <profile>
-            <id>sonar-scan</id>
+            <id>sonarqube-scan</id>
             <properties>
                 <sonar.host.url>http://localhost:9000</sonar.host.url>
                 <sonar.maven.scanAll>true</sonar.maven.scanAll>

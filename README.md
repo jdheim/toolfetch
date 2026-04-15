@@ -2,11 +2,14 @@
     <a href="https://github.com/jdheim/toolfetch/releases" rel="noreferrer">
         <img src="https://img.shields.io/github/v/release/jdheim/toolfetch?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
     </a>
-    <a href="LICENSE" rel="noreferrer">
-        <img src="https://img.shields.io/github/license/jdheim/toolfetch?label=License&logo=googledocs&logoColor=white" alt="License"/>
+    <a href="https://github.com/jdheim/toolfetch/releases" rel="noreferrer">
+        <img src="https://img.shields.io/github/downloads/jdheim/toolfetch/total?label=Downloads&logo=github&logoColor=white" alt="Downloads"/>
     </a>
     <a href="https://slsa.dev" rel="noreferrer">
         <img src="https://slsa.dev/images/gh-badge-level3.svg" alt="SLSA: Level 3"/>
+    </a>
+    <a href="LICENSE" rel="noreferrer">
+        <img src="https://img.shields.io/github/license/jdheim/toolfetch?label=License&logo=googledocs&logoColor=white" alt="License"/>
     </a>
     <br/>
     <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
@@ -19,8 +22,20 @@
         <img src="https://img.shields.io/github/actions/workflow/status/jdheim/toolfetch/github-code-scanning/codeql?label=CodeQL&logo=github&logoColor=white&branch=main" alt="CodeQL"/>
     </a>
     <br/>
-    <a href="https://github.com/jdheim/toolfetch/releases" rel="noreferrer">
-        <img src="https://img.shields.io/github/downloads/jdheim/toolfetch/total?label=Downloads&logo=github&logoColor=white" alt="Downloads"/>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jdheim/toolfetch/refs/heads/badges/test-coverage.json" alt="Test Coverage (%)"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jdheim/toolfetch/refs/heads/badges/test-condition-coverage.json" alt="Test Condition Coverage (%)"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jdheim/toolfetch/refs/heads/badges/duplicated-lines.json" alt="Duplicated Lines (%)"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jdheim/toolfetch/refs/heads/badges/sonarqube-code-issues.json" alt="SonarQube Code Issues"/>
+    </a>
+    <a href="https://github.com/jdheim/toolfetch/actions/workflows/tests-and-scans.yml" rel="noreferrer">
+        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jdheim/toolfetch/refs/heads/badges/sonarqube-security-hotspots.json" alt="SonarQube Security Hotspots"/>
     </a>
 </p>
 

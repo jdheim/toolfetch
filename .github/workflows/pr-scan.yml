@@ -17,3 +17,11 @@ jobs:
       contents: read
     with:
       maven-repo-cache-key-prefix: pr-scan-m2-repo
+
+  jacoco-scan:
+    name: "Jacoco Scan"
+    uses: jdheim/toolfetch/.github/workflows/call-scan-jacoco.yml@main
+    permissions:
+      contents: read
+    with:
+      maven-repo-cache-key: pr-jacoco-scan-m2-repo
