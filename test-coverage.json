@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "namedLogo": "junit5",
   "logoColor": "#25A162",
-  "label": "Test Coverage",
+  "label": "Test Coverage (%)",
   "message": "96.6",
   "color": "brightgreen"
 }

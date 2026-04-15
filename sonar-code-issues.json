@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "namedLogo": "sonarqubeserver",
+  "logoColor": "#126ED3",
+  "label": "Sonar Code Issues",
+  "message": "0",
+  "color": "brightgreen"
+}
