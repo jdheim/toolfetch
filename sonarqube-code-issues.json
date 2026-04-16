@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "namedLogo": "sonarqubeserver",
   "logoColor": "white",
-  "label": "Sonar Code Issues",
+  "label": "SonarQube Code Issues",
   "message": "0",
   "color": "brightgreen"
 }

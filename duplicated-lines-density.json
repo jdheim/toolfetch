@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "namedLogo": "sonarqubeserver",
+  "logoColor": "white",
+  "label": "Duplicated Lines Density (%)",
+  "message": "0.0",
+  "color": "brightgreen"
+}
