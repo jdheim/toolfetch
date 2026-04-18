@@ -17,9 +17,11 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
 import ch.qos.logback.classic.Level;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,15 +32,15 @@ import org.mockito.MockedStatic;
 /// OOC Tests for [ToolFetchVersionProvider]
 class ToolFetchVersionProviderTest {
 
-    static final String VERSION_SEPARATOR = "--------------------------------------------------------------------";
+    static final String SEPARATOR_PATTERN = "^-+$";
 
-    static final String GRAALVM_VERSION = "\\d{2}(\\.\\d+){1,2}";
+    static final String GRAALVM_VERSION_PATTERN = "\\d{2}(\\.\\d+){1,2}";
 
-    static final String TOOLFETCH_VERSION = "\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?";
+    static final String TOOLFETCH_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?";
 
-    static final String ISO_8601_UTC = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
+    static final String ISO_8601_UTC_PATTERN = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
 
-    static final String GIT_REVISION = "[0-9a-f]{40}";
+    static final String GIT_REVISION_PATTERN = "[0-9a-f]{40}";
 
     ToolFetchVersionProvider provider;
 
@@ -58,16 +60,18 @@ class ToolFetchVersionProviderTest {
 
     @Test
     void testVersion() {
-        String[] actualVersion = provider.getVersion();
-        assertThat(actualVersion).hasSize(7)
-                .satisfiesExactly(row -> assertThat(row).isEqualTo(VERSION_SEPARATOR),
-                        row -> assertThat(row).matches("ToolFetch %s by JDHeim.com".formatted(TOOLFETCH_VERSION)),
-                        row -> assertThat(row).isEqualTo(VERSION_SEPARATOR),
-                        row -> assertThat(row).matches("Build Time:\t" + ISO_8601_UTC),
-                        row -> assertThat(row).matches("Build Revision:\t(%s|dev)".formatted(GIT_REVISION)),
-                        row -> assertThat(row).matches(
-                                "Build GraalVM:\t%s \\(.* %s.*\\)".formatted(GRAALVM_VERSION, GRAALVM_VERSION)),
-                        row -> assertThat(row).isEqualTo(VERSION_SEPARATOR));
+        String[] versionLines = provider.getVersion();
+        int longestLineLength = getLongestLineLength(versionLines);
+        String separator = provider.separator(versionLines);
+        assertThat(separator).matches(SEPARATOR_PATTERN).hasSize(longestLineLength);
+        assertThat(versionLines).hasSize(7)
+                .satisfiesExactly(row -> assertThat(row).isEqualTo(separator),
+                        row -> assertThat(row).matches("ToolFetch %s by JDHeim.com".formatted(TOOLFETCH_VERSION_PATTERN)),
+                        row -> assertThat(row).isEqualTo(separator),
+                        row -> assertThat(row).matches("Build Time:\\s{5}" + ISO_8601_UTC_PATTERN),
+                        row -> assertThat(row).matches("Build Revision:\\s(%s|dev)".formatted(GIT_REVISION_PATTERN)),
+                        row -> assertThat(row).matches("Build GraalVM:\\s{2}%s \\(.* %s.*\\)".formatted(GRAALVM_VERSION_PATTERN,
+                                GRAALVM_VERSION_PATTERN)), row -> assertThat(row).isEqualTo(separator));
     }
 
     @ParameterizedTest
@@ -102,13 +106,26 @@ class ToolFetchVersionProviderTest {
 
     void assertVersionWithVersionInfo(String versionInfoFilePath) {
         ToolFetchInfo.LazyHolder.reloadTestHook(versionInfoFilePath);
-        String[] actualVersion = provider.getVersion();
-        assertThat(actualVersion).hasSize(7)
-                .satisfiesExactly(row -> assertThat(row).isEqualTo(VERSION_SEPARATOR),
+        String[] versionLines = provider.getVersion();
+        int longestLineLength = getLongestLineLength(versionLines);
+        String separator = provider.separator(versionLines);
+        assertThat(separator).matches(SEPARATOR_PATTERN).hasSize(longestLineLength);
+        assertThat(versionLines).hasSize(7)
+                .satisfiesExactly(row -> assertThat(row).isEqualTo(separator),
                         row -> assertThat(row).matches("ToolFetch X.X.X-DEV by JDHeim.com"),
-                        row -> assertThat(row).isEqualTo(VERSION_SEPARATOR), row -> assertThat(row).matches("Build Time:\t-"),
-                        row -> assertThat(row).matches("Build Revision:\tdev"),
-                        row -> assertThat(row).matches("Build GraalVM:\t-"), row -> assertThat(row).isEqualTo(VERSION_SEPARATOR));
+                        row -> assertThat(row).isEqualTo(separator), row -> assertThat(row).matches("Build Time:\\s{5}-"),
+                        row -> assertThat(row).matches("Build Revision:\\sdev"),
+                        row -> assertThat(row).matches("Build GraalVM:\\s{2}-"), row -> assertThat(row).isEqualTo(separator));
+    }
+
+    private int getLongestLineLength(String[] versionLines) {
+        int longestLineLength = Arrays.stream(versionLines)
+                .filter(StringUtils::isNotBlank)
+                .mapToInt(String::length)
+                .max()
+                .orElse(0);
+        assertThat(longestLineLength).isGreaterThan(0);
+        return longestLineLength;
     }
 
     @Test
