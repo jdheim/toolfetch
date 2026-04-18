@@ -22,7 +22,7 @@ readonly INFO WARN ERROR MAVEN_VERSION_IGNORE
 ## step "Message"
 step() {
   local step="[\e[1;96mSTEP\e[0m]"
-  local line="\e[1;96m-----\e[0m"
+  local line="\e[1;96m===\e[0m"
   local message="${1}"
   echo -e "${step} ${line} ${message} ${line}"
 }

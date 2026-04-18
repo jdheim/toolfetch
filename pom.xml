@@ -483,6 +483,9 @@
                         <excludes>
                             <exclude>**/*SmokeTest.java</exclude>
                         </excludes>
+                        <systemPropertyVariables>
+                            <org.fusesource.jansi.Ansi.disable>true</org.fusesource.jansi.Ansi.disable>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -494,6 +497,9 @@
                             <include>**/*IT.java</include>
                             <include>**/*SmokeTest.java</include>
                         </includes>
+                        <systemPropertyVariables>
+                            <org.fusesource.jansi.Ansi.disable>true</org.fusesource.jansi.Ansi.disable>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
 

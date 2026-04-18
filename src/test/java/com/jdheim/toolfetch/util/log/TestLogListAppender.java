@@ -24,6 +24,10 @@ public class TestLogListAppender extends ListAppender<ILoggingEvent> {
         });
     }
 
+    public void assertNoMatch(Level level, String message) {
+        assertThat(list).noneMatch(event -> event.getLevel().equals(level) && event.getFormattedMessage().contains(message));
+    }
+
     public void assertNoErrorNoWarn() {
         assertThat(list).noneMatch(event -> event.getLevel() == Level.ERROR || event.getLevel() == Level.WARN);
     }

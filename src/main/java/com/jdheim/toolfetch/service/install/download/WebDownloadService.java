@@ -28,6 +28,8 @@ import com.jdheim.toolfetch.service.install.resolve.FileNameResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.service.install.resolve.UriTransformer;
+import com.jdheim.toolfetch.service.log.AnsiHelper;
+import com.jdheim.toolfetch.service.log.LogHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -64,7 +66,8 @@ public class WebDownloadService implements DownloadService {
 
     @Override
     public Optional<Path> download(Configuration configuration, Tool tool) {
-        LOG.info("> Install {}...", tool.id());
+        String header = AnsiHelper.header(tool);
+        LOG.info(header);
         Path destinationPath = destinationResolver.resolve(configuration, tool);
         if (Files.exists(destinationPath)) {
             LOG.warn("Destination Path already exists: \"{}\". Skipping {}", destinationPath, tool.id());
@@ -121,16 +124,20 @@ public class WebDownloadService implements DownloadService {
 
     Path createDirectories(Configuration configuration, Tool tool) throws IOException {
         Path destinationPath = destinationResolver.resolve(configuration, tool);
-        LOG.info("Create {}", destinationPath);
+        LOG.info("Creating {}", destinationPath);
         Files.createDirectories(destinationPath);
         return destinationPath;
     }
 
     private void downloadFromResponseBody(HttpResponse<InputStream> httpResponse, URI toolUri, Path archivePath) throws
             IOException {
-        LOG.info("Download {} to {}", toolUri, archivePath);
+        LOG.info("Downloading {} to {}", toolUri, archivePath);
+        long startTime = System.nanoTime();
         try (InputStream inputStream = httpResponse.body()) {
             Files.copy(inputStream, archivePath, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            String elapsedTime = LogHelper.elapsedTime(startTime);
+            LOG.info("Download completed in {}s", elapsedTime);
         }
     }
 

@@ -19,6 +19,7 @@ import com.jdheim.toolfetch.service.install.extract.scan.PathScanner;
 import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveUncompressor;
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
 import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
+import com.jdheim.toolfetch.service.log.LogHelper;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -53,7 +54,6 @@ public class ArchiveExtractService implements ExtractService {
             LOG.warn("Destination Path could not be resolved. Skipping {}", tool.id());
             return;
         }
-        LOG.info("Extract {} to {}", archivePath, destinationPath);
         try {
             extract(archivePath, destinationPath);
             LOG.info("Removing {}", archivePath);
@@ -71,8 +71,13 @@ public class ArchiveExtractService implements ExtractService {
 
     private void extract(Path archivePath, Path destinationPath) throws IOException {
         String topLevelDir = normalize(pathScanner.scan(archivePath));
+        LOG.info("Extracting {} to {}", archivePath, destinationPath);
+        long startTime = System.nanoTime();
         try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
             extractStream(acis, destinationPath, topLevelDir);
+        } finally {
+            String elapsedTime = LogHelper.elapsedTime(startTime);
+            LOG.info("Extract completed in {}s", elapsedTime);
         }
     }
 
@@ -86,7 +91,7 @@ public class ArchiveExtractService implements ExtractService {
             boolean canReadEntryData = acis.canReadEntryData(archiveEntry);
             if (!canReadEntryData || archiveEntry.isDirectory()) {
                 if (!canReadEntryData) {
-                    LOG.warn("Can't read archive entry at \"{}\". Skipping", archiveEntry);
+                    LOG.warn("Couldn't read archive entry \"{}\". Skipping", archiveEntry);
                 }
                 continue;
             }

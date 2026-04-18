@@ -113,6 +113,8 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
                         ("[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: " +
                                 "The 7z doesn't support streaming.\". Skipping %s").formatted(Level.WARN, tool.id()));
             } else {
+                assertAnyMatch(execResult, "[%s] Extracting %s to %s".formatted(Level.INFO, archivePath, destinationPath));
+                assertAnyMatch(execResult, "[%s] Extract completed in ".formatted(Level.INFO));
                 assertAnyMatch(execResult, "[%s] Removing %s".formatted(Level.INFO, archivePath));
                 if (tool.url().contains("-password")) {
                     assertAnyMatch(execResult,
@@ -198,11 +200,13 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
     }
 
     private void assertLogs(ExecResult execResult, Tool tool, Path destinationPath, Path archivePath) {
-        assertAnyMatch(execResult, "[%s] > Install %s".formatted(Level.INFO, tool.id()));
-        assertAnyMatch(execResult, "[%s] Create %s".formatted(Level.INFO, destinationPath));
+        assertAnyMatch(execResult, "[%s] === Installing %s ===".formatted(Level.INFO, tool.id()));
+        assertAnyMatch(execResult, "[%s] Creating %s".formatted(Level.INFO, destinationPath));
         assertAnyMatch(execResult,
-                "[%s] Download %s to %s".formatted(Level.INFO, uriTransformer.transform(tool), destinationPath));
-        assertAnyMatch(execResult, "[%s] Extract %s to %s".formatted(Level.INFO, archivePath, destinationPath));
+                "[%s] Downloading %s to %s".formatted(Level.INFO, uriTransformer.transform(tool), destinationPath));
+        assertAnyMatch(execResult, "[%s] Download completed in ".formatted(Level.INFO));
+        assertAnyMatch(execResult, "[%s] Scanning %s".formatted(Level.INFO, archivePath));
+        assertAnyMatch(execResult, "[%s] Scan completed in ".formatted(Level.INFO));
     }
 
     private void assertSingleArchive(Path destinationPath) {

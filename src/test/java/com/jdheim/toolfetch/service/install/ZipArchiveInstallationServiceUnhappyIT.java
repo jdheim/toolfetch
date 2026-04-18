@@ -59,9 +59,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             String[] logArgs, WireMockRuntimeInfo wmRuntimeInfo) {
         testInstall(wmRuntimeInfo, zipEntries, assertions);
         assertThat(logArgs).hasSize(3);
+        Path destinationPath = tempDir.resolve(logArgs[0]);
+        Path archivePath = destinationPath.resolve("toolfetch.zip");
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Extracting %s to %s".formatted(archivePath, destinationPath));
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
         getTestLogListAppender().assertAnyMatch(Level.WARN,
                 "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
-                        tempDir.resolve(logArgs[0]), logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
+                        destinationPath, logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
     }
 
     /// Password-protected ZIP file with password: "toolfetch"
@@ -93,11 +97,14 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
     private void testInstall_PasswordProtected(int index, List<String> files, WireMockRuntimeInfo wmRuntimeInfo) {
         byte[] archiveBytes = ArchiveUtils.readTestFile("/archive/zip/sample%d-password.zip".formatted(index));
+        Path archivePath = tempDir.resolve("toolfetch/toolfetch.zip");
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Extracting %s to %s".formatted(archivePath, destinationPath));
             files.forEach(file -> getTestLogListAppender().assertAnyMatch(Level.WARN,
-                    "Can't read archive entry at \"%s\". Skipping".formatted(file)));
-            getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + tempDir.resolve("toolfetch/toolfetch.zip"));
+                    "Couldn't read archive entry \"%s\". Skipping".formatted(file)));
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + archivePath);
             getTestLogListAppender().assertAnyMatch(Level.WARN,
                     "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
             assertThat(destinationPath).doesNotExist();

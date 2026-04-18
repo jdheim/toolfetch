@@ -26,6 +26,7 @@ import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
+import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jspecify.annotations.Nullable;
@@ -61,7 +62,7 @@ public class TestCommonArchiveInstallationService {
             Consumer<Path> assertions) {
         installationService = new ArchiveInstallationService();
         testLogListAppender = new TestLogListAppender();
-        getTestLogListAppender().start(WebDownloadService.class, ArchiveExtractService.class);
+        getTestLogListAppender().start(WebDownloadService.class, ArchiveExtractService.class, ArchiveScanner.class);
 
         stubFor(get("/download/" + archiveName).willReturn(aResponse().withStatus(200)
                 .withHeader(ContentTypes.CONTENT_TYPE, ContentTypes.OCTET_STREAM)
@@ -80,15 +81,19 @@ public class TestCommonArchiveInstallationService {
 
         Path destinationPath = tempDir.resolve(id);
         assertions.accept(destinationPath);
-        assertThat(destinationPath.resolve(archiveName)).doesNotExist();
+        Path archivePath = destinationPath.resolve(archiveName);
+        assertThat(archivePath).doesNotExist();
 
-        getTestLogListAppender().assertAnyMatch(Level.INFO, "> Install " + id);
-        getTestLogListAppender().assertAnyMatch(Level.INFO, "Create " + destinationPath);
-        getTestLogListAppender().assertAnyMatch(Level.INFO, "Download %s to %s".formatted(url, destinationPath));
-        getTestLogListAppender().assertAnyMatch(Level.INFO,
-                "Extract %s to %s".formatted(destinationPath.resolve(archiveName), destinationPath));
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "=== Installing " + id + " ===");
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Creating " + destinationPath);
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Downloading %s to %s".formatted(url, destinationPath));
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Download completed in ");
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Scanning " + archivePath);
+        getTestLogListAppender().assertAnyMatch(Level.INFO, "Scan completed in ");
         if (Files.exists(destinationPath)) {
-            getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + destinationPath.resolve(archiveName));
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Extracting %s to %s".formatted(archivePath, destinationPath));
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
+            getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + archivePath);
         }
     }
 

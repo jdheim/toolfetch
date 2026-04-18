@@ -88,10 +88,11 @@ class WebDownloadServiceIT {
                         actualPath -> assertThat(actualPath).isEqualTo(tempDir.resolve(tool.id()).resolve("toolfetch.zip"))
                                 .exists()
                                 .isRegularFile());
-        testLogListAppender.assertAnyMatch(Level.INFO, "> Install " + tool.id());
+        testLogListAppender.assertAnyMatch(Level.INFO, "=== Installing " + tool.id() + " ===");
         Path parentPath = path.get().getParent();
-        testLogListAppender.assertAnyMatch(Level.INFO, "Create " + parentPath);
-        testLogListAppender.assertAnyMatch(Level.INFO, "Download %s to %s".formatted(expectedUrl, parentPath));
+        testLogListAppender.assertAnyMatch(Level.INFO, "Creating " + parentPath);
+        testLogListAppender.assertAnyMatch(Level.INFO, "Downloading %s to %s".formatted(expectedUrl, parentPath));
+        testLogListAppender.assertAnyMatch(Level.INFO, "Download completed in ");
     }
 
     @Test

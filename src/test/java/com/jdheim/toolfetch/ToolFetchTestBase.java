@@ -21,6 +21,7 @@ import com.jdheim.toolfetch.service.config.parse.YamlParserService;
 import com.jdheim.toolfetch.service.config.validation.JsonSchemaValidationService;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
+import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
 import com.jdheim.toolfetch.service.install.resolve.ArchiveNameResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
@@ -99,7 +100,7 @@ public class ToolFetchTestBase {
         toolFetch.setErr(new PrintWriter(log));
         TestLogListAppender testLogListAppender = new TestLogListAppender();
         testLogListAppender.start(YamlParserService.class, JsonSchemaValidationService.class, WebDownloadService.class,
-                ArchiveExtractService.class, ArchiveNameResolver.class, ToolUriTransformer.class);
+                ArchiveExtractService.class, ArchiveScanner.class, ArchiveNameResolver.class, ToolUriTransformer.class);
         int exitCode = toolFetch.execute(args);
         List<String> writerLogs = log.toString().lines().toList();
         List<String> collectedLogs = testLogListAppender.list.stream()

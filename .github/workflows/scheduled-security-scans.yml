@@ -33,6 +33,7 @@ jobs:
   publish-badges:
     name: "Publish Badges"
     needs: sonarqube-scan
+    if: ${{ !cancelled() }}
     permissions:
       contents: write
     uses: jdheim/toolfetch/.github/workflows/call-publish-badges.yml@main

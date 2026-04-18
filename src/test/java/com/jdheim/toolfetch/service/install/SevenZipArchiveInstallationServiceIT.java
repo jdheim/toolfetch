@@ -97,7 +97,7 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
             files.forEach(file -> getTestLogListAppender().assertAnyMatch(Level.WARN,
-                    "Can't read archive entry at \"%s\". Skipping".formatted(file)));
+                    "Couldn't read archive entry \"%s\". Skipping".formatted(file)));
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + tempDir.resolve("toolfetch/toolfetch.7z"));
             getTestLogListAppender().assertAnyMatch(Level.WARN,
                     "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
