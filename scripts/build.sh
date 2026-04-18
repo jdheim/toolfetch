@@ -34,10 +34,12 @@ main() {
 readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
-      -c) phases=("clean") ;;
+      -c) phases+=("clean") ;;
       -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
       -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
-      --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-25.0.2"; remainingOptions+=("-Psetup-graalvm" "-Pnative-image" "-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true") ;;
+      --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")"
+        remainingOptions+=("-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true")
+        enrichNativeProfiles ;;
       --native-prepare) enrichNativeProfiles ;;
       --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeProfiles ;;
       -h|--help) usage ;;
@@ -49,6 +51,7 @@ readOptions() {
 }
 
 enrichNativeProfiles() {
+  [[ ! " ${phases[*]} " =~ " clean " ]] && phases+=("clean")
   remainingOptions+=("-Psetup-graalvm" "-Pnative-image")
 }
 
