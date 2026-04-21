@@ -56,12 +56,7 @@ public class ArchiveExtractService implements ExtractService {
         }
         try {
             extract(archivePath, destinationPath);
-            LOG.info("Removing {}", archivePath);
-            FileUtils.deleteQuietly(archivePath.toFile());
-            if (FileUtils.isEmptyDirectory(destinationPath.toFile())) {
-                LOG.warn("Nothing has been extracted. Removing {}", destinationPath);
-                FileUtils.deleteQuietly(destinationPath.toFile());
-            }
+            cleanup(archivePath, destinationPath);
         } catch (Exception e) {
             LOG.warn("Extract failed due to exception: \"{}: {}\". Skipping {}", e.getClass().getName(), e.getMessage(),
                     tool.id());
@@ -200,6 +195,15 @@ public class ArchiveExtractService implements ExtractService {
             Files.setPosixFilePermissions(target, posixPermissions);
         } catch (UnsupportedOperationException _) {
             // Non-POSIX filesystem (e.g. Windows)
+        }
+    }
+
+    private void cleanup(Path archivePath, Path destinationPath) throws IOException {
+        LOG.info("Removing {}", archivePath);
+        FileUtils.deleteQuietly(archivePath.toFile());
+        if (FileUtils.isEmptyDirectory(destinationPath.toFile())) {
+            LOG.warn("Nothing has been extracted. Removing {}", destinationPath);
+            FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }
 

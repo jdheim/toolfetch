@@ -54,7 +54,15 @@ public class WebDownloadService implements DownloadService {
     private final UriTransformer uriTransformer;
 
     public WebDownloadService() {
-        httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).connectTimeout(CONNECT_TIMEOUT).build();
+        HttpClient defaultHttpClient = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .connectTimeout(CONNECT_TIMEOUT)
+                .build();
+        this(defaultHttpClient);
+    }
+
+    public WebDownloadService(HttpClient httpClient) {
+        this.httpClient = httpClient;
         fileNameResolver = new ArchiveNameResolver();
         destinationResolver = new ToolDestinationResolver();
         uriTransformer = new ToolUriTransformer();
@@ -68,16 +76,13 @@ public class WebDownloadService implements DownloadService {
     public Optional<Path> download(Configuration configuration, Tool tool) {
         String header = AnsiHelper.header(tool);
         LOG.info(header);
-        Path destinationPath = destinationResolver.resolve(configuration, tool);
-        if (Files.exists(destinationPath)) {
-            LOG.warn("Destination Path already exists: \"{}\". Skipping {}", destinationPath, tool.id());
-            return Optional.empty();
-        }
         URI toolUri = uriTransformer.transform(tool);
         if (toolUri == null) {
             LOG.warn("URI could not be resolved. Skipping {}", tool.id());
             return Optional.empty();
         }
+        Path destinationPath = destinationResolver.resolve(configuration, tool);
+        boolean isUpdateMode = Files.exists(destinationPath);
         try {
             return download(configuration, tool, toolUri);
         } catch (Exception e) {
@@ -85,7 +90,7 @@ public class WebDownloadService implements DownloadService {
                 Thread.currentThread().interrupt();
             }
             logException(e, tool);
-            cleanup(configuration, tool);
+            cleanup(configuration, tool, isUpdateMode);
             return Optional.empty();
         }
     }
@@ -124,6 +129,15 @@ public class WebDownloadService implements DownloadService {
 
     Path createDirectories(Configuration configuration, Tool tool) throws IOException {
         Path destinationPath = destinationResolver.resolve(configuration, tool);
+        if (Files.exists(destinationPath)) {
+            Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
+            if (Files.exists(backupPath)) {
+                LOG.info("Backup Path already exists: {}. Removing", backupPath);
+                FileUtils.deleteQuietly(backupPath.toFile());
+            }
+            LOG.info("Destination Path already exists: {}. Moving to {}", destinationPath, backupPath);
+            Files.move(destinationPath, backupPath, StandardCopyOption.ATOMIC_MOVE);
+        }
         LOG.info("Creating {}", destinationPath);
         Files.createDirectories(destinationPath);
         return destinationPath;
@@ -145,9 +159,14 @@ public class WebDownloadService implements DownloadService {
         LOG.warn("Download failed due to exception: \"{}\". Skipping {}", exception.getMessage(), tool.id());
     }
 
-    private void cleanup(Configuration configuration, Tool tool) {
+    private void cleanup(Configuration configuration, Tool tool, boolean isUpdateMode) {
         Path destinationPath = destinationResolver.resolve(configuration, tool);
-        FileUtils.deleteQuietly(destinationPath.toFile());
+        Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
+        boolean isInstallMode = !isUpdateMode;
+        if (isInstallMode || Files.exists(backupPath)) {
+            LOG.info("Removing {}", destinationPath);
+            FileUtils.deleteQuietly(destinationPath.toFile());
+        }
     }
 
 }

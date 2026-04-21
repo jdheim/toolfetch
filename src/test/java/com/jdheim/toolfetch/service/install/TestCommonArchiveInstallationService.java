@@ -15,6 +15,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.jdheim.toolfetch.util.archive.ArchiveUtils.createZip;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -62,7 +63,8 @@ public class TestCommonArchiveInstallationService {
             Consumer<Path> assertions) {
         installationService = new ArchiveInstallationService();
         testLogListAppender = new TestLogListAppender();
-        getTestLogListAppender().start(WebDownloadService.class, ArchiveExtractService.class, ArchiveScanner.class);
+        getTestLogListAppender().start(ArchiveInstallationService.class, WebDownloadService.class, ArchiveExtractService.class,
+                ArchiveScanner.class);
 
         stubFor(get("/download/" + archiveName).willReturn(aResponse().withStatus(200)
                 .withHeader(ContentTypes.CONTENT_TYPE, ContentTypes.OCTET_STREAM)
@@ -93,8 +95,30 @@ public class TestCommonArchiveInstallationService {
         if (Files.exists(destinationPath)) {
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Extracting %s to %s".formatted(archivePath, destinationPath));
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
-            getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + archivePath);
+            if (getTestLogListAppender().list.stream()
+                    .noneMatch(line -> line.getFormattedMessage().startsWith("Extract failed due to exception")))
+                getTestLogListAppender().assertAnyMatch(Level.INFO, "Removing " + archivePath);
         }
+    }
+
+    protected void fillDestinationPath(String id) throws IOException {
+        Path destinationPath = tempDir.resolve(id);
+        Files.createDirectory(destinationPath);
+        assertThat(destinationPath).isDirectory();
+        Path cleanupTest = destinationPath.resolve("cleanupTest.txt");
+        Files.createFile(cleanupTest);
+        Files.writeString(cleanupTest, "Cleanup Test");
+        assertThat(cleanupTest).isRegularFile().hasContent("Cleanup Test");
+    }
+
+    protected void fillBackupPath(String id) throws IOException {
+        Path backupPath = tempDir.resolve(id + ".bak");
+        Files.createDirectory(backupPath);
+        assertThat(backupPath).isDirectory();
+        Path backupTest = backupPath.resolve("backupTest.txt");
+        Files.createFile(backupTest);
+        Files.writeString(backupTest, "Backup Test");
+        assertThat(backupTest).isRegularFile().hasContent("Backup Test");
     }
 
 }
