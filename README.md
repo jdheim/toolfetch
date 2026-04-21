@@ -49,6 +49,8 @@ It is designed for:
 - setting up new developer machines quickly and consistently
 - reproducible tool installations
 
+Installation demo using [toolfetch.yaml](assets/tapes/toolfetch.yaml):
+
 ![Demo](assets/demo.gif)
 
 ## Installation

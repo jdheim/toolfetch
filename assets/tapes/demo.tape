@@ -63,13 +63,13 @@ Set Shell "bash"
 Set FontSize 12
 Set FontFamily "MesloLGS NF"
 Set Width 800
-Set Height 370
+Set Height 450
 Set Padding 10
 
 Hide
 Type "PS1=$'\[\e[38;2;0;123;255m\]> \[\e[0m\]'" Enter
 Type "export PATH=$PATH:../../target" Enter
-Type "rm -rf /tmp/kitty /tmp/firefox" Enter
+Type "rm -rf /tmp/toolfetch" Enter
 Type "clear" Enter
 Sleep 100 ms
 Show
@@ -77,8 +77,8 @@ Show
 Require "toolfetch"
 Require "tree"
 
-Type 'toolfetch --config "../../src/test/resources/config/happy/toolfetch_demo.yaml"' Sleep 500ms Enter
+Type 'toolfetch --config "toolfetch.yaml"' Sleep 500ms Enter
 Wait
-Type "tree -L 1 /tmp/kitty" Sleep 500ms Enter
-Type "tree -L 1 /tmp/kitty/bin" Sleep 500ms Enter
+Type "tree -L 1 /tmp/toolfetch" Sleep 500ms Enter
+Type "tree -L 1 /tmp/toolfetch/bin" Sleep 500ms Enter
 Sleep 3s

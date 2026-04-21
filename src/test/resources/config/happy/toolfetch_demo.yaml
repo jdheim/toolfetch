@@ -1,7 +1,0 @@
-destination: "/tmp"
-tools:
-  - id: kitty
-    version: "0.44.0"
-    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
-    checksums:
-      sha256: "5b502801c8814c9fc5a2e8d9cfdf1c2ec5ee78b3e647f898704ad537a2ff452d"
