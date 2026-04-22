@@ -18,10 +18,10 @@ readonly SONAR_ADMIN_OLD_PASS="${SONAR_ADMIN_USER}"
 
 sonarqubeStart() {
   step "SonarQube Start"
-  SONAR_ADMIN_NEW_PASS="Admin$(getProjectArtifactId)1!"
-  SONAR_TOKEN_NAME="$(getProjectArtifactId)"
-  SONAR_PROJECT_NAME="$(getProjectGroupId):$(getProjectArtifactId)"
-  SONAR_QUALITY_GATE_NAME="$(getProjectArtifactId)"
+  SONAR_ADMIN_NEW_PASS="Admin$(projectArtifactId)1!"
+  SONAR_TOKEN_NAME="$(projectArtifactId)"
+  SONAR_PROJECT_NAME="$(projectGroupId):$(projectArtifactId)"
+  SONAR_QUALITY_GATE_NAME="$(projectArtifactId)"
   local sonarqubeId
   sonarqubeId="$(sonarqubeId)"
   if [[ -z "${sonarqubeId}" ]]; then

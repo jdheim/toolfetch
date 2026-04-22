@@ -37,18 +37,12 @@ jobs:
         with:
           token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
 
-      - name: "Get Project Version"
-        id: get-project-version
-        uses: mikefarah/yq@v4
-        with:
-          cmd: yq -r '.project.version' "jreleaser.yml"
-
       - name: "Bump Project Version"
         env:
-          PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
           PROJECT_VERSION_BUMP_TYPE: ${{ inputs.project-version-bump-type }}
         shell: bash
         run: |
+          PROJECT_VERSION=$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")
           if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
             echo "Project Version Bump failed as it could not be resolved"
             exit 1

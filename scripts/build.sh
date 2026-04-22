@@ -37,7 +37,7 @@ readOptions() {
       -c) phases+=("clean") ;;
       -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
       -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
-      --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")"
+      --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-$(xmlProperty "graalvm-jdk.version" "pom.xml")"
         remainingOptions+=("-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true")
         enrichNativeProfiles ;;
       --native-prepare) enrichNativeProfiles ;;

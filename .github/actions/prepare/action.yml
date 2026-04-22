@@ -29,34 +29,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: "Install Dependencies with APT"
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: xmlstarlet
-        version: default-1.1
-
-    - name: "Get Project Version"
-      id: get-project-version
-      uses: mikefarah/yq@v4
-      with:
-        cmd: yq -r '.project.version' "jreleaser.yml"
-
-    - name: "Setup ARCH ENV variable"
-      shell: bash
-      run: |
-        case "${RUNNER_ARCH}" in
-          X64)   ARCH=amd64 ;;
-          ARM64) ARCH=arm64 ;;
-          *)     echo "Unsupported RUNNER_ARCH: ${RUNNER_ARCH}"; exit 1 ;;
-        esac
-        echo "ARCH=${ARCH}" >> ${GITHUB_ENV}
-
     - name: "Setup PROJECT_VERSION ENV variable"
       shell: bash
       env:
-        PROJECT_VERSION: ${{ steps.get-project-version.outputs.result }}
         RELEASE_TYPE: ${{ inputs.release-type }}
       run: |
+        PROJECT_VERSION="$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")"
         if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
           echo "Project Version could not be resolved"
           exit 1
@@ -69,14 +47,24 @@ runs:
         esac
         echo "PROJECT_VERSION=${PROJECT_VERSION}" >> ${GITHUB_ENV}
 
+    - name: "Setup ARCH ENV variable"
+      shell: bash
+      run: |
+        case "${RUNNER_ARCH}" in
+          X64)   ARCH=amd64 ;;
+          ARM64) ARCH=arm64 ;;
+          *)     echo "Unsupported RUNNER_ARCH: ${RUNNER_ARCH}"; exit 1 ;;
+        esac
+        echo "ARCH=${ARCH}" >> ${GITHUB_ENV}
+
     - name: "Setup ENV variables from pom.xml"
       shell: bash
       run: |
-        echo "JDK_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:graalvm-jdk.version" "pom.xml")" >> ${GITHUB_ENV}
-        echo "SYFT_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.version" "pom.xml")" >> ${GITHUB_ENV}
-        echo "SYFT_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:syft.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
-        echo "UPX_VERSION=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.version" "pom.xml")" >> ${GITHUB_ENV}
-        echo "UPX_SHA256=$(xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:properties/n:upx.sha256.linux-${ARCH}" "pom.xml")" >> ${GITHUB_ENV}
+        echo "JDK_VERSION=$(grep -m 1 "<graalvm-jdk.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
+        echo "SYFT_VERSION=$(grep -m 1 "<syft.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
+        echo "SYFT_SHA256=$(grep -m 1 "<syft.sha256.linux-${ARCH}>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
+        echo "UPX_VERSION=$(grep -m 1 "<upx.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
+        echo "UPX_SHA256=$(grep -m 1 "<upx.sha256.linux-${ARCH}>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
 
     - name: "Install Syft"
       if: ${{ inputs.install-syft == 'true' }}

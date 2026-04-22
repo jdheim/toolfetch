@@ -46,20 +46,23 @@ fileSize() {
   numfmt --to=iec --suffix=B --format="%.2f" "$(stat -c %s "${file}")"
 }
 
-getProjectVersion() {
-  if command -v yq >/dev/null; then
-    yq -r '.project.version' "jreleaser.yml"
-  else
-    grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'"
-  fi
+projectVersion() {
+  grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\""
 }
 
-getProjectArtifactId() {
-  xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:artifactId" "pom.xml"
+projectArtifactId() {
+  xmlProperty "artifactId" "pom.xml"
 }
 
-getProjectGroupId() {
-  xmlstarlet sel -N "n=http://maven.apache.org/POM/4.0.0" -t -v "/n:project/n:groupId" "pom.xml"
+projectGroupId() {
+  xmlProperty "groupId" "pom.xml"
+}
+
+## xmlProperty "propertyName" "xmlFile"
+xmlProperty() {
+  local propertyName="<${1}>"
+  local xmlFile="${2}"
+  grep -m 1 "${propertyName}" "${xmlFile}" | awk -F'[<>]' '{print $3}'
 }
 
 ## updatePropertyInXmlFile "pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:version" "0.0.1"

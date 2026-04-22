@@ -156,7 +156,7 @@ spotBugsScan() {
     run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
     exitCode=${PIPESTATUS[0]}
     set -o errexit
-    githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(getProjectArtifactId) ---"
+    githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(projectArtifactId) ---"
   else
     run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@"
     exitCode=$?
