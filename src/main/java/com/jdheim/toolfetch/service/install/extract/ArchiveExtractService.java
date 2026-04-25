@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
 import com.jdheim.toolfetch.service.install.extract.scan.PathScanner;

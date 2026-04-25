@@ -35,7 +35,7 @@ import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
 import com.jdheim.toolfetch.util.archive.ArchiveUtils;
@@ -351,7 +351,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
     private Configuration buildConfiguration(WireMockRuntimeInfo wmRuntimeInfo, String id, String mockUrl) {
         String url = "http" + "://localhost:" + wmRuntimeInfo.getHttpPort() + mockUrl;
-        Tool tool = new Tool(id, null, url, null);
+        Tool tool = new Tool(id, url);
         return new Configuration(tempDir.toString(), List.of(tool));
     }
 

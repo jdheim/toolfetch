@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,19 +63,20 @@ class YamlConfigurationServiceHappyTest {
         }
         Tool expectedFirstTool;
         if (configPath.contains("latest-version")) {
-            expectedFirstTool = new Tool("dbeaver", null, "https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz",
+            expectedFirstTool = new Tool("dbeaver", "https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz", null,
                     expectedDestination);
         } else {
-            expectedFirstTool = new Tool("kitty", "0.44.0",
-                    "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz",
+            expectedFirstTool = new Tool("kitty",
+                    "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz", "0.44.0",
                     expectedDestination);
         }
         assertThat(firstTool).isNotNull().isEqualTo(expectedFirstTool);
     }
 
     private void assertSecondTool(Tool secondTool) {
-        Tool expectedSecondTool = new Tool("firefox", "146.0.1",
-                "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz", null);
+        Tool expectedSecondTool = new Tool("firefox",
+                "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz",
+                "146.0.1");
         assertThat(secondTool).isNotNull().isEqualTo(expectedSecondTool);
     }
 

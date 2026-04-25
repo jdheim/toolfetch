@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.crypto.checksum.ChecksumService;
 import com.jdheim.toolfetch.service.install.crypto.checksum.FileChecksumService;
 import com.jdheim.toolfetch.service.install.download.DownloadService;

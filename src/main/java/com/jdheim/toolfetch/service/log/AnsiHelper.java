@@ -7,7 +7,7 @@ package com.jdheim.toolfetch.service.log;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 
 public final class AnsiHelper {
 

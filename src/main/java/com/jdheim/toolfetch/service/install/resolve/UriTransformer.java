@@ -6,7 +6,7 @@
 package com.jdheim.toolfetch.service.install.resolve;
 
 import java.net.URI;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import org.jspecify.annotations.Nullable;
 
 public interface UriTransformer {

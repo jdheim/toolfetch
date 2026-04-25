@@ -34,7 +34,7 @@ import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
 import org.jspecify.annotations.NonNull;
@@ -230,7 +230,7 @@ class WebDownloadServiceIT {
     private Configuration buildConfiguration(String scheme, String mockUrl, @Nullable String version, int httpPort) {
         String id = "toolfetch";
         String url = scheme + "://localhost:" + httpPort + mockUrl;
-        Tool tool = new Tool(id, version, url, null);
+        Tool tool = new Tool(id, url, version);
         return new Configuration(tempDir.toString(), List.of(tool));
     }
 

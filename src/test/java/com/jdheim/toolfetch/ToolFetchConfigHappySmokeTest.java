@@ -25,9 +25,9 @@ import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.command.ToolFetch;
-import com.jdheim.toolfetch.model.Checksums;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.service.install.resolve.UriTransformer;
 import com.jdheim.toolfetch.util.archive.ArchiveUtils;
@@ -141,7 +141,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String sha512 = ArchiveUtils.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_512);
         Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
         Checksums checksums = new Checksums(checksumValues);
-        Tool tool = new Tool(id, version, url, null, checksums);
+        Tool tool = new Tool(id, url, version, null, checksums);
         Path archiveName = Path.of(getArchiveName(tool));
         WireMockStubber.stubFor(version, archiveName, archiveBytes);
         List<Tool> tools = List.of(tool);
@@ -192,7 +192,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String sha512 = ArchiveUtils.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_512);
         Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
         Checksums checksums = new Checksums(checksumValues);
-        return new Tool(id, null, url, null, checksums);
+        return new Tool(id, url, null, null, checksums);
     }
 
     private boolean isExcluded(String archiveName) {

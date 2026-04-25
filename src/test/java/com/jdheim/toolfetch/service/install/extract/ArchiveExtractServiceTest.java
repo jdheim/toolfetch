@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.List;
 import ch.qos.logback.classic.Level;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -45,7 +45,7 @@ class ArchiveExtractServiceTest {
 
     @Test
     void testExtract_MissingDestinationPath() {
-        Tool tool = new Tool("toolfetch", null, "http://localhost/download/toolfetch.zip", null);
+        Tool tool = new Tool("toolfetch", "http://localhost/download/toolfetch.zip");
         Configuration configuration = new Configuration(tempDir.toString(), List.of(tool));
         archiveExtractService.extract(configuration, tool, Path.of("toolfetch.zip"));
 

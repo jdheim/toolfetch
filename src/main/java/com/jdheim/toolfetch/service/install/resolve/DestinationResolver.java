@@ -7,7 +7,7 @@ package com.jdheim.toolfetch.service.install.resolve;
 
 import java.nio.file.Path;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 
 public interface DestinationResolver {
 

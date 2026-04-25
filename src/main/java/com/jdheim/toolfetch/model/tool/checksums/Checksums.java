@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.jdheim.toolfetch.model;
+package com.jdheim.toolfetch.model.tool.checksums;
 
 import java.util.Arrays;
 import java.util.EnumMap;

@@ -24,7 +24,7 @@ import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
 import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
@@ -74,7 +74,7 @@ public class TestCommonArchiveInstallationService {
 
         String id = "toolfetch";
         String url = "http://localhost:%d/download/%s".formatted(wmRuntimeInfo.getHttpPort(), archiveName);
-        Tool tool = new Tool(id, null, url, null);
+        Tool tool = new Tool(id, url);
         Configuration configuration = new Configuration(tempDir.toString(), List.of(tool));
         installationService.install(configuration);
 

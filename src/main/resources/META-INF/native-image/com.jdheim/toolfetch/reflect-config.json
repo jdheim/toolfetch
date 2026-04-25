@@ -5,12 +5,12 @@
     "allPublicMethods": true
   },
   {
-    "name": "com.jdheim.toolfetch.model.Tool",
+    "name": "com.jdheim.toolfetch.model.tool.Tool",
     "allPublicConstructors": true,
     "allPublicMethods": true
   },
   {
-    "name": "com.jdheim.toolfetch.model.Checksums",
+    "name": "com.jdheim.toolfetch.model.tool.checksums.Checksums",
     "methods": [
       {
         "name": "<init>",

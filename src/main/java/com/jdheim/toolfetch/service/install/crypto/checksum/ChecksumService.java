@@ -6,7 +6,7 @@
 package com.jdheim.toolfetch.service.install.crypto.checksum;
 
 import java.nio.file.Path;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 
 public interface ChecksumService {
 

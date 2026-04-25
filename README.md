@@ -68,10 +68,10 @@ See [VERIFICATION.md](VERIFICATION.md) for details.
 Given the following configuration file named `toolfetch.yaml`:
 
 ```yaml
-destination: /opt
+destination: "/opt"
 tools:
-  - id: dbeaver
-    url: "https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz"
+  - id: "toolfetch"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v0.0.3/toolfetch-0.0.3-linux-amd64.tar.gz"
 ```
 
 When you invoke the command: `toolfetch --config "toolfetch.yaml"`, the latest version of the tool will be installed
@@ -79,7 +79,7 @@ like this:
 
 ```shell
 /opt
-|-- dbeaver
+|-- toolfetch
 ```
 
 ---
@@ -89,20 +89,20 @@ You can use optional placeholder: `${version}` in `url` which will be replaced w
 ```yaml
 destination: "/opt"
 tools:
-  - id: kitty
-    version: "0.44.0"
-    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
-  - id: firefox
-    version: "146.0.1"
-    url: "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz"
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
+  - id: "intellij-idea"
+    version: "2026.1.1"
+    url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
 When you invoke the command again, tools will be installed like this:
 
 ```shell
 /opt
-|-- kitty
-|-- firefox
+|-- intellij-idea
+|-- toolfetch
 ```
 
 ---
@@ -112,22 +112,22 @@ You can optionally define a `destination` key for a specific tool to install it 
 ```yaml
 destination: "/opt"
 tools:
-  - id: kitty
-    version: "0.44.0"
-    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
-    destination: "/opt/tools"
-  - id: firefox
-    version: "146.0.1"
-    url: "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz"
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
+    destination: "best-tools" # or absolute path: "/opt/best-tools"
+  - id: "intellij-idea"
+    version: "2026.1.1"
+    url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
 Now, when you invoke the same command, tools will be installed like this:
 
 ```shell
 /opt
-|-- firefox
-|-- tools
-    |-- kitty
+|-- intellij-idea
+|-- best-tools
+    |-- toolfetch
 ```
 
 ---
@@ -137,16 +137,36 @@ You can optionally define a `checksums` key for a specific tool to verify the do
 ```yaml
 destination: "/opt"
 tools:
-  - id: kitty
-    version: "0.44.0"
-    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     checksums:
-      sha256: "5b502801c8814c9fc5a2e8d9cfdf1c2ec5ee78b3e647f898704ad537a2ff452d"
-  - id: firefox
-    version: "146.0.1"
-    url: "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz"
+      sha256: "5c0a98ae80e06eea619ae878d84748154405903b42fc12c1cd02ddf98440eb77"
+  - id: "intellij-idea"
+    version: "2026.1.1"
+    url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
     checksums:
-      sha256: "36a4dc0e3be8af2d49d8388021abf790976d2398162b9d13a6d758cc8c37f8dd"
+      sha256: "7a58d386f2a2e5a8cd7e4591657b4fe599aeac22d960c7accf5f927846507bfb"
+```
+
+## Environment Variables
+
+Environment variables can be used in `toolfetch.yaml` using either `$VAR` or `${VAR}` syntax.
+
+Currently supported in:
+
+- `destination`
+- `tools[].destination`
+
+Example:
+
+```yaml
+destination: "$HOME/tools"
+tools:
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
+    destination: "${PWD}/best-tools"
 ```
 
 ## Archive and Compression Formats

@@ -21,7 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Optional;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.Tool;
+import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.resolve.ArchiveNameResolver;
 import com.jdheim.toolfetch.service.install.resolve.DestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.FileNameResolver;
