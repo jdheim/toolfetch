@@ -55,7 +55,7 @@
         <graalvm-jdk.sha256.linux-arm64>e0e18106fa1d8628d8ba21f548865211d7c8608a3423f7b25cb2aa4eef9abf10</graalvm-jdk.sha256.linux-arm64>
 
         <!-- Dependencies -->
-        <commons-io.version>2.21.0</commons-io.version>
+        <commons-io.version>2.22.0</commons-io.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <commons-codec.version>1.22.0</commons-codec.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
