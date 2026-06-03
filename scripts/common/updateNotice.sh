@@ -26,8 +26,8 @@ declare -Ar SPDX_LICENSES=(
   ["0BSD"]="0BSD"
   [".*Apache.*2\.0.*"]="Apache-2.0"
   ["BSD.*2-Clause.*"]="BSD-2-Clause"
-  ["Eclipse.*Public.*License.*2\.0"]="EPL-2.0"
-  ["GNU.*Lesser.*General.*Public.*License.*"]="LGPL-2.1-only"
+  ["(EPL-2.0|Eclipse.*Public.*License.*2\.0)"]="EPL-2.0"
+  ["LGPL-2.1-only"]="LGPL-2.1-only"
   ["MIT.*"]="MIT"
 )
 declare -Ar SPDX_LICENSE_PRECEDENCE=(
