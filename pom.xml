@@ -69,7 +69,7 @@
         <jackson-tools.version>3.1.4</jackson-tools.version>
         <jackson.version>2.22</jackson.version>
         <picocli.version>4.7.7</picocli.version>
-        <slf4j-api.version>2.0.17</slf4j-api.version>
+        <slf4j-api.version>2.0.18</slf4j-api.version>
         <logback.version>1.5.34</logback.version>
         <jansi.version>2.4.3</jansi.version>
         <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
