@@ -40,9 +40,9 @@
         <enforce-java.version>${maven.compiler.source}</enforce-java.version>
 
         <!-- GitHub Actions -->
-        <syft.version>1.42.4</syft.version>
-        <syft.sha256.linux-amd64>590650c2743b83f327d1bf9bec64f6f83b7fec504187bb84f500c862bf8f2a0f</syft.sha256.linux-amd64>
-        <syft.sha256.linux-arm64>5029bad1ed372649527b1e443cbceef7f5d6ae1cfe52c16e721559f94267128b</syft.sha256.linux-arm64>
+        <syft.version>1.45.0</syft.version>
+        <syft.sha256.linux-amd64>cd5efa489e93ecde99c03a218db5dee8b3f03610466d7565cefd735610d1b28b</syft.sha256.linux-amd64>
+        <syft.sha256.linux-arm64>3101fc588a6662ab3d46eda470159f82d6c6c0fd59f618fdd29928ed1c1197bb</syft.sha256.linux-arm64>
         <upx.version>5.1.1</upx.version>
         <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
         <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
