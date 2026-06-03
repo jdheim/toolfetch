@@ -70,7 +70,7 @@
         <jackson.version>2.22</jackson.version>
         <picocli.version>4.7.7</picocli.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
-        <logback.version>1.5.32</logback.version>
+        <logback.version>1.5.34</logback.version>
         <jansi.version>2.4.3</jansi.version>
         <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
         <spotbugs.version>4.9.8</spotbugs.version>
