@@ -79,7 +79,7 @@
         <junit-jupiter.version>6.0.3</junit-jupiter.version>
         <mockito.version>5.23.0</mockito.version>
         <wiremock.version>3.13.2</wiremock.version>
-        <archunit.version>1.4.1</archunit.version>
+        <archunit.version>1.4.2</archunit.version>
 
         <!-- Core Maven Plugins -->
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
