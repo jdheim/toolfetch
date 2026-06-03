@@ -66,7 +66,7 @@
         <nullaway.version>0.13.3</nullaway.version>
         <jspecify.version>1.0.0</jspecify.version>
         <json-schema-validator.version>3.0.2</json-schema-validator.version>
-        <jackson-tools.version>3.1.2</jackson-tools.version>
+        <jackson-tools.version>3.1.4</jackson-tools.version>
         <jackson.version>2.21</jackson.version>
         <picocli.version>4.7.7</picocli.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
