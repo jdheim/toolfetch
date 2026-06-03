@@ -61,7 +61,7 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <xz.version>1.12</xz.version>
         <brotli.version>0.1.2</brotli.version>
-        <zstd.version>1.5.7-7</zstd.version>
+        <zstd.version>1.5.7-10</zstd.version>
         <error-prone.version>2.49.0</error-prone.version>
         <nullaway.version>0.13.4</nullaway.version>
         <jspecify.version>1.0.0</jspecify.version>
