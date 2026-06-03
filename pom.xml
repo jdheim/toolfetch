@@ -63,7 +63,7 @@
         <brotli.version>0.1.2</brotli.version>
         <zstd.version>1.5.7-7</zstd.version>
         <error-prone.version>2.49.0</error-prone.version>
-        <nullaway.version>0.13.3</nullaway.version>
+        <nullaway.version>0.13.4</nullaway.version>
         <jspecify.version>1.0.0</jspecify.version>
         <json-schema-validator.version>3.0.3</json-schema-validator.version>
         <jackson-tools.version>3.1.4</jackson-tools.version>
