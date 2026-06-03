@@ -74,8 +74,7 @@ tools:
     url: "https://github.com/jdheim/toolfetch/releases/download/v0.0.3/toolfetch-0.0.3-linux-amd64.tar.gz"
 ```
 
-When you invoke the command: `toolfetch --config "toolfetch.yaml"`, the latest version of the tool will be installed
-like this:
+When you invoke the command: `toolfetch --config "toolfetch.yaml"`, the latest version of the tool will be installed like this:
 
 ```shell
 /opt
@@ -132,6 +131,8 @@ Now, when you invoke the same command, tools will be installed like this:
 
 ---
 
+### Checksum Verification Formats
+
 You can optionally define a `checksums` key for a specific tool to verify the downloaded archive before it is extracted:
 
 ```yaml
@@ -149,7 +150,15 @@ tools:
       sha256: "7a58d386f2a2e5a8cd7e4591657b4fe599aeac22d960c7accf5f927846507bfb"
 ```
 
-## Environment Variables
+Currently, the following Checksum Verification Formats are supported:
+
+- `sha256`
+- `sha384`
+- `sha512`
+
+---
+
+### Environment Variables
 
 Environment variables can be used in `toolfetch.yaml` using either `$VAR` or `${VAR}` syntax.
 
@@ -166,7 +175,10 @@ tools:
   - id: "toolfetch"
     version: "0.0.3"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
-    destination: "${PWD}/best-tools"
+    destination: "${DEV_HOME}/best-tools"
+  - id: "intellij-idea"
+    version: "2026.1.1"
+    url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
 ## Archive and Compression Formats
@@ -195,14 +207,6 @@ and Compression Formats:
 - `zstandard`
 - concatenated streams for `bzip2`, `gzip`, `xz` and `lz4`
 
-## Checksum Verification Formats
-
-Currently, the following Checksum Verification Formats are supported:
-
-- `sha256`
-- `sha384`
-- `sha512`
-
 ## Custom Certificate Authorities
 
 > [!WARNING]  
@@ -223,8 +227,8 @@ Otherwise, you may encounter an exception like:
 
 ## 💖 Support
 
-Hey there! If you enjoy my work and would like to support me, consider buying me a coffee! :slightly_smiling_face: Your
-contributions help me keep creating, and I truly appreciate every bit of support you offer.
+Hey there! If you enjoy my work and would like to support me, consider buying me a coffee! :slightly_smiling_face: Your contributions help me keep
+creating, and I truly appreciate every bit of support you offer.
 
 <p>
   <a href="https://www.buymeacoffee.com/jdheim" rel="noreferrer">
@@ -232,8 +236,8 @@ contributions help me keep creating, and I truly appreciate every bit of support
   </a>
 </p>
 
-Also, please consider giving this project a ⭐ on GitHub. This kind of support helps promote the project and lets others
-know that it's worth checking out.
+Also, please consider giving this project a ⭐ on GitHub. This kind of support helps promote the project and lets others know that it's worth checking
+out.
 
 Thank you for being amazing!
 

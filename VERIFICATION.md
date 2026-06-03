@@ -20,13 +20,13 @@ Follow these instructions to inspect the SBOM from the binary:
 - Produce an uncompressed binary `toolfetch-raw`:
 
 ```shell
-upx -d -o toolfetch-raw toolfetch
+$ upx -d -o toolfetch-raw toolfetch
 ```
 
 - Inspect the SBOM from the uncompressed binary:
 
 ```shell
-syft toolfetch-raw
+$ syft toolfetch-raw
 ```
 
 ## Provenance
