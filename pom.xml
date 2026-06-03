@@ -98,7 +98,7 @@
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
-        <native-maven-plugin.version>1.0.0</native-maven-plugin.version>
+        <native-maven-plugin.version>1.1.1</native-maven-plugin.version>
         <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
         <jdks-maven-plugin.version>1.23.0</jdks-maven-plugin.version>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
