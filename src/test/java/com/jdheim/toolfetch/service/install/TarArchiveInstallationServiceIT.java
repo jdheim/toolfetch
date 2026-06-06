@@ -87,8 +87,8 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
 
             testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
                 getTestLogListAppender().assertAnyMatch(Level.WARN,
-                        "Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: " +
-                                "No Archiver found for the stream signature\". Skipping toolfetch");
+                        "Extract failed due to exception: \"org.apache.commons.compress.compressors.CompressorException: "
+                                + "Brotli compression is not available. In addition to Apache Commons Compress you need the Google Brotli Dec library - see https://github.com/google/brotli/\". Skipping toolfetch");
                 assertThat(destinationPath).doesNotExist();
             });
         }

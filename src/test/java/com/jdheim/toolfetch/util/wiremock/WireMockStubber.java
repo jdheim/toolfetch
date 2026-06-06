@@ -27,11 +27,16 @@ public final class WireMockStubber {
 
     /// Configures a WireMock stub for serving a file download based on the provided version, archive name, and content
     public static void stubFor(String version, Path archiveName, byte[] archiveBytes) {
+        stubFor(version, archiveName, archiveBytes, ContentTypes.OCTET_STREAM);
+    }
+
+    /// Configures a WireMock stub for serving a file download based on the provided version, archive name, and content
+    public static void stubFor(String version, Path archiveName, byte[] archiveBytes, String contentType) {
         if (StringUtils.isNotEmpty(version)) {
             version = version + "/";
         }
         WireMock.stubFor(get("/download/" + version + archiveName).willReturn(aResponse().withStatus(200)
-                .withHeader(ContentTypes.CONTENT_TYPE, ContentTypes.OCTET_STREAM)
+                .withHeader(ContentTypes.CONTENT_TYPE, contentType)
                 .withHeader(ContentTypes.CONTENT_LENGTH, String.valueOf(archiveBytes.length))
                 .withHeader("Content-Disposition", "attachment; filename=" + archiveName)
                 .withBody(archiveBytes)));

@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -68,8 +69,56 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
+    void testSingleBinaryFile(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        Configuration config = createConfigWithOneToolAsBinaryFile(wmRuntimeInfo.getHttpPort());
+        ConfigurationDumper.saveToConfigFile(config, configPath);
+
+        ExecResult execResult = execute(option, configPath.toString());
+
+        assertNoErrorNoWarn(execResult);
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+        assertThat(getAllServeEvents()).hasSize(config.tools().size());
+        config.tools().forEach(tool -> {
+            Path destinationPath = Path.of(config.destination()).resolve(tool.id());
+            String binaryFileName = tool.id() + "_" + tool.version() + ".AppImage";
+            Path binaryFilePath = destinationPath.resolve(binaryFileName);
+            assertLogs(execResult, tool, destinationPath, binaryFilePath);
+            assertAnyMatch(execResult, "[%s] Detected binary file. Skipping archive extraction".formatted(Level.INFO));
+            assertAnyMatch(execResult, "[%s] Setting %s as executable".formatted(Level.INFO, binaryFilePath));
+            Path renamedBinaryFilePath = destinationPath.resolve(tool.id() + ".AppImage");
+            assertAnyMatch(execResult, "[%s] Renaming %s to %s".formatted(Level.INFO, binaryFilePath, renamedBinaryFilePath));
+            verify(1, getRequestedFor(urlEqualTo("/download/%s/%s".formatted(tool.version(), binaryFileName))));
+            assertThat(destinationPath).isDirectory();
+            assertThat(binaryFilePath).doesNotExist();
+            assertThat(renamedBinaryFilePath).isExecutable().hasContent("Hello ToolFetch!\nThis is a dummy AppImage.");
+        });
+    }
+
+    private Configuration createConfigWithOneToolAsBinaryFile(int httpPort) {
+        String id = "toolfetch";
+        String version = "1.0.0";
+        String url = "http://localhost:%d/download/${version}/%s_${version}.AppImage".formatted(httpPort, id);
+        byte[] binaryFileBytes = createBinaryFileBytes();
+        String sha256 = ArchiveUtils.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_256);
+        String sha384 = ArchiveUtils.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_384);
+        String sha512 = ArchiveUtils.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_512);
+        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
+        Checksums checksums = new Checksums(checksumValues);
+        Tool tool = new Tool(id, url, version, null, checksums);
+        Path binaryFileName = Path.of(getArchiveName(tool));
+        WireMockStubber.stubFor(version, binaryFileName, binaryFileBytes, "text/plain; charset=UTF-8");
+        List<Tool> tools = List.of(tool);
+        return new Configuration(tempDir.toString(), tools);
+    }
+
+    private byte[] createBinaryFileBytes() {
+        return "Hello ToolFetch!\nThis is a dummy AppImage.".getBytes(StandardCharsets.UTF_8);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-c", "--config"})
     void testSingleArchive(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
-        Configuration config = createConfigWithOneTool(wmRuntimeInfo.getHttpPort());
+        Configuration config = createConfigWithOneToolAsArchive(wmRuntimeInfo.getHttpPort());
         ConfigurationDumper.saveToConfigFile(config, configPath);
 
         ExecResult execResult = execute(option, configPath.toString());
@@ -133,7 +182,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         });
     }
 
-    private Configuration createConfigWithOneTool(int httpPort) {
+    private Configuration createConfigWithOneToolAsArchive(int httpPort) {
         String id = "toolfetch";
         String version = "1.0.0";
         String url = "http://localhost:%d/download/${version}/%s.zip".formatted(httpPort, id);

@@ -23,13 +23,16 @@ public class BrotliArchiveUncompressor extends AutoDetectArchiveUncompressor {
 
     @Override
     protected ImmutablePair<BufferedInputStream, CompressorInputStream> createCompressorInputStream(BufferedInputStream bis,
-            Path archivePath) {
+            Path archivePath) throws CompressorException {
         try {
             CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(CompressorStreamFactory.BROTLI,
                     bis);
             return ImmutablePair.of(new BufferedInputStream(cis), cis);
-        } catch (CompressorException _) {
-            return ImmutablePair.of(bis, null);
+        } catch (CompressorException e) {
+            if (e.getCause() instanceof CompressorException ce) {
+                throw ce;
+            }
+            throw e;
         }
     }
 
