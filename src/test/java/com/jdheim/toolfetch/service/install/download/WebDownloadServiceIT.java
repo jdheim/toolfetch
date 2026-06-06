@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +36,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
 import org.jspecify.annotations.NonNull;
@@ -44,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 
 /// Integration Tests for [WebDownloadService]
 @WireMockTest
@@ -84,10 +87,8 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).hasSize(1);
         verify(1, getRequestedFor(urlEqualTo(mockUrl)));
         assertThat(path).isPresent()
-                .hasValueSatisfying(
-                        actualPath -> assertThat(actualPath).isEqualTo(tempDir.resolve(tool.id()).resolve("toolfetch.zip"))
-                                .exists()
-                                .isRegularFile());
+                .hasValueSatisfying(actualPath -> assertThat(actualPath).isEqualTo(tempDir.resolve(tool.id())
+                        .resolve("toolfetch.zip")).exists().isRegularFile());
         testLogListAppender.assertAnyMatch(Level.INFO, "=== Installing " + tool.id() + " ===");
         Path parentPath = path.get().getParent();
         testLogListAppender.assertAnyMatch(Level.INFO, "Creating " + parentPath);
@@ -176,7 +177,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppender.assertAnyMatch(Level.WARN,
-                "Download failed due to exception: \"I/O error occurred\". Skipping " + tool.id());
+                "Download failed due to exception: \"java.io.IOException: I/O error occurred\". Skipping " + tool.id());
     }
 
     @Test
@@ -190,17 +191,20 @@ class WebDownloadServiceIT {
         when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.headers()).thenReturn(mockHttpHeaders);
-        when(mockHttpHeaders.firstValue(CONTENT_DISPOSITION_HEADER)).thenReturn(
-                Optional.of("attachment; filename=toolfetch.zip"));
+        when(mockHttpHeaders.firstValue(CONTENT_DISPOSITION_HEADER)).thenReturn(Optional.of("attachment; filename=toolfetch.zip"));
         when(mockHttpResponse.body()).thenReturn(new IOExceptionInputStream());
-        when(webDownloadService.getHttpClient()).thenReturn(mockHttpClient);
 
-        Optional<Path> path = webDownloadService.download(configuration, tool);
+        Optional<Path> path;
+        try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
+            toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
+            path = webDownloadService.download(configuration, tool);
+        }
 
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppender.assertAnyMatch(Level.WARN, "Download failed due to exception: \"Boom\". Skipping " + tool.id());
+        testLogListAppender.assertAnyMatch(Level.WARN,
+                "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + tool.id());
     }
 
     @Test
@@ -212,15 +216,19 @@ class WebDownloadServiceIT {
         webDownloadService = spy(webDownloadService);
         HttpClient mockHttpClient = mock();
         when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException("Interrupted error occurred"));
-        when(webDownloadService.getHttpClient()).thenReturn(mockHttpClient);
 
-        Optional<Path> path = webDownloadService.download(configuration, tool);
+        Optional<Path> path;
+        try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
+            toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
+            path = webDownloadService.download(configuration, tool);
+        }
 
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppender.assertAnyMatch(Level.WARN,
-                "Download failed due to exception: \"Interrupted error occurred\". Skipping " + tool.id());
+                "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
+                        + tool.id());
     }
 
     private Configuration buildConfiguration(String scheme, String mockUrl, int httpPort) {

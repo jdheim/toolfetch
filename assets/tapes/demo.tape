@@ -63,7 +63,7 @@ Set Shell "bash"
 Set FontSize 12
 Set FontFamily "MesloLGS NF"
 Set Width 800
-Set Height 450
+Set Height 470
 Set Padding 10
 
 Hide
@@ -77,8 +77,8 @@ Show
 Require "toolfetch"
 Require "tree"
 
-Type 'toolfetch --config "toolfetch.yaml"' Sleep 500ms Enter
+Type 'toolfetch --config "toolfetch.yaml"' Sleep 700ms Enter
 Wait
-Type "tree -L 1 /tmp/toolfetch" Sleep 500ms Enter
-Type "tree -L 1 /tmp/toolfetch/bin" Sleep 500ms Enter
+Type "tree -L 1 /tmp/toolfetch" Sleep 700ms Enter
+Type "tree -L 1 /tmp/toolfetch/bin" Sleep 700ms Enter
 Sleep 3s

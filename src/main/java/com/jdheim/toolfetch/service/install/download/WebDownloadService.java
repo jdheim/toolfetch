@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
@@ -21,7 +20,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Optional;
 import com.jdheim.toolfetch.model.Configuration;
+import com.jdheim.toolfetch.model.http.Http;
 import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
 import com.jdheim.toolfetch.service.install.resolve.ArchiveNameResolver;
 import com.jdheim.toolfetch.service.install.resolve.DestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.FileNameResolver;
@@ -41,11 +42,7 @@ public class WebDownloadService implements DownloadService {
 
     private static final String USER_AGENT_HEADER = "User-Agent";
 
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
-
-    private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(15);
-
-    private final HttpClient httpClient;
+    private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofMinutes(15);
 
     private final FileNameResolver fileNameResolver;
 
@@ -54,22 +51,9 @@ public class WebDownloadService implements DownloadService {
     private final UriTransformer uriTransformer;
 
     public WebDownloadService() {
-        HttpClient defaultHttpClient = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.ALWAYS)
-                .connectTimeout(CONNECT_TIMEOUT)
-                .build();
-        this(defaultHttpClient);
-    }
-
-    public WebDownloadService(HttpClient httpClient) {
-        this.httpClient = httpClient;
         fileNameResolver = new ArchiveNameResolver();
         destinationResolver = new ToolDestinationResolver();
         uriTransformer = new ToolUriTransformer();
-    }
-
-    HttpClient getHttpClient() {
-        return httpClient;
     }
 
     @Override
@@ -97,8 +81,8 @@ public class WebDownloadService implements DownloadService {
 
     private Optional<Path> download(Configuration configuration, Tool tool, URI toolUri) throws IOException,
             InterruptedException {
-        HttpResponse<InputStream> httpResponse = getHttpClient().send(buildHttpRequest(toolUri),
-                HttpResponse.BodyHandlers.ofInputStream());
+        HttpResponse<InputStream> httpResponse = ToolFetchHttpClient.getInstance(configuration)
+                .send(buildHttpRequest(configuration, toolUri), HttpResponse.BodyHandlers.ofInputStream());
         int statusCode = httpResponse.statusCode();
         if (isNotOK(statusCode)) {
             LOG.warn("Download failed: received HTTP {} response. Skipping {}", statusCode, tool.id());
@@ -115,12 +99,23 @@ public class WebDownloadService implements DownloadService {
         return Optional.of(archivePath);
     }
 
-    private HttpRequest buildHttpRequest(URI toolUri) {
+    private HttpRequest buildHttpRequest(Configuration configuration, URI toolUri) {
         return HttpRequest.newBuilder(toolUri)
-                .timeout(REQUEST_TIMEOUT)
+                .timeout(requestTimeout(configuration))
                 .header(USER_AGENT_HEADER, "%s/%s".formatted(TITLE.value(), VERSION.value()))
                 .GET()
                 .build();
+    }
+
+    private Duration requestTimeout(Configuration configuration) {
+        Http http = configuration.http();
+        if (http != null) {
+            Integer requestTimeout = http.requestTimeout();
+            if (requestTimeout != null) {
+                return Duration.ofSeconds(requestTimeout);
+            }
+        }
+        return DEFAULT_REQUEST_TIMEOUT;
     }
 
     private boolean isNotOK(int statusCode) {
@@ -156,7 +151,10 @@ public class WebDownloadService implements DownloadService {
     }
 
     private void logException(Exception exception, Tool tool) {
-        LOG.warn("Download failed due to exception: \"{}\". Skipping {}", exception.getMessage(), tool.id());
+        LOG.warn("Download failed due to exception: \"{}: {}\". Skipping {}",
+                exception.getClass().getName(),
+                exception.getMessage(),
+                tool.id());
     }
 
     private void cleanup(Configuration configuration, Tool tool, boolean isUpdateMode) {

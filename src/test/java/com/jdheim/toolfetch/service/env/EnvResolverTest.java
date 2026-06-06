@@ -62,13 +62,15 @@ class EnvResolverTest {
         if (expectedResolvedString != null && expectedResolvedString.contains("${HOME}/")) {
             expectedResolvedString = expectedResolvedString.replace("${HOME}/", System.getenv("HOME") + "/");
         }
-        if (expectedResolvedString != null && expectedResolvedString.contains("NOT_EXISTS")) {
+        if (expectedResolvedString == null) {
+            assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> EnvResolver.resolveAsPath(stringWithEnv))
+                    .withMessage("Environment variable could not be resolved as the input is empty");
+        } else if (expectedResolvedString.contains("NOT_EXISTS")) {
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> EnvResolver.resolveAsPath(stringWithEnv))
                     .withMessage("Environment variable \"NOT_EXISTS\" is not set (provided in \"%s\")".formatted(stringWithEnv));
         } else {
-            Path expectedResolvedPath = expectedResolvedString != null ? Path.of(expectedResolvedString) : null;
             Path envValue = EnvResolver.resolveAsPath(stringWithEnv);
-            assertThat(expectedResolvedPath).isEqualTo(envValue);
+            assertThat(Path.of(expectedResolvedString)).isEqualTo(envValue);
         }
     }
 

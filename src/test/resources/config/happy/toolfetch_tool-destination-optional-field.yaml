@@ -1,8 +1,8 @@
 destination: "/tmp"
 tools:
-  - id: kitty
-    version: "0.44.0"
-    url: "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz"
+  - id: toolfetch
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     destination: "/tmp/test"
   - id: firefox
     version: "146.0.1"

@@ -23,9 +23,9 @@ public final class EnvResolver {
         throw new AssertionError();
     }
 
-    public static @Nullable Path resolveAsPath(@Nullable String input) {
+    public static Path resolveAsPath(String input) {
         if (StringUtils.isBlank(input)) {
-            return null;
+            throw new IllegalArgumentException("Environment variable could not be resolved as the input is empty");
         }
         return Path.of(resolve(input));
     }

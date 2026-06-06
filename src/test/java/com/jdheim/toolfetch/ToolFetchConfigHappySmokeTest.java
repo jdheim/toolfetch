@@ -46,10 +46,12 @@ import picocli.CommandLine;
 @WireMockTest
 class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
-    static final Path ARCHIVE_DIR = Path.of("target/test-classes/archive");
+    static final Path ARCHIVE_DIR = Path.of("target", "test-classes", "archive");
 
-    static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR, ArchiveStreamFactory.ARJ,
-            ArchiveStreamFactory.CPIO, ArchiveStreamFactory.DUMP);
+    static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR,
+            ArchiveStreamFactory.ARJ,
+            ArchiveStreamFactory.CPIO,
+            ArchiveStreamFactory.DUMP);
 
     UriTransformer uriTransformer;
 
@@ -106,12 +108,12 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             verify(1, getRequestedFor(urlEqualTo("/download/" + archiveName)));
             if (isExcluded(archiveName)) {
                 assertAnyMatch(execResult,
-                        ("[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: " +
-                                "No Archiver found for the stream signature\". Skipping %s").formatted(Level.WARN, tool.id()));
+                        ("[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: "
+                                + "No Archiver found for the stream signature\". Skipping %s").formatted(Level.WARN, tool.id()));
             } else if (tool.url().contains(".7z")) {
                 assertAnyMatch(execResult,
-                        ("[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: " +
-                                "The 7z doesn't support streaming.\". Skipping %s").formatted(Level.WARN, tool.id()));
+                        ("[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: "
+                                + "The 7z doesn't support streaming.\". Skipping %s").formatted(Level.WARN, tool.id()));
             } else {
                 assertAnyMatch(execResult, "[%s] Extracting %s to %s".formatted(Level.INFO, archivePath, destinationPath));
                 assertAnyMatch(execResult, "[%s] Extract completed in ".formatted(Level.INFO));

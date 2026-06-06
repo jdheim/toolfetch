@@ -27,7 +27,7 @@ public class YamlParserService implements ParserService {
     @Override
     public Optional<Object> parse(Path yamlConfigPath) {
         try (InputStream in = Files.newInputStream(yamlConfigPath)) {
-            return loadFromInputStream(in).filter(this::validateConfig);
+            return loadFromInputStream(in);
         } catch (IOException | YamlEngineException e) {
             LOG.error("{}: {}", ERROR_MESSAGE_PREFIX, getExceptionMessage(e));
             return Optional.empty();

@@ -160,11 +160,12 @@ Currently, the following Checksum Verification Formats are supported:
 
 ### Environment Variables
 
-Environment variables can be used in `toolfetch.yaml` using either `$VAR` or `${VAR}` syntax.
+You can optionally use environment variables in `toolfetch.yaml` using either `$VAR` or `${VAR}` syntax.
 
 Currently supported in:
 
 - `destination`
+- `http.ssl.trustStore.path`
 - `tools[].destination`
 
 Example:
@@ -180,6 +181,58 @@ tools:
     version: "2026.1.1"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
+
+---
+
+### HTTP Client Settings
+
+You can optionally define an `http` key to customize HTTP client settings:
+
+```yaml
+destination: "/opt"
+http:
+  connectTimeout: 30  # HTTP connect timeout in seconds. Default: 10 seconds
+  requestTimeout: 300 # HTTP request timeout in seconds. Default: 900 seconds (15 minutes)
+tools:
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
+```
+
+If your organization uses a custom Certificate Authority, you may need to configure a TrustStore:
+
+```yaml
+destination: "/opt"
+http:
+  ssl:
+    trustStore:
+      path: "/path/to/truststore" # Location of the TrustStore file containing trusted CA certificates. Default: $JAVA_HOME/lib/security/cacerts, $JAVA_HOME/jre/lib/security/cacerts or the bundled default TrustStore
+      type: "PKCS12"              # TrustStore type. Default: autodetected. Set the type if autodetection fails
+      # If the TrustStore is password-protected, specify the password using the TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD environment variable
+tools:
+  - id: "toolfetch"
+    version: "0.0.3"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
+```
+
+Otherwise, you may encounter an exception like this:
+
+```text
+(certificate_unknown) PKIX path building failed:
+sun.security.provider.certpath.SunCertPathBuilderException:
+unable to find valid certification path to requested target
+```
+
+> [!NOTE]  
+> TrustStore precedence:
+> 1. `http.ssl.trustStore.path`
+> 2. `$JAVA_HOME/lib/security/cacerts` (JDK 9+)
+> 3. `$JAVA_HOME/jre/lib/security/cacerts` (JDK 8)
+> 4. The bundled default TrustStore
+
+> [!TIP]  
+> If you [import a Certificate for the CA](https://dev.java/learn/jvm/tool/security/keytool/#importing-for-ca) into `$JAVA_HOME/lib/security/cacerts`
+> or `$JAVA_HOME/jre/lib/security/cacerts`, you do not need to configure `http.ssl.trustStore`.
 
 ## Archive and Compression Formats
 
@@ -206,24 +259,6 @@ and Compression Formats:
 - `z`
 - `zstandard`
 - concatenated streams for `bzip2`, `gzip`, `xz` and `lz4`
-
-## Custom Certificate Authorities
-
-> [!WARNING]  
-> TrustStore configuration support in `toolfetch.yaml` is planned
-
-If your organization uses custom Certificate Authorities, you may need to configure a Java TrustStore.
-
-Pass JVM options directly to `toolfetch`:
-
-- `-Djavax.net.ssl.trustStore=path/to/truststore`
-- `-Djavax.net.ssl.trustStorePassword=changeit`
-
-Otherwise, you may encounter an exception like:
-
-```text
-(certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
-```
 
 ## 💖 Support
 

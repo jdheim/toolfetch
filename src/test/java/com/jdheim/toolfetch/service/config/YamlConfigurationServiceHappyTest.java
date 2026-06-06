@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import com.jdheim.toolfetch.model.Configuration;
+import com.jdheim.toolfetch.model.http.Http;
+import com.jdheim.toolfetch.model.http.ssl.Ssl;
+import com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore;
 import com.jdheim.toolfetch.model.tool.Tool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +39,7 @@ class YamlConfigurationServiceHappyTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "toolfetch_latest-version.yaml", "toolfetch_only-mandatory-fields.yaml",
-            "toolfetch_tool-destination-optional-field.yaml"
+            "toolfetch_tool-destination-optional-field.yaml", "toolfetch_trustStore.yaml"
     })
     void testConfigPath(String configPath) {
         Path testConfigPath = Path.of(OOC_CLASS_PATH, HAPPY_PATH, configPath);
@@ -45,6 +48,12 @@ class YamlConfigurationServiceHappyTest {
 
         String destination = configuration.map(Configuration::destination).orElseThrow();
         assertThat(destination).isEqualTo("/tmp");
+
+        if (configPath.contains("_trustStore")) {
+            TrustStore trustStore = configuration.map(Configuration::http).map(Http::ssl).map(Ssl::trustStore).orElseThrow();
+            TrustStore expectedTrustStore = new TrustStore("$JAVA_HOME/lib/security/cacerts", "PKCS12");
+            assertThat(trustStore).isNotNull().isEqualTo(expectedTrustStore);
+        }
 
         List<Tool> tools = configuration.map(Configuration::tools).orElseThrow();
         int expectedSize = configPath.contains("latest-version") ? 1 : 2;
@@ -66,9 +75,9 @@ class YamlConfigurationServiceHappyTest {
             expectedFirstTool = new Tool("dbeaver", "https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz", null,
                     expectedDestination);
         } else {
-            expectedFirstTool = new Tool("kitty",
-                    "https://github.com/kovidgoyal/kitty/releases/download/v${version}/kitty-${version}-x86_64.txz", "0.44.0",
-                    expectedDestination);
+            expectedFirstTool = new Tool("toolfetch",
+                    "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz",
+                    "0.0.3", expectedDestination);
         }
         assertThat(firstTool).isNotNull().isEqualTo(expectedFirstTool);
     }

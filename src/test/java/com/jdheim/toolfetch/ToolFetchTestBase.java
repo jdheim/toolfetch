@@ -37,16 +37,16 @@ public class ToolFetchTestBase {
 
     static final boolean IS_QUIET_MODE_ENABLED = Boolean.getBoolean("quiet");
 
-    static final Path NATIVE_IMAGE_EXEC = Path.of("target/toolfetch");
+    static final Path NATIVE_IMAGE_EXEC = Path.of("target", "toolfetch");
 
-    static final Path NATIVE_IMAGE_METADATA = Path.of("target/toolfetch.metadata");
+    static final Path NATIVE_IMAGE_METADATA = Path.of("target", "toolfetch.metadata");
 
-    static final Path LIBSVMJDWP_LIBRARY = Path.of("target/libsvmjdwp.so");
+    static final Path LIBSVMJDWP_LIBRARY = Path.of("target", "libsvmjdwp.so");
 
     ExecResult execute(String... args) throws IOException, InterruptedException {
         if (IS_FORCE_NATIVE_MODE_ENABLED) {
-            assertThat(NATIVE_IMAGE_EXEC).withFailMessage(
-                    "File not found: %s. Run: ./build.sh --native".formatted(NATIVE_IMAGE_EXEC)).exists();
+            assertThat(NATIVE_IMAGE_EXEC).withFailMessage("File not found: %s. Run: ./build.sh --native".formatted(
+                    NATIVE_IMAGE_EXEC)).exists();
         }
         if (Files.exists(NATIVE_IMAGE_EXEC)) {
             return executeNativeImage(args);
@@ -67,10 +67,10 @@ public class ToolFetchTestBase {
 
     private String[] enrichArgs(String[] args) {
         if (IS_DEBUG_NATIVE_MODE_ENABLED) {
-            assertThat(LIBSVMJDWP_LIBRARY).withFailMessage(
-                    "File not found: %s. Run: ./build.sh --native-debug".formatted(LIBSVMJDWP_LIBRARY)).exists();
-            assertThat(NATIVE_IMAGE_METADATA).withFailMessage(
-                    "File not found: %s. Run: ./build.sh --native-debug".formatted(NATIVE_IMAGE_METADATA)).exists();
+            assertThat(LIBSVMJDWP_LIBRARY).withFailMessage("File not found: %s. Run: ./build.sh --native-debug".formatted(
+                    LIBSVMJDWP_LIBRARY)).exists();
+            assertThat(NATIVE_IMAGE_METADATA).withFailMessage("File not found: %s. Run: ./build.sh --native-debug".formatted(
+                    NATIVE_IMAGE_METADATA)).exists();
             String[] debugArgs = {NATIVE_IMAGE_EXEC.toString(), "-XX:JDWPOptions=transport=dt_socket,server=y,address=5005"};
             return ArrayUtils.addAll(debugArgs, args);
         } else {
@@ -99,8 +99,13 @@ public class ToolFetchTestBase {
         toolFetch.setOut(new PrintWriter(log));
         toolFetch.setErr(new PrintWriter(log));
         TestLogListAppender testLogListAppender = new TestLogListAppender();
-        testLogListAppender.start(YamlParserService.class, JsonSchemaValidationService.class, WebDownloadService.class,
-                ArchiveExtractService.class, ArchiveScanner.class, ArchiveNameResolver.class, ToolUriTransformer.class);
+        testLogListAppender.start(YamlParserService.class,
+                JsonSchemaValidationService.class,
+                WebDownloadService.class,
+                ArchiveExtractService.class,
+                ArchiveScanner.class,
+                ArchiveNameResolver.class,
+                ToolUriTransformer.class);
         int exitCode = toolFetch.execute(args);
         List<String> writerLogs = log.toString().lines().toList();
         List<String> collectedLogs = testLogListAppender.list.stream()
@@ -115,14 +120,13 @@ public class ToolFetchTestBase {
     }
 
     void assertNoErrorNoWarn(ExecResult execResult) {
-        assertThat(execResult.logs()).noneMatch(
-                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(Level.ERROR)) ||
-                        line.contains("[%s]".formatted(Level.WARN)));
+        assertThat(execResult.logs()).noneMatch(line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(
+                Level.ERROR)) || line.contains("[%s]".formatted(Level.WARN)));
     }
 
     void assertNoError(ExecResult execResult) {
-        assertThat(execResult.logs()).noneMatch(
-                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(Level.ERROR)));
+        assertThat(execResult.logs()).noneMatch(line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(
+                Level.ERROR)));
     }
 
     void assertLogbackInit(ExecResult execResult) {

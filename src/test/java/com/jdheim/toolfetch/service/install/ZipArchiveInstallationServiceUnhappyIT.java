@@ -37,6 +37,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
+import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
 import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
 import com.jdheim.toolfetch.util.archive.ArchiveUtils;
 import com.jdheim.toolfetch.util.log.TestLogListAppender;
@@ -58,20 +59,24 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
     }
 
     static Arguments oneDirWithOneFile_ZipSlip() {
-        return Arguments.of("One Dir with One File - Zip Slip", (Consumer<ZipArchiveOutputStream>) zaos -> {
+        return Arguments.of("One Dir with One File - Zip Slip",
+                (Consumer<ZipArchiveOutputStream>) zaos -> {
                     addZipEntryFile(zaos, "test1/test1.txt", "Install Test 1");
                     addZipEntryFile(zaos, "../test2.txt", "Install Test 2");
-                }, (Consumer<Path>) ZipArchiveInstallationServiceUnhappyIT::pathAsserts_OneDirWithOneFile,
+                },
+                (Consumer<Path>) ZipArchiveInstallationServiceUnhappyIT::pathAsserts_OneDirWithOneFile,
                 new String[]{"toolfetch", "../test2.txt", "toolfetch/../test2.txt"});
     }
 
     static Arguments oneDirWithOneFile_DirAsEntry_ZipSlip() {
-        return Arguments.of("One Dir with One File - Dir as Entry - ZipSlip", (Consumer<ZipArchiveOutputStream>) zaos -> {
+        return Arguments.of("One Dir with One File - Dir as Entry - ZipSlip",
+                (Consumer<ZipArchiveOutputStream>) zaos -> {
                     addZipEntryDir(zaos, "test1/");
                     addZipEntryFile(zaos, "test1/test1.txt", "Install Test 1");
                     addZipEntryDir(zaos, "../");
                     addZipEntryFile(zaos, "../test2.txt", "Install Test 2");
-                }, (Consumer<Path>) ZipArchiveInstallationServiceUnhappyIT::pathAsserts_OneDirWithOneFile,
+                },
+                (Consumer<Path>) ZipArchiveInstallationServiceUnhappyIT::pathAsserts_OneDirWithOneFile,
                 new String[]{"toolfetch", "../test2.txt", "toolfetch/../test2.txt"});
     }
 
@@ -91,7 +96,9 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
         getTestLogListAppender().assertAnyMatch(Level.WARN,
                 "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
-                        destinationPath, logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
+                        destinationPath,
+                        logArgs[1],
+                        tempDir.resolve(logArgs[2]).normalize()));
     }
 
     /// Password-protected ZIP file with password: "toolfetch"
@@ -112,8 +119,10 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         String id = "toolfetch";
 
         List<String> files = List.of("test1/test11/test111/test1111/test11111/test11111.txt",
-                "test1/test11/test111/test1111/test11111/test111111/test111111.txt", "test1/test11/test222/test222.txt",
-                "test1/test11/test333/test3333/test3333-1.txt", "test1/test11/test333/test3333/test3333-2.txt",
+                "test1/test11/test111/test1111/test11111/test111111/test111111.txt",
+                "test1/test11/test222/test222.txt",
+                "test1/test11/test333/test3333/test3333-1.txt",
+                "test1/test11/test333/test3333/test3333-2.txt",
                 "test1/test11/test333/test3333/test3333-3.txt");
         testInstall_PasswordProtected(2, files, wmRuntimeInfo);
 
@@ -127,9 +136,12 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         String id = "toolfetch";
 
         List<String> files = List.of("test1/test11/test111/test1111/test11111/test11111.txt",
-                "test1/test11/test111/test1111/test11111/test111111/test111111.txt", "test1/test11/test222/test222.txt",
-                "test1/test11/test333/test3333/test3333-1.txt", "test1/test11/test333/test3333/test3333-2.txt",
-                "test1/test11/test333/test3333/test3333-3.txt", "test4.txt");
+                "test1/test11/test111/test1111/test11111/test111111/test111111.txt",
+                "test1/test11/test222/test222.txt",
+                "test1/test11/test333/test3333/test3333-1.txt",
+                "test1/test11/test333/test3333/test3333-2.txt",
+                "test1/test11/test333/test3333/test3333-3.txt",
+                "test4.txt");
         testInstall_PasswordProtected(3, files, wmRuntimeInfo);
 
         Path destinationPath = tempDir.resolve(id);
@@ -166,7 +178,8 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Extract completed in ");
             getTestLogListAppender().assertAnyMatch(Level.WARN,
                     "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"../test2.txt\" = \"%s\"\"".formatted(
-                            destinationPath, tempDir.resolve(id + "/../test2.txt").normalize()));
+                            destinationPath,
+                            tempDir.resolve(id + "/../test2.txt").normalize()));
             getTestLogListAppender().assertNoMatch(Level.INFO, "Removing " + destinationPath);
             getTestLogListAppender().assertNoMatch(Level.INFO, "Removing " + backupPath);
             getTestLogListAppender().assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
@@ -252,14 +265,17 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         stubWireMockToServeZip(mockUrl);
         HttpClient mockHttpClient = mock();
         when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException("Interrupted error occurred"));
-        WebDownloadService webDownloadService = new WebDownloadService(mockHttpClient);
+        WebDownloadService webDownloadService = new WebDownloadService();
         fillDestinationPath(id);
 
         ArchiveInstallationService installationService = spy(new ArchiveInstallationService());
         doReturn(webDownloadService).when(installationService).downloadService();
         testLogListAppender = new TestLogListAppender();
         getTestLogListAppender().start(ArchiveInstallationService.class, WebDownloadService.class, ArchiveExtractService.class);
-        installationService.install(configuration);
+        try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
+            toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
+            installationService.install(configuration);
+        }
 
         Path destinationPath = tempDir.resolve(id);
         assertThat(destinationPath).isNotEmptyDirectory();
@@ -268,7 +284,8 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         testLogListAppender.assertAnyMatch(Level.WARN,
-                "Download failed due to exception: \"Interrupted error occurred\". Skipping " + id);
+                "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
+                        + id);
         testLogListAppender.assertNoMatch(Level.INFO, "Removing " + destinationPath);
         testLogListAppender.assertNoMatch(Level.INFO, "Removing " + backupPath);
         testLogListAppender.assertNoMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
@@ -315,7 +332,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         when(mockHttpResponse.headers()).thenReturn(mockHttpHeaders);
         when(mockHttpHeaders.firstValue("Content-Disposition")).thenReturn(Optional.of("attachment; filename=toolfetch.zip"));
         when(mockHttpResponse.body()).thenReturn(new IOExceptionInputStream());
-        WebDownloadService webDownloadService = new WebDownloadService(mockHttpClient);
+        WebDownloadService webDownloadService = new WebDownloadService();
         fillDestinationPath(id);
         if (backupPathExists) {
             fillBackupPath(id);
@@ -325,7 +342,10 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         doReturn(webDownloadService).when(installationService).downloadService();
         testLogListAppender = new TestLogListAppender();
         getTestLogListAppender().start(ArchiveInstallationService.class, WebDownloadService.class, ArchiveExtractService.class);
-        installationService.install(configuration);
+        try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
+            toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
+            installationService.install(configuration);
+        }
 
         Path destinationPath = tempDir.resolve(id);
         assertThat(destinationPath).isNotEmptyDirectory();
@@ -340,10 +360,12 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
                 "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
         testLogListAppender.assertAnyMatch(Level.INFO, "Creating " + destinationPath);
         testLogListAppender.assertAnyMatch(Level.INFO,
-                "Downloading http://localhost:%s%s to %s".formatted(wmRuntimeInfo.getHttpPort(), mockUrl,
+                "Downloading http://localhost:%s%s to %s".formatted(wmRuntimeInfo.getHttpPort(),
+                        mockUrl,
                         destinationPath.resolve(id + ".zip")));
         testLogListAppender.assertAnyMatch(Level.INFO, "Download completed in ");
-        testLogListAppender.assertAnyMatch(Level.WARN, "Download failed due to exception: \"Boom\". Skipping " + id);
+        testLogListAppender.assertAnyMatch(Level.WARN,
+                "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + id);
         testLogListAppender.assertAnyMatch(Level.INFO, "Removing " + destinationPath);
         testLogListAppender.assertNoMatch(Level.INFO, "Removing " + backupPath);
         testLogListAppender.assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));

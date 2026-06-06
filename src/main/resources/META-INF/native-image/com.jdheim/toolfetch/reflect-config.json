@@ -10,6 +10,21 @@
     "allPublicMethods": true
   },
   {
+    "name": "com.jdheim.toolfetch.model.http.Http",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.jdheim.toolfetch.model.http.ssl.Ssl",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  {
     "name": "com.jdheim.toolfetch.model.tool.checksums.Checksums",
     "methods": [
       {
