@@ -3,6 +3,6 @@
   "namedLogo": "sonarqubeserver",
   "logoColor": "white",
   "label": "SonarQube Code Issues",
-  "message": "0",
-  "color": "brightgreen"
+  "message": "4",
+  "color": "red"
 }
