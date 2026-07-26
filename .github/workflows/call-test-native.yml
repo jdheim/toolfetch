@@ -39,6 +39,10 @@ jobs:
           maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.job.runner }}
           release-type: ${{ inputs.release-type }}
 
+      - name: "Build"
+        working-directory: scripts
+        run: ./build.sh -c
+
       - name: "Download ToolFetch Binary"
         uses: actions/download-artifact@v8
         with:
@@ -56,7 +60,7 @@ jobs:
       - name: "Smoke Test Native"
         working-directory: scripts
         shell: bash
-        run: ./scan.sh --st-native
+        run: ./verify.sh --st-native
 
       - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6
@@ -64,4 +68,4 @@ jobs:
         with:
           name: smoke-test-native-report-${{ matrix.job.platform }}
           if-no-files-found: error
-          path: target/failsafe-reports/**/TEST-*.xml
+          path: test/toolfetch-smoke-tests/target/failsafe-reports/**/TEST-*.xml

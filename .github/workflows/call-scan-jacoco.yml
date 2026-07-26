@@ -27,9 +27,13 @@ jobs:
         with:
           maven-repo-cache-key: ${{ inputs.maven-repo-cache-key }}
 
+      - name: "Build"
+        working-directory: scripts
+        run: ./build.sh -c
+
       - name: "Jacoco Scan"
         working-directory: scripts
-        run: ./scan.sh --jacoco-scan
+        run: ./verify.sh --jacoco-scan
 
       - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6
@@ -38,8 +42,8 @@ jobs:
           name: test-report
           if-no-files-found: error
           path: |
-            target/surefire-reports/**/TEST-*.xml
-            target/failsafe-reports/**/TEST-*.xml
+            test/toolfetch-*-tests/target/surefire-reports/**/TEST-*.xml
+            test/toolfetch-*-tests/target/failsafe-reports/**/TEST-*.xml
 
       - name: "Upload Jacoco Scan Report"
         uses: actions/upload-artifact@v6
@@ -47,4 +51,4 @@ jobs:
         with:
           name: jacoco-scan-report
           if-no-files-found: error
-          path: target/site/jacoco/**
+          path: test/toolfetch-test-coverage/target/site/jacoco-*/**

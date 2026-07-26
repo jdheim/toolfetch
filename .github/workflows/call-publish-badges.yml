@@ -23,7 +23,7 @@ jobs:
         id: jdheim-actions-bot-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+          client-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
           private-key: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
 
       - name: "Checkout"

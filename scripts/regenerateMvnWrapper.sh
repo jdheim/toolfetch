@@ -18,7 +18,7 @@ EOF
 }
 
 main() {
-  cd ..
+  [[ $PWD == */scripts ]] && cd ..
   readOptions "$@"
   regenerateMavenWrapper
 }

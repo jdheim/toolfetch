@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2026 JDHeim.com
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.jdheim</groupId>
+        <artifactId>toolfetch</artifactId>
+        <version>0.0.6-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>toolfetch-commands</artifactId>
+    <name>ToolFetch Commands</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-models</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/linux-*/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-third-party</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-third-party</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/third-party</outputDirectory>
+                    <addOutputDirectoryAsResourceDir>false</addOutputDirectoryAsResourceDir>
+                    <includedScopes>runtime,compile</includedScopes>
+                    <includeTransitiveDependencies>true</includeTransitiveDependencies>
+                    <excludedGroups>com.jdheim|com.github.spotbugs|org.jspecify</excludedGroups>
+                    <sortArtifactByName>true</sortArtifactByName>
+                    <failOnMissing>true</failOnMissing>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>list-libs</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>list</goal>
+                        </goals>
+                        <configuration>
+                            <!-- runtime include scope gives runtime and compile dependencies -->
+                            <includeScope>runtime</includeScope>
+                            <excludeTransitive>false</excludeTransitive>
+                            <excludeGroupIds>com.github.spotbugs,org.jspecify</excludeGroupIds>
+                            <excludeArtifactIds>toolfetch-commands</excludeArtifactIds>
+                            <outputFile>${project.build.directory}/third-party/LIBS.txt</outputFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-libs-sources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- runtime include scope gives runtime and compile dependencies -->
+                            <includeScope>runtime</includeScope>
+                            <classifier>sources</classifier>
+                            <excludeTransitive>false</excludeTransitive>
+                            <excludeGroupIds>com.jdheim,com.github.spotbugs,org.jspecify</excludeGroupIds>
+                            <outputDirectory>${project.build.directory}/third-party/sources</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>linux-amd64</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>**/linux-amd64/**</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+        <profile>
+            <id>linux-arm64</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>**/linux-arm64/**</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

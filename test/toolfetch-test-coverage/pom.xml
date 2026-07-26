@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2026 JDHeim.com
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.jdheim</groupId>
+        <artifactId>toolfetch</artifactId>
+        <version>0.0.6-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>toolfetch-test-coverage</artifactId>
+    <packaging>pom</packaging>
+    <name>ToolFetch Test Coverage</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-commands</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-models</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-unit-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-integration-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-smoke-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>jacoco-scan</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>report-aggregate-unit</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFileIncludes>
+                                        <dataFileInclude>target/jacoco.exec</dataFileInclude>
+                                    </dataFileIncludes>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-unit</outputDirectory>
+                                    <title>${project.name}: Unit Tests</title>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>report-aggregate-it</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFileIncludes>
+                                        <dataFileInclude>target/jacoco-it.exec</dataFileInclude>
+                                    </dataFileIncludes>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-it</outputDirectory>
+                                    <title>${project.name}: Integration Tests</title>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>report-aggregate-st</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFileIncludes>
+                                        <dataFileInclude>target/jacoco-st.exec</dataFileInclude>
+                                    </dataFileIncludes>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-st</outputDirectory>
+                                    <title>${project.name}: Smoke Tests</title>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>report-aggregate-all</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFileIncludes>
+                                        <dataFileInclude>target/jacoco.exec</dataFileInclude>
+                                        <dataFileInclude>target/jacoco-it.exec</dataFileInclude>
+                                        <dataFileInclude>target/jacoco-st.exec</dataFileInclude>
+                                    </dataFileIncludes>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-all</outputDirectory>
+                                    <title>${project.name}</title>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>sonarqube-scan</id>
+            <properties>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+                <sonar.maven.scanAll>true</sonar.maven.scanAll>
+                <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+                <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate-all/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+                <sonar.coverage.exclusions>**/${main.class.file}.java</sonar.coverage.exclusions>
+                <sonar.junit.reportPaths>target/surefire-reports,target/failsafe-reports</sonar.junit.reportPaths>
+
+                <!-- Disabled Rules -->
+                <sonar.issue.ignore.multicriteria>e1</sonar.issue.ignore.multicriteria>
+                <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S8445</sonar.issue.ignore.multicriteria.e1.ruleKey>
+                <sonar.issue.ignore.multicriteria.e1.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>${sonar-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sonar</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>native-agent-scan</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-merged-reachability-metadata-to-toolfetch-commands</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <copy file="${maven.multiModuleProjectDirectory}/test/toolfetch-native-agent/target/classes/reachability-metadata.json"
+                                              tofile="${maven.multiModuleProjectDirectory}/src/toolfetch-commands/src/main/resources/META-INF/native-image/${project.parent.groupId}/toolfetch-commands/reachability-metadata.json"
+                                              overwrite="true"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

@@ -38,16 +38,16 @@ jobs:
         with:
           pattern: toolfetch-sbom-*
           merge-multiple: true
-          path: target/jreleaser/sbom
+          path: build/toolfetch-native-image/target/jreleaser/sbom
 
       - name: "Assemble ToolFetch SBOMs"
         uses: jreleaser/release-action@v2
         env:
           JRELEASER_ASSEMBLE_TOOLFETCH_SBOM_ACTIVE: ALWAYS
         with:
-          version: latest
+          version: 1.24.0 # @Patch Migrate to latest
           setup-java: false
-          arguments: assemble --output-directory=target
+          arguments: assemble --output-directory=build/toolfetch-native-image/target
 
       - name: "Upload ToolFetch SBOMs"
         uses: actions/upload-artifact@v6
@@ -56,7 +56,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           path: |
-            target/jreleaser/sbom/toolfetch*-sboms.zip
+            build/toolfetch-native-image/target/jreleaser/sbom/toolfetch*-sboms.zip
 
       - name: "Upload JReleaser output"
         uses: actions/upload-artifact@v6
@@ -64,5 +64,5 @@ jobs:
         with:
           name: jreleaser-toolfetch-sboms
           path: |
-            target/jreleaser/trace.log
-            target/jreleaser/output.properties
+            build/toolfetch-native-image/target/jreleaser/trace.log
+            build/toolfetch-native-image/target/jreleaser/output.properties

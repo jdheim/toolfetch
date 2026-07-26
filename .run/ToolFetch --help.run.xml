@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="ToolFetch --help" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.jdheim.toolfetch.Main" />
-    <module name="toolfetch" />
+    <module name="toolfetch-commands" />
     <option name="PROGRAM_PARAMETERS" value="--help" />
     <extension name="coverage">
       <pattern>

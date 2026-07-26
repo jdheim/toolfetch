@@ -58,13 +58,13 @@ jobs:
         with:
           pattern: toolfetch-archive-*
           merge-multiple: true
-          path: target/jreleaser/assemble/toolfetch/archive
+          path: build/toolfetch-native-image/target/jreleaser/assemble/toolfetch/archive
 
       - name: "Download ToolFetch SBOMs"
         uses: actions/download-artifact@v8
         with:
           name: toolfetch-sboms
-          path: target/jreleaser/sbom
+          path: build/toolfetch-native-image/target/jreleaser/sbom
 
       - name: "Release with JReleaser"
         uses: jreleaser/release-action@v2
@@ -77,17 +77,17 @@ jobs:
           JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
           JRELEASER_DRAFT: ${{ inputs.draft-release }}
         with:
-          version: latest
+          version: 1.24.0 # @Patch Migrate to latest
           setup-java: false
-          arguments: full-release --output-directory=target
+          arguments: full-release --output-directory=build/toolfetch-native-image/target
 
       - name: "Collect SLSA outputs"
         id: slsa
         shell: bash
         run: |
-          echo "version=$(grep "^projectVersion=" "target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$(grep "^tagName=" "target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "base64_subjects=$(cat "target/jreleaser/checksums/checksums_sha256.txt" | base64 -w0)" >> "$GITHUB_OUTPUT"
+          echo "version=$(grep "^projectVersion=" "build/toolfetch-native-image/target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$(grep "^tagName=" "build/toolfetch-native-image/target/jreleaser/output.properties" | awk -F'=' '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "base64_subjects=$(cat "build/toolfetch-native-image/target/jreleaser/checksums/checksums_sha256.txt" | base64 -w0)" >> "$GITHUB_OUTPUT"
 
       - name: "Upload JReleaser output"
         uses: actions/upload-artifact@v6
@@ -95,5 +95,5 @@ jobs:
         with:
           name: jreleaser-release
           path: |
-            target/jreleaser/trace.log
-            target/jreleaser/output.properties
+            build/toolfetch-native-image/target/jreleaser/trace.log
+            build/toolfetch-native-image/target/jreleaser/output.properties

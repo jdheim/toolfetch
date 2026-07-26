@@ -77,7 +77,7 @@ assemble:
             - "LICENSE"
             - "NOTICE"
             - "README.md"
-        - input: "target/third-party/license"
+        - input: "{{baseOutputDirectory}}/third-party/license"
           output: "licenses"
   nativeImage:
     toolfetch_binary:
@@ -85,17 +85,16 @@ assemble:
       archiving:
         enabled: false
       graalJdks:
-        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-amd64/{{graalVmDir}}'
+        - path: '{{basedir}}/target/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'
-        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-arm64/{{graalVmDir}}'
+        - path: '{{basedir}}/target/jdks/graalvm-linux-arm64/{{graalVmDir}}'
           platform: 'linux-aarch_64'
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '--enable-sbom=embed,cyclonedx,strict'
-        - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
         - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-commands-{{projectVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
     toolfetch_debug:
@@ -103,17 +102,16 @@ assemble:
       archiving:
         enabled: false
       graalJdks:
-        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-amd64/{{graalVmDir}}'
+        - path: '{{basedir}}/target/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'
-        - path: '{{baseOutputDirectory}}/jdks/graalvm-linux-arm64/{{graalVmDir}}'
+        - path: '{{basedir}}/target/jdks/graalvm-linux-arm64/{{graalVmDir}}'
           platform: 'linux-aarch_64'
       args:
         - '-H:+UnlockExperimentalVMOptions'
         - '-H:+JDWP'
-        - '-H:ResourceConfigurationFiles={{baseOutputDirectory}}/classes/META-INF/native-image/com.jdheim/toolfetch/resource-config-{{osPlatformReplaced}}.json'
         - '--emit=build-report={{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}-build-report.html'
       mainJar:
-        path: '{{baseOutputDirectory}}/{{projectName}}-{{projectVersion}}.jar'
+        path: '{{baseOutputDirectory}}/{{projectName}}-commands-{{projectVersion}}.jar'
       jars:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
 hooks:
@@ -161,28 +159,28 @@ hooks:
         verbose: true
         filter:
           includes: ['assemble']
-      # Copy a native image to the target directory
+      # Copy a native image to the root target directory
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE}" == "ALWAYS" ]]; then
             echo "[native-image] Copy a native image to the target directory"
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{basedir}}/target/{{projectName}} \;
           fi
         verbose: true
         filter:
           includes: ['assemble']
-      # Copy a native image with dependencies to the target directory (debug mode enabled)
+      # Copy a native image with dependencies to the root target directory (debug mode enabled)
       - run: |
           if [[ "${JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_DEBUG_ACTIVE}" == "ALWAYS" ]]; then
             echo "[native-image] Copy a native image with dependencies to the target directory (debug mode enabled)"
             if [[ ! -d ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}} ]]; then
-              {{baseOutputDirectory}}/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/bin/native-image --macro:svmjdwp-library
+              {{basedir}}/target/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/bin/native-image --macro:svmjdwp-library
               [[ -d ${HOME}/.libsvmjdwp ]] && rm -r ${HOME}/.libsvmjdwp
               mkdir -p ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}
-              cp -v {{baseOutputDirectory}}/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/
+              cp -v {{basedir}}/target/jdks/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/lib/libsvmjdwp.so ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/
             fi
-            cp -v ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/libsvmjdwp.so {{baseOutputDirectory}}
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{baseOutputDirectory}}/{{projectName}} \;
-            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}.metadata" -exec cp -v {} {{baseOutputDirectory}}/{{projectName}}.metadata \;
+            cp -v ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/libsvmjdwp.so {{basedir}}/target
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{basedir}}/target/{{projectName}} \;
+            find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}.metadata" -exec cp -v {} {{basedir}}/target/{{projectName}}.metadata \;
           fi
         verbose: true
         filter:

@@ -35,15 +35,20 @@ jobs:
         with:
           maven-repo-cache-key: ${{ inputs.maven-repo-cache-key-prefix }}-${{ matrix.scan.id }}
 
-      - name: "Scan"
+      - name: "Build"
+        working-directory: scripts
+        run: ./build.sh -c
+
+      - name: "${{ matrix.scan.name }}"
         working-directory: scripts
         env:
           MATRIX_SCAN_ID: ${{ matrix.scan.id }}
-        run: ./scan.sh --${MATRIX_SCAN_ID}
+        run: ./verify.sh --${MATRIX_SCAN_ID}
 
       - name: "Upload ${{ matrix.scan.name }} Report"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() && matrix.scan.id == 'spotbugs-scan' }}
         with:
           name: ${{ matrix.scan.id }}-report
-          path: target/site/spotbugs.html
+          if-no-files-found: error
+          path: "**/target/site/spotbugs.html"

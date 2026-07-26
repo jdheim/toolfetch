@@ -1,0 +1,84 @@
+{
+  "rules": [
+    {
+      "includeClasses": "**"
+    },
+    {
+      "excludeClasses": "com.tngtech.**"
+    },
+    {
+      "excludeClasses": "org.assertj.**"
+    },
+    {
+      "excludeClasses": "org.junit.**"
+    },
+    {
+      "excludeClasses": "org.mockito.**"
+    },
+    {
+      "excludeClasses": "org.wiremock.**"
+    },
+    {
+      "excludeClasses": "com.github.tomakehurst.**"
+    },
+    {
+      "excludeClasses": "com.fasterxml.jackson.databind.**"
+    },
+    {
+      "excludeClasses": "com.jayway.**"
+    },
+    {
+      "excludeClasses": "org.apiguardian.**"
+    },
+    {
+      "excludeClasses": "org.eclipse.jetty.**"
+    },
+    {
+      "excludeClasses": "org.opentest4j.**"
+    },
+    {
+      "excludeClasses": "net.bytebuddy.**"
+    },
+    {
+      "excludeClasses": "java.**"
+    },
+    {
+      "excludeClasses": "jdk.**"
+    },
+    {
+      "excludeClasses": "groovy.**"
+    },
+    {
+      "excludeClasses": "kotlin.**"
+    },
+    {
+      "excludeClasses": "scala.**"
+    },
+    {
+      "excludeClasses": "com.sun.**"
+    },
+    {
+      "excludeClasses": "sun.**"
+    },
+    {
+      "excludeClasses": "org.apache.maven.**"
+    }
+  ],
+  "regexRules": [
+    {
+      "includeClasses": ".*"
+    },
+    {
+      "excludeClasses": "^com\\.jdheim\\.toolfetch\\.(?:.*(?:TestBase|Test|IT)|.*\\.Test.*)(?:\\$.*)?$"
+    },
+    {
+      "excludeClasses": "^com\\.tngtech\\..*(?:\\[\\])+$"
+    },
+    {
+      "excludeClasses": "^(?:java\\..*(?:\\[\\])+|\\[+Ljava\\..*;)$"
+    },
+    {
+      "excludeClasses": "^.*\\$MockitoMock\\$.*$"
+    }
+  ]
+}

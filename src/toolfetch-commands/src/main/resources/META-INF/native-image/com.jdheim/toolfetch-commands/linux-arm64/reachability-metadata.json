@@ -1,0 +1,10 @@
+{
+  "resources": [
+    {
+      "glob": "linux/aarch64/libzstd-jni-*.so"
+    },
+    {
+      "glob": "org/fusesource/jansi/internal/native/Linux/arm64/libjansi.so"
+    }
+  ]
+}

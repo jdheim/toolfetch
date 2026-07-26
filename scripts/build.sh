@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BUILDS PROJECT
+# BUILD PROJECT
 
 #
 # Copyright 2026 JDHeim.com
@@ -12,21 +12,20 @@ usage() {
   cat << EOF
 Usage: $(basename "$0") [OPTION]...
 
-Builds whole project
+Build Project
 
 OPTIONS:
-  -c                     Perform clean build
-  -d                     Dry-run JReleaser
-  -n, --native           Create a standalone executable (native image)
-  --native-debug         Create a standalone executable (native image) with debug enabled
-  --native-maven         Create a standalone executable (native image) using native-maven-plugin
-  --native-prepare       Builds whole project and prepares native setup
+  -r, --release          Build standalone executable using native image and run JReleaser release in dry-run mode
+  -n, --native           Build standalone executable using native image
+  --native-debug         Build standalone executable using native image with debug enabled
+  --native-maven         Build standalone executable using native-maven-plugin
+  --native-prepare       Build Project and prepare the native image setup
 EOF
   exit 1
 }
 
 main() {
-  cd ..
+  [[ $PWD == */scripts ]] && cd ..
   readOptions "$@"
   build
 }
@@ -34,30 +33,42 @@ main() {
 readOptions() {
   while [[ "$#" -gt 0 ]]; do
     case "${1}" in
-      -c) phases+=("clean") ;;
-      -d) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeProfiles ;;
-      -n|--native) isNativeImage="true"; enrichNativeProfiles ;;
+      -r|--release) validateJReleaserGitHubToken; isJReleaserFullReleaseDryRun="true"; enrichNativeOptions ;;
+      -n|--native) isNativeImage="true"; enrichNativeOptions ;;
+      --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeOptions ;;
       --native-maven) export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-$(xmlProperty "graalvm-jdk.version" "pom.xml")"
-        remainingOptions+=("-Pnative-image-with-maven" "-Dcyclonedx.skipAttach=true")
-        enrichNativeProfiles ;;
-      --native-prepare) enrichNativeProfiles ;;
-      --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeProfiles ;;
+        remainingOptions+=("-Pnative-image-with-maven")
+        enrichNativeOptions ;;
+      --native-prepare) enrichNativeOptions ;;
       -h|--help) usage ;;
       *) remainingOptions+=("${1}") ;;
     esac
     shift
   done
-  phases+=("verify")
+  addMvnPhase "clean"
+  addMvnPhase "install"
 }
 
-enrichNativeProfiles() {
-  [[ ! " ${phases[*]} " =~ " clean " ]] && phases+=("clean")
-  remainingOptions+=("-Psetup-graalvm" "-Pnative-image")
+enrichNativeOptions() {
+  remainingOptions+=("-DskipAllTests" "-Psetup-graalvm" "-Pnative-image")
+}
+
+addMvnPhase() {
+  local phase existingPhase
+  phase="${1}"
+  for existingPhase in "${phases[@]}"; do
+    [[ "${existingPhase}" == "$phase" ]] && return
+  done
+  if [[ "${phase}" == "clean" ]]; then
+    phases=("${phase}" "${phases[@]}")
+  else
+    phases+=("${phase}")
+  fi
 }
 
 build() {
   step "Build Project"
-  run ./mvnw -ntp "${phases[@]}" -DskipTests -Padd-third-party "${remainingOptions[@]}"
+  run ./mvnw -ntp "${phases[@]}" -DskipTests "${remainingOptions[@]}"
   scripts/common/updateNotice.sh
   local binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE=ALWAYS" )
   if [[ "${isNativeImage:-false}" == "true" ]]; then
@@ -84,7 +95,7 @@ validateJReleaserGitHubToken() {
 jreleaserAssemble() {
   step "JReleaser: Assemble"
   run export "$@"
-  run jreleaser assemble --output-directory=target || exit 1
+  run jreleaser assemble --output-directory=build/toolfetch-native-image/target || exit 1
   for kv in "$@"; do
     run unset "${kv%%=*}"
   done
@@ -103,7 +114,7 @@ jreleaserFullReleaseDryRun() {
   fi
   run export "$@"
   export "JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-}" "${envs[@]}"
-  run jreleaser full-release --dry-run --output-directory=target
+  run jreleaser full-release --dry-run --output-directory=build/toolfetch-native-image/target
   exit $?
 }
 

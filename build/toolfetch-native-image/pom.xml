@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2026 JDHeim.com
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.jdheim</groupId>
+        <artifactId>toolfetch</artifactId>
+        <version>0.0.6-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>toolfetch-native-image</artifactId>
+    <packaging>pom</packaging>
+    <name>ToolFetch Native Image</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jdheim</groupId>
+            <artifactId>toolfetch-commands</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-toolfetch-commands-lib</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>com.jdheim</includeGroupIds>
+                            <includeArtifactIds>toolfetch-commands</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-libs</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- runtime include scope gives runtime and compile dependencies -->
+                            <includeScope>runtime</includeScope>
+                            <excludeTransitive>false</excludeTransitive>
+                            <excludeGroupIds>com.github.spotbugs,org.jspecify</excludeGroupIds>
+                            <excludeArtifactIds>toolfetch-commands</excludeArtifactIds>
+                            <outputDirectory>${project.build.directory}/third-party/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- @Patch The SBOM feature could not associate 168 type(s) to a component.
+                            All types must be matched to a component when strict SBOM is enabled.
+                            If an unassociated type contains a vulnerability, SBOM scanning will not detect it.
+                            To fix this, ensure that GAV coordinates (Group ID, Artifact ID, and Version) are defined
+                            in the 'pom.properties' or 'MANIFEST.MF' files using standard formats -->
+                        <id>patch-picocli-for-strict-graalvm-sbom</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    <![CDATA[
+                                        picocliVersion="$(grep -m 1 "picocli.version" "../../bom/toolfetch-bom/pom.xml" | awk -F'[<>]' '{print $3}')"
+                                        mkdir -p ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli &&
+                                        printf "groupId=info.picocli\nartifactId=picocli\nversion=${picocliVersion}\n" > ${project.build.directory}/third-party/picocli-patch/META-INF/maven/info.picocli/picocli/pom.properties &&
+                                        jar ufv ${project.build.directory}/third-party/lib/picocli-${picocliVersion}.jar -C ${project.build.directory}/third-party/picocli-patch/ META-INF/
+                                    ]]>
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native-image-with-maven</id>
+            <properties>
+                <cyclonedx.skipAttach>true</cyclonedx.skipAttach>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>native-image-build</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <imageName>${project.parent.artifactId}-${project.parent.version}-${graalvm.platform}</imageName>
+                            <buildArgs>
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>--enable-sbom=embed,cyclonedx,strict</buildArg>
+                                <buildArg>--emit=build-report=${project.build.directory}/${project.parent.artifactId}-${project.parent.version}-${graalvm.platform}-build-report.html</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-native-image-to-root-target-dir</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <copy file="${project.build.directory}/${project.parent.artifactId}-${project.parent.version}-${graalvm.platform}"
+                                              tofile="${maven.multiModuleProjectDirectory}/target/toolfetch"
+                                              overwrite="true"/>
+                                        <chmod file="${maven.multiModuleProjectDirectory}/target/toolfetch"
+                                               perm="755"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

@@ -25,6 +25,10 @@ jobs:
           maven-repo-cache-key: owasp-scan-m2-repo
           maven-repo-cache-restore-previous-date: true
 
+      - name: "Build"
+        working-directory: scripts
+        run: ./build.sh -c
+
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
       - name: "Install .NET SDK required by AssemblyAnalyzer"
         uses: awalsh128/cache-apt-pkgs-action@latest
@@ -36,11 +40,12 @@ jobs:
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         working-directory: scripts
-        run: ./scan.sh --owasp-scan
+        run: ./verify.sh --owasp-scan
 
       - name: "Upload OWASP Scan Report"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: owasp-scan-report
+          if-no-files-found: error
           path: target/dependency-check-report.html

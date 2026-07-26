@@ -51,9 +51,9 @@ jobs:
         env:
           JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE: ALWAYS
         with:
-          version: latest
+          version: 1.24.0 # @Patch Migrate to latest
           setup-java: false
-          arguments: assemble --output-directory=target
+          arguments: assemble --output-directory=build/toolfetch-native-image/target
 
       - name: "Upload ToolFetch Binary"
         uses: actions/upload-artifact@v6
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           path: |
-            target/jreleaser/assemble/toolfetch_binary/native-image/toolfetch*${{ matrix.job.platform }}
+            build/toolfetch-native-image/target/jreleaser/assemble/toolfetch_binary/native-image/toolfetch*${{ matrix.job.platform }}
 
       - name: "Upload ToolFetch SBOM"
         uses: actions/upload-artifact@v6
@@ -71,7 +71,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           path: |
-            target/jreleaser/sbom/*.spdx-json.sbom
+            build/toolfetch-native-image/target/jreleaser/sbom/*.spdx-json.sbom
 
       - name: "Upload JReleaser output"
         uses: actions/upload-artifact@v6
@@ -79,5 +79,5 @@ jobs:
         with:
           name: jreleaser-toolfetch-binary-${{ matrix.job.platform }}
           path: |
-            target/jreleaser/trace.log
-            target/jreleaser/output.properties
+            build/toolfetch-native-image/target/jreleaser/trace.log
+            build/toolfetch-native-image/target/jreleaser/output.properties

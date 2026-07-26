@@ -9,12 +9,12 @@
 [[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
 readonly NOTICE="NOTICE"
-readonly THIRD_PARTY="target/third-party/THIRD-PARTY.txt"
-readonly LIBS="target/third-party/LIBS.txt"
-readonly LIBS_DIR="target/third-party/lib"
-readonly LIBS_LICENSE_DIR="target/third-party/license"
-readonly LIBS_NOTICE_DIR="target/third-party/notice"
-readonly LIBS_SOURCES_DIR="target/third-party/sources"
+readonly THIRD_PARTY="src/toolfetch-commands/target/third-party/THIRD-PARTY.txt"
+readonly LIBS="src/toolfetch-commands/target/third-party/LIBS.txt"
+readonly LIBS_DIR="build/toolfetch-native-image/target/third-party/lib"
+readonly LIBS_LICENSE_DIR="build/toolfetch-native-image/target/third-party/license"
+readonly LIBS_NOTICE_DIR="build/toolfetch-native-image/target/third-party/notice"
+readonly LIBS_SOURCES_DIR="src/toolfetch-commands/target/third-party/sources"
 readonly LICENSE_CACHE_DIR="${HOME}/.m2/repository/.cache/bash/licenses"
 
 declare -Ar HARDCODED_URLS=(
@@ -41,7 +41,11 @@ declare -Ar HARDCODED_COPYRIGHT_NOTICES=(
 )
 
 main() {
-  step "Update notice"
+  step "Update Notice"
+  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+    echo -e "${WARN} Skipping in GitHub Actions"
+    return
+  fi
   if [[ -f "${THIRD_PARTY}" ]]; then
     validateLibs
     generateNotice
@@ -58,7 +62,7 @@ validateLibs() {
   if [[ ! "${thirdPartyDependenciesCount}" =~ ^[0-9]+$ ]]; then
     echo -e "${ERROR} Could not determine third party dependencies count from ${THIRD_PARTY}"
     exit 1
-  elif (( $(find "${LIBS_DIR}" -maxdepth 1 -type f | wc -l) != thirdPartyDependenciesCount )); then
+  elif [[ -d "${LIBS_DIR}" ]] && (( $(find "${LIBS_DIR}" -maxdepth 1 -type f ! -name 'toolfetch-*' | wc -l) != thirdPartyDependenciesCount )); then
     echo -e "${ERROR} ${LIBS_DIR} does not contain ${thirdPartyDependenciesCount} files"
     exit 1
   elif (( $(find "${LIBS_SOURCES_DIR}" -maxdepth 1 -type f | wc -l) != thirdPartyDependenciesCount )); then

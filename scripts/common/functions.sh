@@ -58,6 +58,24 @@ projectGroupId() {
   xmlProperty "groupId" "pom.xml"
 }
 
+modulePath() {
+  local module="${1}"
+  if [[ -z "${module}" ]]; then
+    echo -e "${ERROR} Provide module as parameter" >&2
+    exit 1
+  fi
+  local modulePath
+  modulePath="$(xmlProperty "module>.*/${module}</module" "pom.xml")"
+  if [[ -z "${modulePath}" ]]; then
+    echo -e "${ERROR} Module ${module} does not exists" >&2
+    exit 1
+  elif [[ ! -d "${modulePath}" ]]; then
+    echo -e "${ERROR} Path to Module ${modulePath} does not exists" >&2
+    exit 1
+  fi
+  echo "${modulePath}"
+}
+
 ## xmlProperty "propertyName" "xmlFile"
 xmlProperty() {
   local propertyName="<${1}>"

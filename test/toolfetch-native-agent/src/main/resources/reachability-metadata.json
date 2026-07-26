@@ -1,0 +1,24 @@
+{
+  "reflection": [
+    {
+      "type": "com.github.luben.zstd.ZstdInputStreamNoFinalizer",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "dstPos"
+        },
+        {
+          "name": "srcPos"
+        }
+      ]
+    },
+    {
+      "type": "java.io.FilterInputStream",
+      "fields": [
+        {
+          "name": "in"
+        }
+      ]
+    }
+  ]
+}
