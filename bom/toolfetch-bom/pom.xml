@@ -26,7 +26,7 @@
         <jackson.version>2.22</jackson.version>
         <jackson-tools.version>3.2.1</jackson-tools.version>
         <jansi.version>2.4.3</jansi.version>
-        <json-schema-validator.version>3.0.3</json-schema-validator.version>
+        <json-schema-validator.version>3.0.6</json-schema-validator.version>
         <jspecify.version>1.0.0</jspecify.version>
         <logback.version>1.5.34</logback.version>
         <nullaway.version>0.13.6</nullaway.version>
