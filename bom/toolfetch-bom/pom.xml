@@ -34,7 +34,7 @@
         <slf4j-api.version>2.0.18</slf4j-api.version>
         <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
         <xz.version>1.12</xz.version>
-        <zstd.version>1.5.7-10</zstd.version>
+        <zstd.version>1.5.7-12</zstd.version>
 
         <!-- Test Dependencies -->
         <archunit.version>1.4.2</archunit.version>
