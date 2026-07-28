@@ -76,9 +76,10 @@ class WebDownloadServiceIT {
         Tool tool = configuration.tools().getFirst();
         String expectedUrl = tool.url();
         if (mockUrl.contains("${version}")) {
-            assertThat(tool.version()).isNotNull();
-            mockUrl = mockUrl.replace("${version}", tool.version());
-            expectedUrl = expectedUrl.replace("${version}", tool.version());
+            String toolVersion = tool.version();
+            assertThat(toolVersion).isNotNull();
+            mockUrl = mockUrl.replace("${version}", toolVersion);
+            expectedUrl = expectedUrl.replace("${version}", toolVersion);
         }
         stubWireMockToServeZip(mockUrl);
 

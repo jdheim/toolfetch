@@ -25,11 +25,12 @@ public class ToolUriTransformer implements UriTransformer {
     public @Nullable URI transform(Tool tool) {
         String url = tool.url();
         if (url.contains(VERSION_VARIABLE)) {
-            if (tool.version() == null) {
+            String version = tool.version();
+            if (version == null) {
                 LOG.warn("Missing required parameter: version");
                 return null;
             }
-            url = url.replace(VERSION_VARIABLE, tool.version());
+            url = url.replace(VERSION_VARIABLE, version);
         }
         return toUri(url);
     }
