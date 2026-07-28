@@ -13,9 +13,11 @@ set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
 : "${INFO:=$'[\033[1;34mINFO\033[0m]'}"
 : "${WARN:=$'[\033[1;33mWARN\033[0m]'}"
 : "${ERROR:=$'[\033[1;31mERROR\033[0m]'}"
-: "${MAVEN_VERSION_IGNORE:=$'.*-(M|alpha|beta|rc)[-.]?[0-9]+'}"
+: "${MAVEN_VERSION_IGNORE:=".*-(M|alpha|beta|rc)[-.]?[0-9]+"}"
+: "${PROPERTY_UPDATES_FILE:="property-updates.txt"}"
+: "${PROPERTY_UPDATES_PATH:="target/${PROPERTY_UPDATES_FILE}"}"
 
-readonly INFO WARN ERROR MAVEN_VERSION_IGNORE
+readonly INFO WARN ERROR MAVEN_VERSION_IGNORE PROPERTY_UPDATES_FILE PROPERTY_UPDATES_PATH
 
 # General functions
 

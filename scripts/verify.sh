@@ -267,10 +267,47 @@ processReachabilityMetadataJson() {
 versionUpdate() {
   step "Version Update"
   shift
-  run ./mvnw -ntp versions:update-properties \
-    -pl .,:toolfetch-bom \
-    -DgenerateBackupPoms=false \
-    -Dmaven.version.ignore="${MAVEN_VERSION_IGNORE}" "$@"
+  local isFound isUpdated propertyUpdatesFile moduleDir property oldVersion newVersion message
+  while IFS= read -r -d '' propertyUpdatesFile; do
+    isFound="true"
+    moduleDir="${propertyUpdatesFile%/"${PROPERTY_UPDATES_PATH}"}"
+    while read -r property oldVersion newVersion; do
+      isUpdated="true"
+      message="Update ${property%.version} from ${oldVersion} to ${newVersion}"
+      step "${message}"
+
+      if ./mvnw versions:set-property \
+        -pl "${moduleDir}" \
+        -Dproperty="${property}" \
+        -DnewVersion="${newVersion}" \
+        -DgenerateBackupPoms=false
+      then
+        sed -i "\|^[[:space:]]*\${${property}}[[:space:]].*->[[:space:]]|d" "${propertyUpdatesFile}"
+        echo -e "${INFO} Committing changes..."
+        git add "${moduleDir}/pom.xml"
+        git commit -m "deps: ${message}"
+      else
+        exit 1
+      fi
+    done < <(
+      awk '
+        /version property updates are available/ { found=1 }
+        found && /->/ {
+          gsub(/^\$\{|\}$/, "", $1)
+          print $1, $(NF-2), $NF
+        }
+      ' "${propertyUpdatesFile}"
+    )
+    rm "${propertyUpdatesFile}"
+  done < <(
+    find . -type f -name "${PROPERTY_UPDATES_FILE}" -print0
+  )
+  if ! "${isFound:-false}"; then
+    echo -e "${ERROR} The \"${PROPERTY_UPDATES_FILE}\" file does not exist. Run: ./verify.sh -v"
+    exit 1
+  elif ! "${isUpdated:-false}"; then
+    echo -e "${WARN} Nothing to update"
+  fi
   exit $?
 }
 
@@ -279,6 +316,8 @@ versionCheck() {
   shift
   run ./mvnw -ntp versions:display-property-updates \
     -pl .,:toolfetch-bom \
+    -Dversions.outputFile="${PROPERTY_UPDATES_PATH}" \
+    -Dversions.overwriteOutput=true \
     -Dmaven.version.ignore="${MAVEN_VERSION_IGNORE}" "$@"
   exit $?
 }
