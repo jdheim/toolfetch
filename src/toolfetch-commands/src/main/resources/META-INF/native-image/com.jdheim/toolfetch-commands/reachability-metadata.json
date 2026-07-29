@@ -401,6 +401,7 @@
         {
           "name": "<init>",
           "parameterTypes": [
+            "java.io.File",
             "java.lang.String"
           ]
         }
@@ -439,6 +440,9 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "org.jline.jansi.AnsiConsole"
     },
     {
       "type": "picocli.CommandLine",
@@ -801,7 +805,7 @@
       "glob": "keystore"
     },
     {
-      "glob": "linux/amd64/libzstd-jni-1.5.7-10.so"
+      "glob": "linux/amd64/libzstd-jni-1.5.7-12.so"
     },
     {
       "glob": "logback.xml"
