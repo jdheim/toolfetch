@@ -61,11 +61,11 @@
         </nativeImageArgLine>
 
         <!-- GraalVM JDK: also update in jreleaser.yml -->
-        <graalvm-jdk.version>25.0.3</graalvm-jdk.version>
-        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.3_linux-x64_bin.tar.gz.sha256 -->
-        <graalvm-jdk.sha256.linux-amd64>1b5296613c3d12521d594e1c99302df88d8e1f07d74ab7983dbf572000b92c7c</graalvm-jdk.sha256.linux-amd64>
-        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.3_linux-aarch64_bin.tar.gz.sha256 -->
-        <graalvm-jdk.sha256.linux-arm64>2c6e5ef63084c5f39c67cbf5c33d23c852df848d10cd50d76e667fff9c9cf2bc</graalvm-jdk.sha256.linux-arm64>
+        <graalvm-jdk.version>25.0.4</graalvm-jdk.version>
+        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.4_linux-x64_bin.tar.gz.sha256 -->
+        <graalvm-jdk.sha256.linux-amd64>76007c309f821aaf435bce63162ea0395587fc77350801c81643fe7feea37276</graalvm-jdk.sha256.linux-amd64>
+        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.4_linux-aarch64_bin.tar.gz.sha256 -->
+        <graalvm-jdk.sha256.linux-arm64>7031aead8da4c6a7816c4e2be4eabfddaf7f4abcfe8e5f16134c4da69a5e70de</graalvm-jdk.sha256.linux-arm64>
 
         <!-- GitHub Actions -->
         <syft.version>1.45.0</syft.version>
