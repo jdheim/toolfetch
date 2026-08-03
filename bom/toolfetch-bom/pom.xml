@@ -16,6 +16,10 @@
     <name>ToolFetch BOM</name>
 
     <properties>
+        <!-- Project -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
         <!-- Dependencies -->
         <brotli.version>0.1.2</brotli.version>
         <commons-codec.version>1.22.0</commons-codec.version>
