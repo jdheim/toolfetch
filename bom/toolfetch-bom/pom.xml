@@ -31,7 +31,7 @@
         <jackson-tools.version>3.2.1</jackson-tools.version>
         <jansi.version>2.4.3</jansi.version>
         <json-schema-validator.version>3.0.6</json-schema-validator.version>
-        <jspecify.version>1.0.0</jspecify.version>
+        <jspecify.version>1.0.1</jspecify.version>
         <logback.version>1.6.1</logback.version>
         <nullaway.version>0.13.8</nullaway.version>
         <picocli.version>4.7.7</picocli.version>
