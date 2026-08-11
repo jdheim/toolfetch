@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
 readonly NOTICE="NOTICE"
 readonly THIRD_PARTY="src/toolfetch-commands/target/third-party/THIRD-PARTY.txt"
@@ -58,27 +58,39 @@ main() {
 }
 
 validateLibs() {
+  local thirdPartyDependenciesCount libsCount libsSourcesCount
   thirdPartyDependenciesCount=$(grep "Lists of" "${THIRD_PARTY}" | awk '{print $3}')
   if [[ ! "${thirdPartyDependenciesCount}" =~ ^[0-9]+$ ]]; then
     echo -e "${ERROR} Could not determine third party dependencies count from ${THIRD_PARTY}"
-    exit 1
-  elif [[ -d "${LIBS_DIR}" ]] && (( $(find "${LIBS_DIR}" -maxdepth 1 -type f ! -name 'toolfetch-*' | wc -l) != thirdPartyDependenciesCount )); then
-    echo -e "${ERROR} ${LIBS_DIR} does not contain ${thirdPartyDependenciesCount} files"
-    exit 1
-  elif (( $(find "${LIBS_SOURCES_DIR}" -maxdepth 1 -type f | wc -l) != thirdPartyDependenciesCount )); then
-    echo -e "${ERROR} ${LIBS_SOURCES_DIR} does not contain ${thirdPartyDependenciesCount} files"
-    exit 1
+    return 1
+  fi
+  if [[ -d "${LIBS_DIR}" ]]; then
+    libsCount="$(find "${LIBS_DIR}" -maxdepth 1 -type f ! -name 'toolfetch-*' -printf '.' | wc -c)"
+    if (( libsCount != thirdPartyDependenciesCount )); then
+      echo -e "${ERROR} ${LIBS_DIR} contains ${libsCount} files. Expected: ${thirdPartyDependenciesCount}"
+      return 1
+    fi
+  fi
+  if [[ ! -d "${LIBS_SOURCES_DIR}" ]]; then
+    echo -e "${ERROR} Directory does not exist: ${LIBS_SOURCES_DIR}"
+    return 1
+  fi
+  libsSourcesCount="$(find "${LIBS_SOURCES_DIR}" -maxdepth 1 -type f -printf '.' | wc -c)"
+  if (( libsSourcesCount != thirdPartyDependenciesCount )); then
+    echo -e "${ERROR} ${LIBS_SOURCES_DIR} contains ${libsSourcesCount} files. Expected: ${thirdPartyDependenciesCount}" >&2
+    return 1
   fi
 }
 
 generateNotice() {
-  local oldNoticeSha256Sum line name groupId artifactId version url spdxLicense
+  local oldNoticeSha256Sum lineRegex line name groupId artifactId version url spdxLicense newNoticeSha256Sum
   local -a licenses uniqueSpdxLicenses
   oldNoticeSha256Sum="$(sha256sum "${NOTICE}")"
+  lineRegex="$(lineRegex)"
 
   generateNoticeHeader
   while IFS= read -r line; do
-    [[ "${line}" =~ $(lineRegex) ]] || continue
+    [[ "${line}" =~ ${lineRegex} ]] || continue
     extractLineData
     validateLib
     toSpdxLicenses
@@ -90,7 +102,8 @@ generateNotice() {
   normalizeLineEndings
   unpackLicenses
 
-  if [[ "${oldNoticeSha256Sum}" != "$(sha256sum "${NOTICE}")" ]]; then
+  newNoticeSha256Sum="$(sha256sum "${NOTICE}")"
+  if [[ "${oldNoticeSha256Sum}" != "${newNoticeSha256Sum}" ]]; then
     echo -e "${INFO} Updating NOTICE"
     isUpdated="true"
   fi
@@ -130,13 +143,18 @@ extractLineData() {
     url="${BASH_REMATCH[5]/#http:/https:}"
   fi
 
-  mapfile -t licenses < <(grep -oP "\(\K[^)]+" <<< "${licensesBlock}")
+  licenses=()
+  local licensesOutput
+  licensesOutput="$(grep -oP "\(\K[^)]+" <<< "${licensesBlock}")"
+  if [[ -n "${licensesOutput}" ]]; then
+    mapfile -t licenses <<< "${licensesOutput}"
+  fi
 }
 
 validateLib() {
   if ! grep -q "${groupId}:${artifactId}:jar:${version}" "${LIBS}"; then
     echo -e "${ERROR} ${groupId}:${artifactId}:jar:${version} not found in ${LIBS}"
-    exit 1
+    return 1
   fi
 }
 
@@ -172,9 +190,9 @@ determineSpdxLicense() {
     else
       echo -e "${ERROR} Review multiple licenses:"
       for i in "${!spdxLicenses[@]}"; do
-        echo "spdxLicenses[$i]=${spdxLicenses[$i]}"
+        echo "spdxLicenses[${i}]=${spdxLicenses[${i}]}"
       done
-      exit 1
+      return 1
     fi
   else
     spdxLicense=${spdxLicenses[0]}
@@ -218,18 +236,18 @@ generateCopyrightForLib() {
 
   local copyrightSourceContent copyrightRegexPrefix foundNotice thirdPartyCopyright firstJavaFile
   for i in "${!copyrightSources[@]}"; do
-    copyrightSourceContent="$(unzip -p "${jarPath}" "${copyrightSources[$i]}" 2>/dev/null || true)"
+    copyrightSourceContent="$(unzip -p "${jarPath}" "${copyrightSources[${i}]}" 2>/dev/null || true)"
     [[ -z "${copyrightSourceContent}" ]] && continue
 
-    if [[ "${copyrightSources[$i]}" == *NOTICE* && -n "${copyrightSourceContent}" ]]; then
+    if [[ "${copyrightSources[${i}]}" == *NOTICE* && -n "${copyrightSourceContent}" ]]; then
       echo "${copyrightSourceContent}" > "${LIBS_NOTICE_DIR}/NOTICE-${jarName%.jar}"
       foundNotice="true"
     fi
 
-    thirdPartyCopyright=$(echo "${copyrightSourceContent}" | grep -m 1 -E "^${copyrightRegexes[$i]}" || true)
+    thirdPartyCopyright=$(echo "${copyrightSourceContent}" | grep -m 1 -E "^${copyrightRegexes[${i}]}" || true)
     [[ -z "${thirdPartyCopyright}" ]] && continue
 
-    copyrightRegexPrefix="${copyrightRegexes[$i]%\(*}"
+    copyrightRegexPrefix="${copyrightRegexes[${i}]%\(*}"
     if [[ -n "${copyrightRegexPrefix}" ]]; then
       thirdPartyCopyright=$(echo "${thirdPartyCopyright}" | sed -E "s@^${copyrightRegexPrefix}@@")
     fi
@@ -246,7 +264,7 @@ generateCopyrightForLib() {
 
   if [[ -z "${thirdPartyCopyright:-}" && "${foundNotice:-false}" == "true" ]]; then
     echo -e "${ERROR} Found NOTICE in ${jarPath}, but Copyright could not be found"
-    exit 1
+    return 1
   fi
 
   if [[ -z "${thirdPartyCopyright:-}" ]]; then
@@ -267,7 +285,7 @@ generateCopyrightForLib() {
     echo "${thirdPartyCopyright}" >> "${NOTICE}"
   else
     echo -e "${ERROR} Missing Copyright Notice for ${jarPath}"
-    exit 1
+    return 1
   fi
 }
 
@@ -289,7 +307,11 @@ normalizeLineEndings() {
 }
 
 unpackLicenses() {
-  mapfile -t uniqueSpdxLicenses < <(printf "%s\n" "${uniqueSpdxLicenses[@]}" | sort -u)
+  local sortedSpdxLicenses
+  sortedSpdxLicenses="$(printf "%s\n" "${uniqueSpdxLicenses[@]}" | sort -u)"
+  if [[ -n "${sortedSpdxLicenses}" ]]; then
+    mapfile -t uniqueSpdxLicenses <<< "${sortedSpdxLicenses}"
+  fi
   if [[ ! -d "${LIBS_LICENSE_DIR}" ]]; then
     mkdir -p "${LIBS_LICENSE_DIR}"
   fi
@@ -307,7 +329,7 @@ unpackLicenses() {
       if ! wget -q --show-progress -O "${cachedLicense}" "${spdxLicenseUrl}"; then
         rm -f "${cachedLicense}"
         echo -e "${ERROR} Failed to download license from ${spdxLicenseUrl}"
-        exit 1
+        return 1
       fi
     fi
     cp "${cachedLicense}" "${LIBS_LICENSE_DIR}/"

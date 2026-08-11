@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
 readonly BADGES_DIR="target/badges"
 
@@ -22,15 +22,16 @@ createPercentageBadge() {
 
   local percentage="${message%%%}"
   local color="red"
-  if (( $(echo "${percentage} >= 90" | bc -l) )); then
+  local percentageInt="${percentage%.*}"
+  if (( percentageInt >= 90 )); then
     color="brightgreen"
-  elif (( $(echo "${percentage} >= 80" | bc -l) )); then
+  elif (( percentageInt >= 80 )); then
     color="green"
-  elif (( $(echo "${percentage} >= 70" | bc -l) )); then
+  elif (( percentageInt >= 70 )); then
     color="yellowgreen"
-  elif (( $(echo "${percentage} >= 50" | bc -l) )); then
+  elif (( percentageInt >= 50 )); then
     color="yellow"
-  elif (( $(echo "${percentage} >= 30" | bc -l) )); then
+  elif (( percentageInt >= 30 )); then
     color="orange"
   fi
 
@@ -67,6 +68,7 @@ createStatusBadge() {
   case "${status}" in
     OK|SUCCESS) color="brightgreen"; [[ -z "${message}" ]] && message="passing" ;;
     WARN|WARNING) color="yellow"; [[ -z "${message}" ]] && message="unstable" ;;
+    *) ;;
   esac
 
   [[ ! -d "${BADGES_DIR}" ]] && mkdir -p "${BADGES_DIR}"

@@ -11,6 +11,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  shellcheck:
+    name: "ShellCheck"
+    uses: jdheim/toolfetch/.github/workflows/call-shellcheck.yml@main
+    permissions:
+      contents: read
+
   scan:
     name: "Scan"
     uses: jdheim/toolfetch/.github/workflows/call-scan.yml@main

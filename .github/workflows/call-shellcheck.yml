@@ -1,0 +1,21 @@
+name: "Call: ShellCheck"
+
+on:
+  workflow_call:
+
+jobs:
+  shellcheck:
+    name: "ShellCheck"
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "ShellCheck"
+        working-directory: scripts
+        run: ./shellcheck.sh

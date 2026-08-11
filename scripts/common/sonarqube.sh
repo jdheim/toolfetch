@@ -6,8 +6,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh"
 
 readonly SONAR_CONTAINER_NAME="sonarqube"
 readonly SONAR_IMAGE="sonarqube:community"
@@ -18,10 +18,13 @@ readonly SONAR_ADMIN_OLD_PASS="${SONAR_ADMIN_USER}"
 
 sonarqubeStart() {
   step "SonarQube Start"
-  SONAR_ADMIN_NEW_PASS="Admin$(projectArtifactId)1!"
-  SONAR_TOKEN_NAME="$(projectArtifactId)"
-  SONAR_PROJECT_NAME="$(projectGroupId):$(projectArtifactId)"
-  SONAR_QUALITY_GATE_NAME="$(projectArtifactId)"
+  local projectGroupId projectArtifactId
+  projectGroupId="$(projectGroupId)"
+  projectArtifactId="$(projectArtifactId)"
+  SONAR_ADMIN_NEW_PASS="Admin${projectArtifactId}1!"
+  SONAR_TOKEN_NAME="${projectArtifactId}"
+  SONAR_PROJECT_NAME="${projectGroupId}:${projectArtifactId}"
+  SONAR_QUALITY_GATE_NAME="${projectArtifactId}"
   local sonarqubeId
   sonarqubeId="$(sonarqubeId)"
   if [[ -z "${sonarqubeId}" ]]; then
@@ -45,9 +48,11 @@ sonarqubeHealthcheck() {
   echo -en "${INFO} SonarQube Healthcheck [timeout=${timeout}s] ..."
   start=$(date +%s)
   until curl -fs "${SONAR_HOST_URL}/api/system/status" | grep -q '"status":"UP"'; do
-    if (( $(date +%s) - start >= timeout )); then
+    local now
+    now="$(date +%s)"
+    if (( now - start >= timeout )); then
       echo -e "\n${ERROR} Timeout"
-      exit 1
+      return 1
     fi
     echo -n "."
     sleep 1
@@ -79,7 +84,7 @@ generateToken() {
       "${SONAR_HOST_URL}/api/user_tokens/generate" \
       | jq -er '.token | select(type=="string" and length>0)')"; then
     echo -e "${ERROR} Failed to parse SONAR_TOKEN from the response"
-    exit 1
+    return 1
   fi
   export SONAR_TOKEN
 }

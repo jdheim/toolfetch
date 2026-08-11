@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
 
 usage() {
   cat << EOF
@@ -14,22 +14,22 @@ Usage: $(basename "$0")
 
 Regenerate Maven Wrapper
 EOF
-  exit 1
+  return 1
 }
 
 main() {
-  [[ $PWD == */scripts ]] && cd ..
+  [[ ${PWD} == */scripts ]] && cd ..
   readOptions "$@"
   regenerateMavenWrapper
 }
 
 readOptions() {
-  while getopts ":h" option; do
-    case "${option}" in
-      h|?) usage ;;
+  while (( $# > 0 )); do
+    case "$1" in
+      *) usage ;;
     esac
+    shift
   done
-  shift $((OPTIND - 1))
 }
 
 regenerateMavenWrapper() {
@@ -42,9 +42,15 @@ regenerateMavenWrapper() {
 }
 
 replaceHttpWithHttps() {
-  for file in $(grep -Ril --exclude-dir={target,scripts} "http://www.apache.org"); do
-    sed -i "s|http\(://www.apache.org\)|https\1|" "${file}"
-  done
+  local file files
+  files="$(grep -Ril --exclude-dir=target --exclude-dir=scripts "http://www.apache.org")"
+  if [[ -z "${files}" ]]; then
+    echo -e "${ERROR} The file with \"http://www.apache.org\" does not exist"
+    return 1
+  fi
+  while IFS= read -r file; do
+    sed -i 's|http\(://www.apache.org\)|https\1|' "${file}"
+  done <<< "${files}"
 }
 
 main "$@"

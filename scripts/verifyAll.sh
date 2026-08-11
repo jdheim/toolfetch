@@ -6,4 +6,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-./build.sh && ./verify.sh && ./verify.sh --native-agent-scan && ./build.sh -n && ./verify.sh --st-native
+./build.sh && ./verify.sh && ./verify.sh --native-agent-scan && ./build.sh --release && ./verify.sh --st-native

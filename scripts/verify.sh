@@ -6,8 +6,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
-[[ -f "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh" ]] && . "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh"
 
 usage() {
   cat << EOF
@@ -36,17 +36,17 @@ OPTIONS:
   -u                            Version update
   -v                            Version check
 EOF
-  exit 1
+  return 1
 }
 
 main() {
-  [[ $PWD == */scripts ]] && cd ..
+  [[ ${PWD} == */scripts ]] && cd ..
   readOptions "$@"
   verify
 }
 
 readOptions() {
-  while [[ "$#" -gt 0 ]]; do
+  while (( $# > 0 )); do
     case "${1}" in
       --da|--dependency-analyze) dependencyAnalyze "$@" ;;
       --dt|--dependency-tree) dependencyTree "$@" ;;
@@ -77,20 +77,8 @@ readOptions() {
 dependencyAnalyze() {
   step "Dependency Analyze"
   shift
-  local exitCode
-  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    local logFile="target/dependency-analyze.log"
-    mkdir -p "$(dirname "${logFile}")"
-    set +o errexit
-    run ./mvnw -ntp dependency:analyze -DfailOnWarning "$@" | tee "${logFile}"
-    exitCode=${PIPESTATUS[0]}
-    set -o errexit
-    githubStepSummary "${exitCode}" "${logFile}" "^[[]ERROR\[]]"
-  else
-    run ./mvnw -ntp dependency:analyze -DfailOnWarning "$@"
-    exitCode=$?
-  fi
-  exit "${exitCode}"
+  summaryRun --start "^[[]ERROR\[]]" --end "^[[]ERROR[]] Re-run Maven" ./mvnw -ntp dependency:analyze -DfailOnWarning "$@"
+  exit "$?"
 }
 
 dependencyTree() {
@@ -110,20 +98,8 @@ jacocoHtml() {
 owaspScan() {
   step "Owasp Scan"
   shift
-  local exitCode
-  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    local logFile="target/owasp-scan.log"
-    mkdir -p "$(dirname "${logFile}")"
-    set +o errexit
-    run ./mvnw -ntp verify -Powasp-scan -DskipTests "$@" | tee "${logFile}"
-    exitCode=${PIPESTATUS[0]}
-    set -o errexit
-    githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] Check for updates complete"
-  else
-    run ./mvnw -ntp verify -Powasp-scan -DskipTests "$@"
-    exitCode=$?
-  fi
-  exit "${exitCode}"
+  summaryRun --start "^[[]INFO[]] Check for updates complete" --end "^[[]ERROR[]] Re-run Maven" ./mvnw -ntp verify -Powasp-scan -DskipTests "$@"
+  exit "$?"
 }
 
 owaspHtml() {
@@ -142,13 +118,15 @@ sonarqubeScan() {
   set -o errexit
   (( exitCode >= 128 )) && exit "${exitCode}"
   sonarqubeQualityGateStatus
-  exit ${exitCode}
+  exit "${exitCode}"
 }
 
 sonarqubeHtml() {
   step "Launch default browser to check SonarQube Scan analysis result"
   if [[ -f "target/sonar/report-task.txt" ]]; then
-    run open "$(grep "dashboardUrl=" "target/sonar/report-task.txt" | sed "s/dashboardUrl=//")"
+    local dashboardUrl
+    dashboardUrl="$(sed -n 's/^dashboardUrl=//p' "target/sonar/report-task.txt")"
+    run open "${dashboardUrl}"
   else
     echo -e "${WARN} File \"target/sonar/report-task.txt\" does not exist"
   fi
@@ -158,20 +136,10 @@ sonarqubeHtml() {
 spotBugsScan() {
   step "SpotBugs Scan"
   shift
-  local exitCode
-  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    local logFile="target/spotbugs-scan.log"
-    mkdir -p "$(dirname "${logFile}")"
-    set +o errexit
-    run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@" | tee "${logFile}"
-    exitCode=${PIPESTATUS[0]}
-    set -o errexit
-    githubStepSummary "${exitCode}" "${logFile}" "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ $(projectArtifactId) ---"
-  else
-    run ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@"
-    exitCode=$?
-  fi
-  exit "${exitCode}"
+  local projectArtifactId
+  projectArtifactId="$(projectArtifactId)"
+  summaryRun --start "^[[]INFO[]] --- spotbugs:.*:check [(]check[)] @ ${projectArtifactId} ---" --end "^[[]ERROR[]] Re-run Maven" ./mvnw -ntp verify -Pspotbugs-scan -DskipTests "$@"
+  exit "$?"
 }
 
 spotBugsHtml() {
@@ -196,7 +164,7 @@ smokeTestsNative() {
   local binary="target/toolfetch"
   if [[ ! -x "${binary}" ]]; then
     echo -e "${ERROR} Executable \"${binary}\" does not exist. Run: ./build.sh -n "
-    exit 1
+    return 1
   fi
   run ./mvnw -ntp verify -pl :toolfetch-smoke-tests -am -Psmoke-tests-native "$@"
   exit $?
@@ -213,7 +181,9 @@ nativeAgentScan() {
 nativeAgentMavenScan() {
   step "Native Agent Maven Scan"
   shift
-  export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-$(xmlProperty "graalvm-jdk.version" "pom.xml")"
+  local graalVmJdkVersion
+  graalVmJdkVersion="$(xmlProperty "graalvm-jdk.version" "pom.xml")"
+  export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-${graalVmJdkVersion}"
   run ./mvnw -ntp verify -pl :toolfetch-test-coverage -am -Psetup-graalvm,native-agent-scan-with-maven "$@"
   processReachabilityMetadataJson
   exit $?
@@ -267,45 +237,44 @@ processReachabilityMetadataJson() {
 versionUpdate() {
   step "Version Update"
   shift
-  local isFound isUpdated propertyUpdatesFile moduleDir property oldVersion newVersion message
-  while IFS= read -r -d '' propertyUpdatesFile; do
-    isFound="true"
-    moduleDir="${propertyUpdatesFile%/"${PROPERTY_UPDATES_PATH}"}"
-    while read -r property oldVersion newVersion; do
-      isUpdated="true"
-      message="Update ${property%.version} from ${oldVersion} to ${newVersion}"
-      step "${message}"
-
-      if ./mvnw versions:set-property \
-        -pl "${moduleDir}" \
-        -Dproperty="${property}" \
-        -DnewVersion="${newVersion}" \
-        -DgenerateBackupPoms=false
-      then
-        sed -i "\|^[[:space:]]*\${${property}}[[:space:]].*->[[:space:]]|d" "${propertyUpdatesFile}"
-        echo -e "${INFO} Committing changes..."
-        git add "${moduleDir}/pom.xml"
-        git commit -m "deps: ${message}"
-      else
-        exit 1
-      fi
-    done < <(
-      awk '
-        /version property updates are available/ { found=1 }
-        found && /->/ {
-          gsub(/^\$\{|\}$/, "", $1)
-          print $1, $(NF-2), $NF
-        }
-      ' "${propertyUpdatesFile}"
-    )
-    rm "${propertyUpdatesFile}"
-  done < <(
-    find . -type f -name "${PROPERTY_UPDATES_FILE}" -print0
-  )
-  if ! "${isFound:-false}"; then
+  local propertyUpdatesFiles versionPropertyUpdates isUpdated propertyUpdatesFile moduleDir property oldVersion newVersion message
+  propertyUpdatesFiles="$(find . -type f -name "${PROPERTY_UPDATES_FILE}" -print)"
+  if [[ -z "${propertyUpdatesFiles}" ]]; then
     echo -e "${ERROR} The \"${PROPERTY_UPDATES_FILE}\" file does not exist. Run: ./verify.sh -v"
-    exit 1
-  elif ! "${isUpdated:-false}"; then
+    return 1
+  fi
+  while IFS= read -r propertyUpdatesFile; do
+    versionPropertyUpdates="$(awk '/version property updates are available/ { found=1 }
+                                      found && /->/ {
+                                        gsub(/^\$\{|\}$/, "", $1)
+                                        print $1, $(NF-2), $NF
+                                      }
+                                      ' "${propertyUpdatesFile}")"
+    moduleDir="${propertyUpdatesFile%/"${PROPERTY_UPDATES_PATH}"}"
+    if [[ -n "${versionPropertyUpdates}" ]]; then
+      while read -r property oldVersion newVersion; do
+        isUpdated="true"
+        message="Update ${property%.version} from ${oldVersion} to ${newVersion}"
+        step "${message}"
+
+        if ./mvnw versions:set-property \
+          -pl "${moduleDir}" \
+          -Dproperty="${property}" \
+          -DnewVersion="${newVersion}" \
+          -DgenerateBackupPoms=false
+        then
+          sed -i "\|^[[:space:]]*\${${property}}[[:space:]].*->[[:space:]]|d" "${propertyUpdatesFile}"
+          echo -e "${INFO} Committing changes..."
+          git add "${moduleDir}/pom.xml"
+          git commit -m "deps: ${message}"
+        else
+          return 1
+        fi
+      done <<< "${versionPropertyUpdates}"
+    fi
+    rm "${propertyUpdatesFile}"
+  done <<< "${propertyUpdatesFiles}"
+  if ! "${isUpdated:-false}"; then
     echo -e "${WARN} Nothing to update"
   fi
   exit $?
@@ -336,7 +305,7 @@ verify() {
   set -o errexit
   (( exitCode >= 128 )) && exit "${exitCode}"
   sonarqubeQualityGateStatus
-  exit ${exitCode}
+  exit "${exitCode}"
 }
 
 main "$@"
