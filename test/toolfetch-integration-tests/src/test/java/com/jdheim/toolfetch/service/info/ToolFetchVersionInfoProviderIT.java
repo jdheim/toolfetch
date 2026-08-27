@@ -35,7 +35,7 @@ class ToolFetchVersionInfoProviderIT {
 
     static final String SEPARATOR_PATTERN = "^-+$";
 
-    static final String GRAALVM_VERSION_PATTERN = "\\d{2}(\\.\\d+){1,2}";
+    static final String GRAALVM_VERSION_PATTERN = "\\d{2}(\\.\\d+){1,3}";
 
     static final String TOOLFETCH_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?";
 
