@@ -61,6 +61,7 @@
         </nativeImageArgLine>
 
         <!-- GraalVM JDK: also update in jreleaser.yml -->
+        <!-- https://docs.oracle.com/en/graalvm/jdk/25/docs/release-notes -->
         <graalvm-jdk.version>25.0.4</graalvm-jdk.version>
         <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.4_linux-x64_bin.tar.gz.sha256 -->
         <graalvm-jdk.sha256.linux-amd64>76007c309f821aaf435bce63162ea0395587fc77350801c81643fe7feea37276</graalvm-jdk.sha256.linux-amd64>
@@ -71,9 +72,9 @@
         <syft.version>1.51.1</syft.version>
         <syft.sha256.linux-amd64>8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3</syft.sha256.linux-amd64>
         <syft.sha256.linux-arm64>a7fd2b784e6664acd44719270574f6cd8c6864fc2b1700bf9099bd1cccda7d7f</syft.sha256.linux-arm64>
-        <upx.version>5.1.1</upx.version>
-        <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
-        <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
+        <upx.version>5.2.1</upx.version>
+        <upx.sha256.linux-amd64>402162aad30af47e60dbd767fb2e64ca394ace9727ba1f40283641f1d1b91657</upx.sha256.linux-amd64>
+        <upx.sha256.linux-arm64>a72d112c5970a904a31da0b9c84f919bc16b9a311787c12245508544a78c7d36</upx.sha256.linux-arm64>
 
         <!-- Dependencies -->
         <archunit-junit.version>6</archunit-junit.version>
