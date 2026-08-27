@@ -41,7 +41,8 @@
         <zstd.version>1.5.7-12</zstd.version>
 
         <!-- Test Dependencies -->
-        <archunit.version>1.4.2</archunit.version>
+        <archunit.version>1.5.0</archunit.version>
+        <archunit-junit.version>6</archunit-junit.version>
         <assertj-core.version>3.27.7</assertj-core.version>
         <junit-jupiter.version>6.1.2</junit-jupiter.version>
         <mockito.version>5.23.0</mockito.version>
@@ -200,12 +201,12 @@
             </dependency>
             <dependency>
                 <groupId>com.tngtech.archunit</groupId>
-                <artifactId>archunit-junit5</artifactId>
+                <artifactId>archunit-junit${archunit-junit.version}</artifactId>
                 <version>${archunit.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.tngtech.archunit</groupId>
-                <artifactId>archunit-junit5-api</artifactId>
+                <artifactId>archunit-junit${archunit-junit.version}-api</artifactId>
                 <version>${archunit.version}</version>
             </dependency>
             <dependency>

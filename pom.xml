@@ -75,6 +75,9 @@
         <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
         <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
 
+        <!-- Dependencies -->
+        <archunit-junit.version>6</archunit-junit.version>
+
         <!-- Plugins -->
         <dependency-check-maven.version>13.0.0</dependency-check-maven.version>
         <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
@@ -211,7 +214,7 @@
                             <ignoredUnusedDeclaredDependency>org.jspecify:jspecify</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.tukaani:xz</ignoredUnusedDeclaredDependency>
 
-                            <ignoredUnusedDeclaredDependency>com.tngtech.archunit:archunit-junit5</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.tngtech.archunit:archunit-junit${archunit-junit.version}</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                     </configuration>
