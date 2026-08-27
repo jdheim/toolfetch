@@ -44,7 +44,7 @@
         <archunit.version>1.5.0</archunit.version>
         <archunit-junit.version>6</archunit-junit.version>
         <assertj-core.version>3.27.7</assertj-core.version>
-        <junit-jupiter.version>6.1.2</junit-jupiter.version>
+        <junit-jupiter.version>6.1.3</junit-jupiter.version>
         <mockito.version>5.23.0</mockito.version>
         <wiremock.version>3.13.2</wiremock.version>
     </properties>
