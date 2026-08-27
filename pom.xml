@@ -68,9 +68,9 @@
         <graalvm-jdk.sha256.linux-arm64>7031aead8da4c6a7816c4e2be4eabfddaf7f4abcfe8e5f16134c4da69a5e70de</graalvm-jdk.sha256.linux-arm64>
 
         <!-- GitHub Actions -->
-        <syft.version>1.45.0</syft.version>
-        <syft.sha256.linux-amd64>cd5efa489e93ecde99c03a218db5dee8b3f03610466d7565cefd735610d1b28b</syft.sha256.linux-amd64>
-        <syft.sha256.linux-arm64>3101fc588a6662ab3d46eda470159f82d6c6c0fd59f618fdd29928ed1c1197bb</syft.sha256.linux-arm64>
+        <syft.version>1.51.1</syft.version>
+        <syft.sha256.linux-amd64>8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3</syft.sha256.linux-amd64>
+        <syft.sha256.linux-arm64>a7fd2b784e6664acd44719270574f6cd8c6864fc2b1700bf9099bd1cccda7d7f</syft.sha256.linux-arm64>
         <upx.version>5.1.1</upx.version>
         <upx.sha256.linux-amd64>1ff660454227861e00772f743f66b900072116b9dc24f6ee28b97cce88a7828a</upx.sha256.linux-amd64>
         <upx.sha256.linux-arm64>a307c2c821eeab47607ba5c232408b22ab884cca13884682508b98f7308b8443</upx.sha256.linux-arm64>
