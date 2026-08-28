@@ -181,6 +181,7 @@ hooks:
             cp -v ${HOME}/.libsvmjdwp/graalvm-{{osPlatformReplaced}}/{{graalVmDir}}/libsvmjdwp.so {{basedir}}/target
             find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}" -executable -exec cp -v {} {{basedir}}/target/{{projectName}} \;
             find {{assembleDirectory}} -type f -name "{{projectName}}-{{projectVersion}}-{{osPlatformReplaced}}.metadata" -exec cp -v {} {{basedir}}/target/{{projectName}}.metadata \;
+            echo "[native-image] To attach a debugger, run with: -XX:JDWPOptions=transport=dt_socket,server=y,address=5005"
           fi
         verbose: true
         filter:

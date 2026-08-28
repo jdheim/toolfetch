@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/projectFunctions.sh"
 
 usage() {
   cat << EOF
@@ -25,7 +25,6 @@ EOF
 }
 
 main() {
-  [[ ${PWD} == */scripts ]] && cd ..
   readOptions "$@"
   build
 }
@@ -37,8 +36,8 @@ readOptions() {
       -n|--native) isNativeImage="true"; enrichNativeOptions ;;
       --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeOptions ;;
       --native-maven) local graalVmJdkVersion
-        graalVmJdkVersion="$(xmlProperty "graalvm-jdk.version" "pom.xml")"
-        export GRAALVM_HOME="target/jdks/graalvm-linux-amd64/graalvm-jdk-${graalVmJdkVersion}"
+        graalVmJdkVersion="$(xmlProperty "graalvm-jdk.version" "${PROJECT_DIR}/pom.xml")"
+        export GRAALVM_HOME="${PROJECT_DIR}/target/jdks/graalvm-linux-amd64/graalvm-jdk-${graalVmJdkVersion}"
         remainingOptions+=("-Pnative-image-with-maven")
         enrichNativeOptions ;;
       --native-prepare) enrichNativeOptions ;;
@@ -70,8 +69,8 @@ addMvnPhase() {
 
 build() {
   step "Build Project"
-  run ./mvnw -ntp "${phases[@]}" -DskipTests "${remainingOptions[@]}"
-  scripts/common/updateNotice.sh
+  run mvnw -ntp "${phases[@]}" -DskipTests "${remainingOptions[@]}"
+  common/updateNotice.sh
   local binaryEnvs=( "JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE=ALWAYS" )
   if [[ "${isNativeImage:-false}" == "true" ]]; then
     if [[ "${isNativeImageDebug:-false}" == "true" ]]; then
@@ -89,7 +88,7 @@ build() {
 
 validateJReleaserGitHubToken() {
   if [[ -z "${GITHUB_TOKEN-}" ]]; then
-    echo -e "${ERROR} The GITHUB_TOKEN env variable is not set"
+    error "The GITHUB_TOKEN env variable is not set"
     return 1
   fi
 }
@@ -97,7 +96,7 @@ validateJReleaserGitHubToken() {
 jreleaserAssemble() {
   step "JReleaser: Assemble"
   run export "$@"
-  run jreleaser assemble --output-directory=build/toolfetch-native-image/target
+  run jreleaser assemble --config-file="${PROJECT_DIR}/jreleaser.yml" --output-directory="${PROJECT_DIR}/build/toolfetch-native-image/target"
   for kv in "$@"; do
     run unset "${kv%%=*}"
   done
@@ -116,7 +115,7 @@ jreleaserFullReleaseDryRun() {
   fi
   run export "$@"
   export "JRELEASER_GITHUB_TOKEN=${GITHUB_TOKEN-}" "${envs[@]}"
-  run jreleaser full-release --dry-run --output-directory=build/toolfetch-native-image/target
+  run jreleaser full-release --dry-run --config-file="${PROJECT_DIR}/jreleaser.yml" --output-directory="${PROJECT_DIR}/build/toolfetch-native-image/target"
 }
 
 main "$@"

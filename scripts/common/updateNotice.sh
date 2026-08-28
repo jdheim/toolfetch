@@ -6,15 +6,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+if [[ -n "${UPDATE_NOTICE_LOADED:-}" ]]; then
+  return 0
+fi
+declare -r UPDATE_NOTICE_LOADED="true"
 source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
-readonly NOTICE="NOTICE"
-readonly THIRD_PARTY="src/toolfetch-commands/target/third-party/THIRD-PARTY.txt"
-readonly LIBS="src/toolfetch-commands/target/third-party/LIBS.txt"
-readonly LIBS_DIR="build/toolfetch-native-image/target/third-party/lib"
-readonly LIBS_LICENSE_DIR="build/toolfetch-native-image/target/third-party/license"
-readonly LIBS_NOTICE_DIR="build/toolfetch-native-image/target/third-party/notice"
-readonly LIBS_SOURCES_DIR="src/toolfetch-commands/target/third-party/sources"
+readonly NOTICE="${PROJECT_DIR}/NOTICE"
+readonly THIRD_PARTY="${PROJECT_DIR}/src/toolfetch-commands/target/third-party/THIRD-PARTY.txt"
+readonly LIBS="${PROJECT_DIR}/src/toolfetch-commands/target/third-party/LIBS.txt"
+readonly LIBS_DIR="${PROJECT_DIR}/build/toolfetch-native-image/target/third-party/lib"
+readonly LIBS_LICENSE_DIR="${PROJECT_DIR}/build/toolfetch-native-image/target/third-party/license"
+readonly LIBS_NOTICE_DIR="${PROJECT_DIR}/build/toolfetch-native-image/target/third-party/notice"
+readonly LIBS_SOURCES_DIR="${PROJECT_DIR}/src/toolfetch-commands/target/third-party/sources"
 readonly LICENSE_CACHE_DIR="${HOME}/.m2/repository/.cache/bash/licenses"
 
 declare -Ar HARDCODED_URLS=(
@@ -43,17 +47,17 @@ declare -Ar HARDCODED_COPYRIGHT_NOTICES=(
 main() {
   step "Update Notice"
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    echo -e "${WARN} Skipping in GitHub Actions"
+    warn "Skipping in GitHub Actions"
     return
   fi
   if [[ -f "${THIRD_PARTY}" ]]; then
     validateLibs
     generateNotice
     if [[ "${isUpdated:-false}" == "false" ]]; then
-      echo -e "${WARN} Nothing to update"
+      warn "Nothing to update"
     fi
   else
-    echo -e "${WARN} ${THIRD_PARTY} is missing"
+    warn "${THIRD_PARTY} is missing"
   fi
 }
 
@@ -61,23 +65,23 @@ validateLibs() {
   local thirdPartyDependenciesCount libsCount libsSourcesCount
   thirdPartyDependenciesCount=$(grep "Lists of" "${THIRD_PARTY}" | awk '{print $3}')
   if [[ ! "${thirdPartyDependenciesCount}" =~ ^[0-9]+$ ]]; then
-    echo -e "${ERROR} Could not determine third party dependencies count from ${THIRD_PARTY}"
+    error "Could not determine third party dependencies count from ${THIRD_PARTY}"
     return 1
   fi
   if [[ -d "${LIBS_DIR}" ]]; then
     libsCount="$(find "${LIBS_DIR}" -maxdepth 1 -type f ! -name 'toolfetch-*' -printf '.' | wc -c)"
     if (( libsCount != thirdPartyDependenciesCount )); then
-      echo -e "${ERROR} ${LIBS_DIR} contains ${libsCount} files. Expected: ${thirdPartyDependenciesCount}"
+      error "${LIBS_DIR} contains ${libsCount} files. Expected: ${thirdPartyDependenciesCount}"
       return 1
     fi
   fi
   if [[ ! -d "${LIBS_SOURCES_DIR}" ]]; then
-    echo -e "${ERROR} Directory does not exist: ${LIBS_SOURCES_DIR}"
+    error "Directory does not exist: ${LIBS_SOURCES_DIR}"
     return 1
   fi
   libsSourcesCount="$(find "${LIBS_SOURCES_DIR}" -maxdepth 1 -type f -printf '.' | wc -c)"
   if (( libsSourcesCount != thirdPartyDependenciesCount )); then
-    echo -e "${ERROR} ${LIBS_SOURCES_DIR} contains ${libsSourcesCount} files. Expected: ${thirdPartyDependenciesCount}" >&2
+    error "${LIBS_SOURCES_DIR} contains ${libsSourcesCount} files. Expected: ${thirdPartyDependenciesCount}" >&2
     return 1
   fi
 }
@@ -104,7 +108,7 @@ generateNotice() {
 
   newNoticeSha256Sum="$(sha256sum "${NOTICE}")"
   if [[ "${oldNoticeSha256Sum}" != "${newNoticeSha256Sum}" ]]; then
-    echo -e "${INFO} Updating NOTICE"
+    info "Updating NOTICE"
     isUpdated="true"
   fi
 }
@@ -128,7 +132,7 @@ lineRegex() {
   local licensesBlock="((\([^)]*\)[[:space:]]*)+)"
   local name="([^()]+)"
   local meta="[[:space:]]*\(([^ ]+)[[:space:]]-[[:space:]]([^)]+)\)$"
-  echo "${prefix}${licensesBlock}${name}${meta}"
+  printf '%s%s%s%s' "${prefix}" "${licensesBlock}" "${name}" "${meta}"
 }
 
 extractLineData() {
@@ -153,7 +157,7 @@ extractLineData() {
 
 validateLib() {
   if ! grep -q "${groupId}:${artifactId}:jar:${version}" "${LIBS}"; then
-    echo -e "${ERROR} ${groupId}:${artifactId}:jar:${version} not found in ${LIBS}"
+    error "${groupId}:${artifactId}:jar:${version} not found in ${LIBS}"
     return 1
   fi
 }
@@ -171,12 +175,12 @@ toSpdxLicenses() {
 toSpdxLicense() {
   for pattern in "${!SPDX_LICENSES[@]}"; do
     if [[ "${license,,}" =~ ${pattern,,} ]]; then
-      echo "${SPDX_LICENSES[${pattern}]}"
+      printf '%s\n' "${SPDX_LICENSES[${pattern}]}"
       return 0
     fi
   done
 
-  echo -e "${ERROR} Unknown license: ${license}" >&2
+  error "Unknown license: ${license}" >&2
   return 1
 }
 
@@ -188,9 +192,9 @@ determineSpdxLicense() {
     if [[ -n "${SPDX_LICENSE_PRECEDENCE[${key}]:-}" ]]; then
       spdxLicense="${SPDX_LICENSE_PRECEDENCE[${key}]}"
     else
-      echo -e "${ERROR} Review multiple licenses:"
+      error "Review multiple licenses:"
       for i in "${!spdxLicenses[@]}"; do
-        echo "spdxLicenses[${i}]=${spdxLicenses[${i}]}"
+        printf 'spdxLicenses[%d]=%s\n' "${i}" "${spdxLicenses[${i}]}"
       done
       return 1
     fi
@@ -200,7 +204,7 @@ determineSpdxLicense() {
 }
 
 generateNoticeForLib() {
-  echo >> "${NOTICE}"
+  printf '\n' >> "${NOTICE}"
   cat <<EOF >> "${NOTICE}"
 ${name}
 ${url}
@@ -240,16 +244,16 @@ generateCopyrightForLib() {
     [[ -z "${copyrightSourceContent}" ]] && continue
 
     if [[ "${copyrightSources[${i}]}" == *NOTICE* && -n "${copyrightSourceContent}" ]]; then
-      echo "${copyrightSourceContent}" > "${LIBS_NOTICE_DIR}/NOTICE-${jarName%.jar}"
+      printf '%s\n' "${copyrightSourceContent}" > "${LIBS_NOTICE_DIR}/NOTICE-${jarName%.jar}"
       foundNotice="true"
     fi
 
-    thirdPartyCopyright=$(echo "${copyrightSourceContent}" | grep -m 1 -E "^${copyrightRegexes[${i}]}" || true)
+    thirdPartyCopyright=$(printf '%s\n' "${copyrightSourceContent}" | grep -m 1 -E "^${copyrightRegexes[${i}]}" || true)
     [[ -z "${thirdPartyCopyright}" ]] && continue
 
     copyrightRegexPrefix="${copyrightRegexes[${i}]%\(*}"
     if [[ -n "${copyrightRegexPrefix}" ]]; then
-      thirdPartyCopyright=$(echo "${thirdPartyCopyright}" | sed -E "s@^${copyrightRegexPrefix}@@")
+      thirdPartyCopyright=$(printf '%s\n' "${thirdPartyCopyright}" | sed -E "s@^${copyrightRegexPrefix}@@")
     fi
     if [[ "${thirdPartyCopyright}" =~ ^SPDX-FileCopyrightText: ]]; then
       thirdPartyCopyright="${thirdPartyCopyright#SPDX-FileCopyrightText:}"
@@ -263,7 +267,7 @@ generateCopyrightForLib() {
   done
 
   if [[ -z "${thirdPartyCopyright:-}" && "${foundNotice:-false}" == "true" ]]; then
-    echo -e "${ERROR} Found NOTICE in ${jarPath}, but Copyright could not be found"
+    error "Found NOTICE in ${jarPath}, but Copyright could not be found"
     return 1
   fi
 
@@ -271,9 +275,9 @@ generateCopyrightForLib() {
     firstJavaFile="$(unzip -Z1 "${jarPath}" | grep -E "\.java$" | head -n1)"
     if [[ -n "${firstJavaFile}" ]]; then
       copyrightSourceContent="$(unzip -p "${jarPath}" "${firstJavaFile}")"
-      thirdPartyCopyright=$(echo "${copyrightSourceContent}" | grep -m 1 -E "^${genericCopyrightRegex}" || true)
+      thirdPartyCopyright=$(printf '%s\n' "${copyrightSourceContent}" | grep -m 1 -E "^${genericCopyrightRegex}" || true)
       copyrightRegexPrefix="${genericCopyrightRegex%\(*}"
-      thirdPartyCopyright=$(echo "${thirdPartyCopyright}" | sed -E "s@^${copyrightRegexPrefix}@@")
+      thirdPartyCopyright=$(printf '%s\n' "${thirdPartyCopyright}" | sed -E "s@^${copyrightRegexPrefix}@@")
     fi
   fi
 
@@ -282,9 +286,9 @@ generateCopyrightForLib() {
   fi
 
   if [[ -n "${thirdPartyCopyright:-}" ]]; then
-    echo "${thirdPartyCopyright}" >> "${NOTICE}"
+    printf '%s\n' "${thirdPartyCopyright}" >> "${NOTICE}"
   else
-    echo -e "${ERROR} Missing Copyright Notice for ${jarPath}"
+    error "Missing Copyright Notice for ${jarPath}"
     return 1
   fi
 }
@@ -292,7 +296,7 @@ generateCopyrightForLib() {
 generateMissingCopyrightForBundledLib() {
   if [[ "${artifactId}" == "zstd-jni" ]]; then
     uniqueSpdxLicenses+=("BSD-3-Clause")
-    echo >> "${NOTICE}"
+    printf '\n' >> "${NOTICE}"
     cat <<EOF >> "${NOTICE}"
 zstd-jni bundles the Zstandard software
 https://github.com/facebook/zstd
@@ -325,10 +329,10 @@ unpackLicenses() {
       if [[ -z "${spdxLicenseUrl}" ]]; then
         spdxLicenseUrl="https://spdx.org/licenses/${uniqueSpdxLicense}.txt"
       fi
-      echo -e "${INFO} Downloading from ${spdxLicenseUrl}"
+      info "Downloading from ${spdxLicenseUrl}"
       if ! wget -q --show-progress -O "${cachedLicense}" "${spdxLicenseUrl}"; then
         rm -f "${cachedLicense}"
-        echo -e "${ERROR} Failed to download license from ${spdxLicenseUrl}"
+        error "Failed to download license from ${spdxLicenseUrl}"
         return 1
       fi
     fi
