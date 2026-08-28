@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "namedLogo": "sonarqubeserver",
+  "logoColor": "white",
+  "label": "Test Coverage (%)",
+  "message": "94.3",
+  "color": "brightgreen"
+}
