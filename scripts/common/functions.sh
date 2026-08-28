@@ -13,156 +13,116 @@ set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
 if [[ -n "${FUNCTIONS_LOADED:-}" ]]; then
   return 0
 fi
-readonly FUNCTIONS_LOADED="true"
+declare -r FUNCTIONS_LOADED="true"
 
-declare -rx INFO=$'[\033[1;34mINFO\033[0m]'
-declare -rx WARN=$'[\033[1;33mWARN\033[0m]'
-declare -rx ERROR=$'[\033[1;31mERROR\033[0m]'
-declare -rx MAVEN_VERSION_IGNORE=".*-(M|alpha|beta|rc)[-.]?[0-9]+"
-declare -rx PROPERTY_UPDATES_FILE="property-updates.txt"
-declare -rx PROPERTY_UPDATES_PATH="target/${PROPERTY_UPDATES_FILE}"
+# Common constants
+declare -rx EDITOR="idea --wait"
+
+# Common paths
+COMMON_SCRIPTS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_DIR="$(cd -- "${COMMON_SCRIPTS_DIR}/.." && pwd)"
+PROJECT_DIR="$(cd -- "${SCRIPTS_DIR}/.." && pwd)"
+declare -rx COMMON_SCRIPTS_DIR SCRIPTS_DIR PROJECT_DIR
+
+# Terminal colors
+if [[ -t 1 ]]; then
+  declare -rx CYAN=$'\e[1;96m'
+  declare -rx BLUE=$'\e[1;34m'
+  declare -rx GREEN=$'\e[1;32m'
+  declare -rx YELLOW=$'\e[1;33m'
+  declare -rx YELLOW_DARK=$'\e[0;33m'
+  declare -rx RED=$'\e[1;31m'
+  declare -rx BOLD=$'\e[1m'
+  declare -rx RESET=$'\e[0m'
+else
+  declare -rx CYAN=""
+  declare -rx BLUE=""
+  declare -rx GREEN=""
+  declare -rx YELLOW=""
+  declare -rx YELLOW_DARK=""
+  declare -rx RED=""
+  declare -rx BOLD=""
+  declare -rx RESET=""
+fi
 
 # General functions
 
-## step "Message"
 step() {
-  local step="[\e[1;96mSTEP\e[0m]"
-  local line="\e[1;96m===\e[0m"
-  local message="${1}"
-  echo -e "${step} ${line} ${message} ${line}"
+  log "STEP" "${CYAN}" "${BOLD}${1}${RESET}"
 }
 
-## run command --argument
+info() {
+  log "INFO" "${BLUE}" "${1}"
+}
+
+warn() {
+  log "WARN" "${YELLOW}" "${1}"
+}
+
+error() {
+  log "ERROR" "${RED}" "${1}"
+}
+
 run() {
-	echo -e "${INFO} \e[1m$\e[0m $*"; "$@"
+	logCommand "$@"; "$@"
 }
 
-## summaryRun --start "^[[]INFO[]] Check for updates complete" --end "^[[]ERROR[]] Re-run Maven" "${command[@]}"
-summaryRun() {
-  local startPattern=""
-  local endPattern=""
-  local quiet=false
-  local exitCode
-  while (( $# > 0 )); do
-    case "${1}" in
-      --start) startPattern="${2}"; shift 2 ;;
-      --end) endPattern="${2}"; shift 2 ;;
-      -q|--quiet) quiet=true; shift ;;
-      *) break;;
-    esac
-  done
-  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    mkdir -p "target"
-    local logFile
-    logFile="$(mktemp "target/github-step-summary.XXXXXX.log")"
-    set +o errexit
-    if [[ "${quiet}" == "true" ]]; then
-      "$@" | tee "${logFile}"
-    else
-      run "$@" | tee "${logFile}"
-    fi
-    exitCode=${PIPESTATUS[0]}
-    set -o errexit
-    if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
-      echo -e "${ERROR} The GITHUB_STEP_SUMMARY environment is not set"
-      return 1
-    fi
-    {
-      echo -n "### Status: "
-      if (( exitCode == 0 )); then
-        echo -e "✅ OK"
-      else
-        echo -e "❌ ERROR"
-        echo
-        echo "<details><summary>Logs</summary>"
-        echo
-        echo '```text'
-        if [[ -z "${startPattern}" ]]; then
-          cat "${logFile}"
-        else
-          awk -v start="${startPattern}" -v end="${endPattern}" \
-            '$0 ~ start {p=1} p {print} end != "" && $0 ~ end {exit}' \
-            "${logFile}"
-        fi
-        echo '```'
-        echo
-        echo "</details>"
-      fi
-    } >> "${GITHUB_STEP_SUMMARY}"
+runQuiet() {
+  logCommand "$@"; "$@" >/dev/null
+}
+
+runSilent() {
+  logCommand "$@"; "$@" &>/dev/null
+}
+
+logCommand() {
+  local formattedCmd
+  formattedCmd="$(printf '%q ' "$@")"
+  log "CMD" "${BLUE}" "${formattedCmd}"
+}
+
+log() {
+  local logLevel="${1}"
+  local logLevelColor="${2}"
+  local logMessage="${3}"
+  local logSymbol="[${logLevelColor}${logLevel}${RESET}]"
+  if [[ "${logLevel}" == "STEP" ]]; then
+    local stepSeparator="${CYAN}===${RESET}"
+    printf '%b %b %s %b\n' "${logSymbol}" "${stepSeparator}" "${logMessage}" "${stepSeparator}" >&2
   else
-    if [[ "${quiet}" == "true" ]]; then
-      "$@"
-    else
-      run "$@"
-    fi
-    exitCode=$?
+    printf '%b %s\n' "${logSymbol}" "${logMessage}" >&2
   fi
-  return "${exitCode}"
 }
 
-## trim "string"
 trim() {
   local string="${1}"
   string="${string#"${string%%[![:space:]]*}"}"
   string="${string%"${string##*[![:space:]]}"}"
-  echo "${string}"
+  printf '%s\n' "${string}"
 }
 
-## fileSize "file"
-fileSize() {
-  local file size
-  file="${1}"
-  size="$(stat -c %s "${file}")"
-  numfmt --to=iec --suffix=B --format="%.2f" "${size}"
-}
+# General validations
 
-projectVersion() {
-  grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\""
-}
-
-projectArtifactId() {
-  xmlProperty "artifactId" "pom.xml"
-}
-
-projectGroupId() {
-  xmlProperty "groupId" "pom.xml"
-}
-
-modulePath() {
-  local module="${1}"
-  if [[ -z "${module}" ]]; then
-    echo -e "${ERROR} Provide module as parameter" >&2
-    return 1
+requireFile() {
+  local path="${1}"
+  if [[ ! -f "${path}" ]]; then
+    error "The \"${path}\" file does not exist"
+    exit 1
   fi
-  local modulePath
-  modulePath="$(xmlProperty "module>.*/${module}</module" "pom.xml")"
-  if [[ -z "${modulePath}" ]]; then
-    echo -e "${ERROR} Module ${module} does not exists" >&2
-    return 1
-  elif [[ ! -d "${modulePath}" ]]; then
-    echo -e "${ERROR} Path to Module ${modulePath} does not exists" >&2
-    return 1
+}
+
+requireDir() {
+  local path="${1}"
+  if [[ ! -d "${path}" ]]; then
+    error "The \"${path}\" directory does not exist"
+    exit 1
   fi
-  echo "${modulePath}"
 }
 
-## xmlProperty "propertyName" "xmlFile"
-xmlProperty() {
-  local propertyName="<${1}>"
-  local xmlFile="${2}"
-  grep -m 1 "${propertyName}" "${xmlFile}" | awk -F'[<>]' '{print $3}'
-}
-
-## updatePropertyInXmlFile "pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:version" "0.0.1"
-updatePropertyInXmlFile() {
-  local file="${1}"
-  local namespace="${2}"
-  local propertyName="${3}"
-  local propertyValue="${4}"
-  local oldValue
-  oldValue=$(xmlstarlet sel -N "${namespace}" -t -v "${propertyName}" "${file}")
-  if [[ "${oldValue}" != "${propertyValue}" ]]; then
-    echo -e "${INFO} Updating ${file}: ${oldValue} -> ${propertyValue}"
-    xmlstarlet ed --inplace -P -N "${namespace}" -u "${propertyName}" -v "${propertyValue}" "${file}"
+requireCommand() {
+  local command="${1}"
+  if ! command -v "${1}" &>/dev/null; then
+    error "The \"${command}\" command not found"
+    exit 1
   fi
 }

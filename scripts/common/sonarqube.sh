@@ -6,7 +6,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
+if [[ -n "${SONARQUBE_LOADED:-}" ]]; then
+  return 0
+fi
+declare -r SONARQUBE_LOADED="true"
+source "$(dirname "${BASH_SOURCE[0]}")/projectFunctions.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/createBadge.sh"
 
 readonly SONAR_CONTAINER_NAME="sonarqube"
@@ -45,24 +49,25 @@ sonarqubeStart() {
 sonarqubeHealthcheck() {
   local timeout=120
   local start duration
-  echo -en "${INFO} SonarQube Healthcheck [timeout=${timeout}s] ..."
+  printf '[%bINFO%b] SonarQube Healthcheck [timeout=%ds] ...' "${BLUE}" "${RESET}" "${timeout}"
   start=$(date +%s)
   until curl -fs "${SONAR_HOST_URL}/api/system/status" | grep -q '"status":"UP"'; do
     local now
     now="$(date +%s)"
     if (( now - start >= timeout )); then
-      echo -e "\n${ERROR} Timeout"
+      printf '\n'
+      error "Timeout"
       return 1
     fi
-    echo -n "."
+    printf '.'
     sleep 1
   done
   duration=$(( $(date +%s) - start ))
-  echo -en " UP after ${duration}s\n"
+  printf ' UP after %ds\n' "${duration}"
 }
 
 changeAdminPassword() {
-  echo -e "${INFO} Change Admin Password..."
+  info "Change Admin Password..."
   curl -fsS -u "${SONAR_ADMIN_USER}:${SONAR_ADMIN_OLD_PASS}" -X POST \
     --data-urlencode "login=${SONAR_ADMIN_USER}" \
     --data-urlencode "previousPassword=${SONAR_ADMIN_OLD_PASS}" \
@@ -71,26 +76,26 @@ changeAdminPassword() {
 }
 
 revokeToken() {
-  echo -e "${INFO} Revoke Token..."
+  info "Revoke Token..."
   curl -fsS -u "${SONAR_ADMIN_USER}:${SONAR_ADMIN_NEW_PASS}" -X POST \
     --data-urlencode "name=${SONAR_TOKEN_NAME}" \
     "${SONAR_HOST_URL}/api/user_tokens/revoke"
 }
 
 generateToken() {
-  echo -e "${INFO} Generate Token..."
+  info "Generate Token..."
   if ! SONAR_TOKEN="$(curl -fsS -u "${SONAR_ADMIN_USER}:${SONAR_ADMIN_NEW_PASS}" -X POST \
       --data-urlencode "name=${SONAR_TOKEN_NAME}" \
       "${SONAR_HOST_URL}/api/user_tokens/generate" \
       | jq -er '.token | select(type=="string" and length>0)')"; then
-    echo -e "${ERROR} Failed to parse SONAR_TOKEN from the response"
+    error "Failed to parse SONAR_TOKEN from the response"
     return 1
   fi
   export SONAR_TOKEN
 }
 
 createProject() {
-  echo -e "${INFO} Create Project..."
+  info "Create Project..."
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "project=${SONAR_PROJECT_NAME}" \
     --data-urlencode "name=ToolFetch" \
@@ -98,12 +103,12 @@ createProject() {
 }
 
 createQualityGate() {
-  echo -e "${INFO} Create QualityGate..."
+  info "Create QualityGate..."
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "name=${SONAR_QUALITY_GATE_NAME}" \
     "${SONAR_HOST_URL}/api/qualitygates/create" >/dev/null
 
-  echo -e "${INFO} Delete QualityGate default conditions..."
+  info "Delete QualityGate default conditions..."
   curl -fsS -u "${SONAR_TOKEN}:" -G \
       --data-urlencode "name=${SONAR_QUALITY_GATE_NAME}" \
       "${SONAR_HOST_URL}/api/qualitygates/show" | jq -r '.conditions[].id' \
@@ -113,8 +118,8 @@ createQualityGate() {
             "${SONAR_HOST_URL}/api/qualitygates/delete_condition"
         done
 
-  echo -e "${INFO} Create QualityGate conditions..."
-  echo "- Test Coverage is not less than 90%"
+  info "Create QualityGate conditions..."
+  printf -- '- Test Coverage is not less than 90%%\n'
     curl -fsS -u "${SONAR_TOKEN}:" -X POST \
       --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
       --data-urlencode "metric=coverage" \
@@ -122,7 +127,7 @@ createQualityGate() {
       --data-urlencode "error=90" \
       "${SONAR_HOST_URL}/api/qualitygates/create_condition" >/dev/null
 
-  echo "- Test Condition Coverage is not less than 90%"
+  printf -- '- Test Condition Coverage is not less than 90%%\n'
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
     --data-urlencode "metric=branch_coverage" \
@@ -130,7 +135,7 @@ createQualityGate() {
     --data-urlencode "error=90" \
     "${SONAR_HOST_URL}/api/qualitygates/create_condition" >/dev/null
 
-  echo "- Duplicated Lines Density is not greater than 3%"
+  printf -- '- Duplicated Lines Density is not greater than 3%%\n'
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
     --data-urlencode "metric=duplicated_lines_density" \
@@ -138,7 +143,7 @@ createQualityGate() {
     --data-urlencode "error=3" \
     "${SONAR_HOST_URL}/api/qualitygates/create_condition" >/dev/null
 
-  echo "- Code Issues is not greater than 0"
+  printf -- '- Code Issues is not greater than 0\n'
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
     --data-urlencode "metric=violations" \
@@ -146,7 +151,7 @@ createQualityGate() {
     --data-urlencode "error=0" \
     "${SONAR_HOST_URL}/api/qualitygates/create_condition" >/dev/null
 
-  echo "- Security Hotspots Reviewed is not less than 100%"
+  printf -- '- Security Hotspots Reviewed is not less than 100%%\n'
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
     --data-urlencode "metric=security_hotspots_reviewed" \
@@ -156,7 +161,7 @@ createQualityGate() {
 }
 
 assignQualityGateToProject() {
-  echo -e "${INFO} Assign QualityGate to Project..."
+  info "Assign QualityGate to Project..."
   curl -fsS -u "${SONAR_TOKEN}:" -X POST \
     --data-urlencode "projectKey=${SONAR_PROJECT_NAME}" \
     --data-urlencode "gateName=${SONAR_QUALITY_GATE_NAME}" \
@@ -215,17 +220,21 @@ sonarqubeQualityGateStatus() {
   '
 
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+    if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
+      error "The GITHUB_STEP_SUMMARY environment is not set"
+      return 1
+    fi
     {
-      echo -n "### Status: "
-      status="$(echo "${response}" | jq -r '.projectStatus.status')"
+      printf '### Status: '
+      status="$(printf '%s\n' "${response}" | jq -r '.projectStatus.status')"
       if [[ "${status}" == "OK" ]]; then
-        echo -e "✅ ${status}"
+        printf '✅ %s\n' "${status}"
       else
-        echo -e "❌ ${status}"
+        printf '❌ %s\n' "${status}"
       fi
-      echo
-      echo "| Metric | Status | Actual | Comparator | Threshold |"
-      echo "|---|---:|---:|---:|---|"
+      printf '\n'
+      printf "| Metric | Status | Actual | Comparator | Threshold |\n"
+      printf "|---|---:|---:|---:|---|\n"
       jq -r -n --argjson data "${response}" '
         def orderedMetrics: [
           { key: "coverage", label: "Test Coverage (%)" },
@@ -249,16 +258,17 @@ sonarqubeQualityGateStatus() {
             ($condition.errorThreshold // "-")
           ] | @tsv
       ' | while IFS=$'\t' read -r metricKey status actualValue comparator errorThreshold; do
-            echo "| \`${metricKey}\` | **${status}** | \`${actualValue}\` | \`${comparator}\` | \`${errorThreshold}\` |"
+            printf "| \`%s\` | **%s** | \`%s\` | \`%s\` | \`%s\` |\n" \
+              "${metricKey}" "${status}" "${actualValue}" "${comparator}" "${errorThreshold}"
           done
-      echo
-      echo "<details><summary>Raw JSON Response</summary>"
-      echo
-      echo '```json'
-      echo "${response}" | jq -r
-      echo '```'
-      echo
-      echo "</details>"
+      printf '\n'
+      printf '<details><summary>Raw JSON Response</summary>\n'
+      printf '\n'
+      printf '```json\n'
+      printf '%s\n' "${response}" | jq -r
+      printf '```\n'
+      printf '\n'
+      printf '</details>\n'
     } >> "${GITHUB_STEP_SUMMARY}"
   fi
 }
@@ -270,7 +280,7 @@ sonarqubeStop() {
   if [[ -n "${sonarqubeId}" ]]; then
     run docker container stop "${sonarqubeId}"
   else
-    echo -e "${WARN} Nothing to stop"
+    warn "Nothing to stop"
   fi
   exit $?
 }

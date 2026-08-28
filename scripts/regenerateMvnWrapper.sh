@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/projectFunctions.sh"
 
 usage() {
   cat << EOF
@@ -18,9 +18,11 @@ EOF
 }
 
 main() {
-  [[ ${PWD} == */scripts ]] && cd ..
   readOptions "$@"
-  regenerateMavenWrapper
+  (
+    cd "${PROJECT_DIR}"
+    regenerateMavenWrapper
+  )
 }
 
 readOptions() {
@@ -37,15 +39,15 @@ regenerateMavenWrapper() {
   local newValue
   newValue="$(mvn -B -v | grep "Apache Maven" | sed "s/Apache Maven \([^ ]*\).*/\1/")"
   mvn wrapper:wrapper -pl . -Dmaven="${newValue}"
-  updatePropertyInXmlFile "pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:properties/n:enforce-maven.version" "${newValue}"
+  updatePropertyInXmlFile "${PROJECT_DIR}/pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:properties/n:enforce-maven.version" "${newValue}"
   replaceHttpWithHttps
 }
 
 replaceHttpWithHttps() {
   local file files
-  files="$(grep -Ril --exclude-dir=target --exclude-dir=scripts "http://www.apache.org")"
+  files="$(grep -Ril --exclude-dir=target --exclude-dir=scripts "http://www.apache.org" "${PROJECT_DIR}")"
   if [[ -z "${files}" ]]; then
-    echo -e "${ERROR} The file with \"http://www.apache.org\" does not exist"
+    error "The file with \"http://www.apache.org\" does not exist"
     return 1
   fi
   while IFS= read -r file; do

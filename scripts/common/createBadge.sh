@@ -6,9 +6,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+if [[ -n "${CREATE_BADGE_LOADED:-}" ]]; then
+  return 0
+fi
+declare -r CREATE_BADGE_LOADED="true"
 source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
-readonly BADGES_DIR="target/badges"
+readonly BADGES_DIR="${PROJECT_DIR}/target/badges"
 
 # createPercentageBadge "test-coverage" "sonarqubeserver" "Test Coverage" "73.9%"
 createPercentageBadge() {
