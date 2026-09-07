@@ -9,9 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
 import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,12 +33,13 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
             AssertionSteps.assertSample1Archive(destinationPath);
             Path backupPath = tempDir.resolve("toolfetch.bak");
             assertThat(backupPath).doesNotExist();
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO,
-                    "Backup Path already exists: %s. Removing".formatted(backupPath));
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO,
-                    "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Removing " + backupPath);
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
+                    "Backup path already exists: %s. Removing".formatted(backupPath));
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
+                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
+                    "Reverting %s to %s".formatted(backupPath, destinationPath));
         });
     }
 
@@ -51,7 +52,7 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
             getTestLogListAppenderSteps().assertNoErrorNoWarn();
             AssertionSteps.assertSample2Archive(destinationPath);
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Top-level directory \"test1/test11\" detected. Stripping during extraction");
         });
     }
@@ -88,13 +89,14 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
             Path backupPath = tempDir.resolve(id + ".bak");
             assertThat(backupPath).doesNotExist();
             if (backupPathExists) {
-                getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                        "Backup Path already exists: %s. Removing".formatted(backupPath));
+                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                        "Backup path already exists: %s. Removing".formatted(backupPath));
             }
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                    "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Removing " + backupPath);
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
+                    "Reverting %s to %s".formatted(backupPath, destinationPath));
         });
     }
 

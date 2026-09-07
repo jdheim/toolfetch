@@ -13,6 +13,7 @@ import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
+import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -146,8 +147,8 @@ class ArchiveZipBombValidatorTest {
     }
 
     @Test
-    void testNoInstance() {
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(ArchiveZipBombValidator::new);
+    void testNotInstantiable() {
+        AssertionSteps.assertNotInstantiable(ArchiveZipBombValidator.class);
     }
 
 }

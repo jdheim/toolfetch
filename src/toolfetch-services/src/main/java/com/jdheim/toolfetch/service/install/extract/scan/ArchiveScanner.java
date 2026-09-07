@@ -7,6 +7,7 @@ package com.jdheim.toolfetch.service.install.extract.scan;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveUncompressor;
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
@@ -15,12 +16,10 @@ import com.jdheim.toolfetch.service.log.LogHelper;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ArchiveScanner implements PathScanner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArchiveScanner.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveScanner.class);
 
     private final Uncompressor uncompressor;
 
@@ -30,13 +29,13 @@ public class ArchiveScanner implements PathScanner {
 
     @Override
     public String scan(Path archivePath) throws IOException {
-        LOG.info("Scanning {}", archivePath);
+        LOGGER.log("archive-scan.started", archivePath);
         long startTime = System.nanoTime();
         try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
             return scanStream(acis);
         } finally {
             String elapsedTime = LogHelper.elapsedTime(startTime);
-            LOG.info("Scan completed in {}s", elapsedTime);
+            LOGGER.log("archive-scan.completed", elapsedTime);
         }
     }
 
@@ -57,7 +56,7 @@ public class ArchiveScanner implements PathScanner {
         }
         String topLevelDirPath = topLevelDir != null ? topLevelDir.toString() : StringUtils.EMPTY;
         if (StringUtils.isNotEmpty(topLevelDirPath)) {
-            LOG.info("Top-level directory \"{}\" detected. Stripping during extraction", topLevelDirPath);
+            LOGGER.log("archive-scan.top-level-dir-found", topLevelDirPath);
         }
         return topLevelDirPath;
     }
@@ -101,8 +100,8 @@ public class ArchiveScanner implements PathScanner {
     }
 
     boolean matchesFirstSegmentOfTopLevelDir(Path topLevelDir, Path archiveEntryParent) {
-        return topLevelDir.getNameCount() > 0 && archiveEntryParent.getNameCount() > 0 &&
-                topLevelDir.getName(0).equals(archiveEntryParent.getName(0));
+        return topLevelDir.getNameCount() > 0 && archiveEntryParent.getNameCount() > 0 && topLevelDir.getName(0)
+                .equals(archiveEntryParent.getName(0));
     }
 
 }

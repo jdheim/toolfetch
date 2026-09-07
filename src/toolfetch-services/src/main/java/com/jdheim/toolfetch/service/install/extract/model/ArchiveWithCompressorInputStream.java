@@ -28,9 +28,7 @@ public class ArchiveWithCompressorInputStream implements AutoCloseable, InputStr
         this.lastCis = lastCis;
     }
 
-    /**
-     * Security Hotspot (java:S5042) - Expanding archive files without controlling resource consumption is security-sensitive. See {@link ArchiveZipBombValidator}
-     */
+    /// Security Hotspot (java:S5042) - Expanding archive files without controlling resource consumption is security-sensitive. See [ArchiveZipBombValidator]
     @SuppressWarnings("java:S5042")
     public ArchiveEntry getNextEntry() throws IOException {
         return ais.getNextEntry();

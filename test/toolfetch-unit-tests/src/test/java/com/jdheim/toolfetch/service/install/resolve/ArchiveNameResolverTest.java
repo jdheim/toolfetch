@@ -19,7 +19,7 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.Optional;
-import ch.qos.logback.classic.Level;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -41,7 +41,7 @@ class ArchiveNameResolverTest {
     void setUp() {
         archiveNameResolver = spy(new ArchiveNameResolver());
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(ArchiveNameResolver.class);
+        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -101,7 +101,7 @@ class ArchiveNameResolverTest {
             verify(archiveNameResolver).resolveFromUri(any());
         }
         if (contentDisposition.contains("UTFF-8")) {
-            testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "%s header contains unsupported charset: %s. Falling back to UTF-8".formatted(CONTENT_DISPOSITION_HEADER,
                             "UTFF-8"));
         }
@@ -118,7 +118,7 @@ class ArchiveNameResolverTest {
         verify(archiveNameResolver, never()).resolveFromFilenameRfc5987Pattern(anyString());
         verify(archiveNameResolver, never()).resolveFromFilenamePattern(anyString());
         verify(archiveNameResolver).resolveFromUri(any());
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "%s header longer than 8192 characters. Skipping archive name resolution from header".formatted(
                         CONTENT_DISPOSITION_HEADER));
     }

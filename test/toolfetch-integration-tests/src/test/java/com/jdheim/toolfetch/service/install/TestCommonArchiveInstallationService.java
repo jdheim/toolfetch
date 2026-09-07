@@ -18,17 +18,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.jdheim.toolfetch.logging.LogLevel;
+import com.jdheim.toolfetch.logging.LogMarker;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
-import com.jdheim.toolfetch.service.install.download.WebDownloadService;
-import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
-import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
+import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.io.TempDir;
@@ -63,8 +67,7 @@ public class TestCommonArchiveInstallationService {
             Consumer<Path> assertions) {
         installationService = new ArchiveInstallationService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start(ArchiveInstallationService.class, WebDownloadService.class,
-                ArchiveExtractService.class, ArchiveScanner.class);
+        getTestLogListAppenderSteps().start();
 
         stubFor(get("/download/" + archiveName).willReturn(aResponse().withStatus(200)
                 .withHeader(ContentTypes.CONTENT_TYPE, ContentTypes.OCTET_STREAM)
@@ -74,31 +77,40 @@ public class TestCommonArchiveInstallationService {
 
         String id = "toolfetch";
         String url = "http://localhost:%d/download/%s".formatted(wmRuntimeInfo.getHttpPort(), archiveName);
-        Tool tool = new Tool(id, url);
+        Path destinationPath = tempDir.resolve(id);
+        Path archivePath = destinationPath.resolve(archiveName);
+        String sha256;
+        try {
+            sha256 = HexFormat.of().formatHex(MessageDigest.getInstance(MessageDigestAlgorithms.SHA_256).digest(archiveBytes));
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError(e);
+        }
+        Map<String, String> checksumValues = Map.of("sha256", sha256);
+        Checksums checksums = new Checksums(checksumValues);
+        Tool tool = new Tool(id, url, null, null, checksums);
         Configuration configuration = new Configuration(tempDir.toString(), List.of(tool));
         installationService.install(configuration);
 
         assertThat(getAllServeEvents()).hasSize(1);
         verify(1, getRequestedFor(urlEqualTo("/download/" + archiveName)));
 
-        Path destinationPath = tempDir.resolve(id);
         assertions.accept(destinationPath);
-        Path archivePath = destinationPath.resolve(archiveName);
         assertThat(archivePath).doesNotExist();
 
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "=== Installing " + id + " ===");
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Creating " + destinationPath);
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Downloading %s to %s".formatted(url, destinationPath));
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Download completed in ");
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Scanning " + archivePath);
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Scan completed in ");
+        getTestLogListAppenderSteps().assertAnyMatch(LogMarker.STEP.toString(), "=== Installing " + id + " ===");
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Creating " + destinationPath);
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                "Downloading %s to %s".formatted(url, destinationPath));
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Scanning " + archivePath);
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Scan completed in ");
         if (Files.exists(destinationPath)) {
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Extract completed in ");
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
             if (getTestLogListAppenderSteps().list.stream()
                     .noneMatch(line -> line.getFormattedMessage().startsWith("Extract failed due to exception")))
-                getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Removing " + archivePath);
+                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
         }
     }
 

@@ -30,15 +30,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
-import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -88,9 +87,10 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(logArgs).hasSize(3);
         Path destinationPath = tempDir.resolve(logArgs[0]);
         Path archivePath = destinationPath.resolve("toolfetch.zip");
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Extracting %s to %s".formatted(archivePath, destinationPath));
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Extract completed in ");
-        getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                "Extracting %s to %s".formatted(archivePath, destinationPath));
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                 "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
                         destinationPath, logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
     }
@@ -157,21 +157,22 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             Path backupPath = tempDir.resolve(id + ".bak");
             assertThat(backupPath).doesNotExist();
             if (backupPathExists) {
-                getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                        "Backup Path already exists: %s. Removing".formatted(backupPath));
+                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                        "Backup path already exists: %s. Removing".formatted(backupPath));
             }
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                    "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
             Path archivePath = destinationPath.resolve("toolfetch.zip");
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Extract completed in ");
-            getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"../test2.txt\" = \"%s\"\"".formatted(
                             destinationPath, tempDir.resolve(id + "/../test2.txt").normalize()));
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Removing " + destinationPath);
-            getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Removing " + backupPath);
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
+            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                    "Reverting %s to %s".formatted(backupPath, destinationPath));
         });
     }
 
@@ -195,13 +196,14 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         if (backupPathExists) {
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                    "Backup Path already exists: %s. Removing".formatted(backupPath));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                    "Backup path already exists: %s. Removing".formatted(backupPath));
         }
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
-                "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
-        getTestLogListAppenderSteps().assertNoMatch(Level.INFO, "Removing " + backupPath);
-        getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+        getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                "Reverting %s to %s".formatted(backupPath, destinationPath));
     }
 
     private void testInstall_PasswordProtected(int index, List<String> files, WireMockRuntimeInfo wmRuntimeInfo) {
@@ -209,13 +211,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path archivePath = tempDir.resolve("toolfetch/toolfetch.zip");
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Couldn't read archive entry \"%s\". Skipping".formatted(file)));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Extract completed in ");
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Removing " + archivePath);
-            getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
         });
     }
@@ -235,7 +237,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             files.when(() -> Files.exists(backupPath)).thenReturn(true);
             ArchiveInstallationService installationService = new ArchiveInstallationService();
             testLogListAppenderSteps = new TestLogListAppenderSteps();
-            getTestLogListAppenderSteps().start(ArchiveInstallationService.class);
+            getTestLogListAppenderSteps().start();
             installationService.cleanup(configuration, configuration.tools().getFirst());
         }
 
@@ -243,9 +245,11 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(backupPath).isNotEmptyDirectory();
         Path backupTest = Path.of("backupTest.txt");
         assertThat(backupPath.resolve(backupTest)).isRegularFile().hasContent("Backup Test");
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + backupPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Revert failed due to exception: \"java.io.IOException: Boom\"");
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
+                "Reverting %s to %s".formatted(backupPath, destinationPath));
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Revert failed due to exception: \"java.io.IOException: Boom\"");
     }
 
     @Test
@@ -262,8 +266,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         ArchiveInstallationService installationService = spy(new ArchiveInstallationService());
         doReturn(webDownloadService).when(installationService).downloadService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start(ArchiveInstallationService.class, WebDownloadService.class,
-                ArchiveExtractService.class);
+        getTestLogListAppenderSteps().start();
         try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
             toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
             installationService.install(configuration);
@@ -275,12 +278,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(destinationPath.resolve(cleanupTest)).isRegularFile().hasContent("Cleanup Test");
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
                         + id);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + destinationPath);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + backupPath);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(),
+                "Reverting %s to %s".formatted(backupPath, destinationPath));
     }
 
     @Test
@@ -293,8 +297,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
         installationService = new ArchiveInstallationService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start(ArchiveInstallationService.class, WebDownloadService.class,
-                ArchiveExtractService.class);
+        getTestLogListAppenderSteps().start();
         installationService.install(configuration);
 
         Path destinationPath = tempDir.resolve(id);
@@ -303,10 +306,12 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(destinationPath.resolve(cleanupTest)).isRegularFile().hasContent("Cleanup Test");
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Download failed: received HTTP 404 response. Skipping " + id);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + destinationPath);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + backupPath);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Download failed: received HTTP 404 response. Skipping " + id);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(),
+                "Reverting %s to %s".formatted(backupPath, destinationPath));
     }
 
     @ParameterizedTest
@@ -334,8 +339,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         ArchiveInstallationService installationService = spy(new ArchiveInstallationService());
         doReturn(webDownloadService).when(installationService).downloadService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start(ArchiveInstallationService.class, WebDownloadService.class,
-                ArchiveExtractService.class);
+        getTestLogListAppenderSteps().start();
         try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
             toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
             installationService.install(configuration);
@@ -348,20 +352,22 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         if (backupPathExists) {
-            testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Backup Path already exists: %s. Removing".formatted(backupPath));
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
+                    "Backup path already exists: %s. Removing".formatted(backupPath));
         }
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO,
-                "Destination Path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Creating " + destinationPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
+                "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Creating " + destinationPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Downloading http://localhost:%s%s to %s".formatted(wmRuntimeInfo.getHttpPort(), mockUrl,
                         destinationPath.resolve(id + ".zip")));
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Download completed in ");
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + id);
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Removing " + destinationPath);
-        testLogListAppenderSteps.assertNoMatch(Level.INFO, "Removing " + backupPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Reverting %s to %s".formatted(backupPath, destinationPath));
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
+                "Reverting %s to %s".formatted(backupPath, destinationPath));
     }
 
     private Configuration buildConfiguration(WireMockRuntimeInfo wmRuntimeInfo, String id, String mockUrl) {

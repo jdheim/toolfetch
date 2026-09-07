@@ -13,26 +13,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
-/// OOC Tests for [ValidatingExecutionStrategy]
-class ValidatingExecutionStrategyTest {
+/// OOC Tests for [ValidateStrategy]
+class ValidateStrategyTest {
 
-    ValidatingExecutionStrategy validatingExecutionStrategy;
+    ValidateStrategy validateStrategy;
 
     @BeforeEach
     void setUp() {
-        validatingExecutionStrategy = new ValidatingExecutionStrategy();
+        validateStrategy = new ValidateStrategy();
     }
 
     @Test
     void testCommandNotSupported() {
-        CommandLine.ParseResult parseResultMock = mock(CommandLine.ParseResult.class);
-        CommandLine.Model.CommandSpec commandSpecMock = mock(CommandLine.Model.CommandSpec.class);
-        CommandLine commandLine = mock(CommandLine.class);
+        CommandLine.ParseResult parseResultMock = mock();
+        CommandLine.Model.CommandSpec commandSpecMock = mock();
+        CommandLine commandLine = mock();
         doReturn(commandSpecMock).when(parseResultMock).commandSpec();
         doReturn(commandLine).when(commandSpecMock).commandLine();
         doReturn("").when(commandSpecMock).userObject();
-        assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(
-                () -> validatingExecutionStrategy.execute(parseResultMock)).withMessage("Command String not supported");
+        assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(() -> validateStrategy.execute(parseResultMock))
+                .withMessage("Command String not supported");
     }
 
 }

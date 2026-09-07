@@ -44,7 +44,9 @@
         <enforce-java.version>${maven.compiler.release}</enforce-java.version>
 
         <!-- Error Prone Compiler Args setup -->
-        <compiler.error-prone.args>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=com.jdheim -XepOpt:NullAway:JSpecifyMode=true</compiler.error-prone.args>
+        <!-- @Patch https://github.com/google/error-prone/issues/1598 -->
+        <compiler.error-prone.return-value-ignored-off>-Xep:ReturnValueIgnored:OFF</compiler.error-prone.return-value-ignored-off>
+        <compiler.error-prone.args>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=com.jdheim -XepOpt:NullAway:JSpecifyMode=true ${compiler.error-prone.return-value-ignored-off}</compiler.error-prone.args>
 
         <!-- Maven Surefire/Failsafe Plugin Command Line setup -->
         <argLine/> <!-- @Patch https://github.com/apache/maven-surefire/issues/2260 -->
@@ -206,12 +208,9 @@
                     <version>${maven-dependency-plugin.version}</version>
                     <configuration>
                         <ignoredUnusedDeclaredDependencies>
-                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-core</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.github.luben:zstd-jni</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.github.spotbugs:spotbugs-annotations</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.brotli:dec</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.fusesource.jansi:jansi</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.jspecify:jspecify</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.tukaani:xz</ignoredUnusedDeclaredDependency>
 
@@ -235,7 +234,7 @@
                             <include>**/*SmokeTest.java</include>
                         </includes>
                         <systemPropertyVariables>
-                            <org.fusesource.jansi.Ansi.disable>true</org.fusesource.jansi.Ansi.disable>
+                            <org.jline.jansi.Ansi.disable>true</org.jline.jansi.Ansi.disable>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
@@ -267,7 +266,7 @@
                             <exclude>**/*SmokeTest.java</exclude>
                         </excludes>
                         <systemPropertyVariables>
-                            <org.fusesource.jansi.Ansi.disable>true</org.fusesource.jansi.Ansi.disable>
+                            <org.jline.jansi.Ansi.disable>true</org.jline.jansi.Ansi.disable>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
@@ -360,6 +359,7 @@
     <modules>
         <module>bom/toolfetch-bom</module>
 
+        <module>src/toolfetch-logging</module>
         <module>src/toolfetch-models</module>
         <module>src/toolfetch-services</module>
         <module>src/toolfetch-commands</module>

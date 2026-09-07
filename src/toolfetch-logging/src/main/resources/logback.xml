@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright 2026 JDHeim.com
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<configuration>
+    <conversionRule conversionWord="toolFetchJansiLogLevel" class="com.jdheim.toolfetch.logging.pattern.JansiLogLevelConverter"/>
+    <conversionRule conversionWord="toolFetchJansiLogMessage" class="com.jdheim.toolfetch.logging.pattern.JansiLogMessageConverter"/>
+    <conversionRule conversionWord="toolFetchPlainLogLevel" class="com.jdheim.toolfetch.logging.pattern.PlainLogLevelConverter"/>
+    <conversionRule conversionWord="toolFetchPlainLogMessage" class="com.jdheim.toolfetch.logging.pattern.PlainLogMessageConverter"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.JansiConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%toolFetchJansiLogLevel %toolFetchJansiLogMessage%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${user.home}/.toolfetch/toolfetch.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-7toolFetchPlainLogLevel [%logger{50}] %toolFetchPlainLogMessage%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

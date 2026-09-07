@@ -9,9 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.logging.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -74,7 +74,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         ExecResult execResult = execute(option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
         assertAnyMatch(execResult,
-                "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(Level.ERROR));
+                "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(LogLevel.ERROR.toString()));
     }
 
     @ParameterizedTest
@@ -86,8 +86,8 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         }
         ExecResult execResult = execute(option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
-        assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(Level.ERROR));
-        assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(Level.ERROR));
+        assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(LogLevel.ERROR.toString()));
+        assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(LogLevel.ERROR.toString()));
     }
 
 }

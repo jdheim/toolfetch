@@ -5,16 +5,15 @@
 
 package com.jdheim.toolfetch.service.log;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
+import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import org.junit.jupiter.api.Test;
 
 /// OOC Tests for [LogHelper]
 class LogHelperTest {
 
     @Test
-    void testNoInstance() {
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(LogHelper::new);
+    void testNotInstantiable() {
+        AssertionSteps.assertNotInstantiable(LogHelper.class);
     }
 
 }

@@ -3,5 +3,8 @@
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 <configuration>
+    <conversionRule conversionWord="toolFetchPlainLogLevel" class="com.jdheim.toolfetch.logging.pattern.PlainLogLevelConverter"/>
+    <conversionRule conversionWord="toolFetchPlainLogMessage" class="com.jdheim.toolfetch.logging.pattern.PlainLogMessageConverter"/>
+
     <root level="DEBUG"/>
 </configuration>

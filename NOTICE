@@ -48,10 +48,20 @@ https://github.com/FasterXML/jackson
 Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
 Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 
-Jansi
-https://fusesource.github.io/jansi
-Licensed under Apache-2.0 (https://spdx.org/licenses/Apache-2.0.html)
-Copyright (C) 2009-2017 the original author(s).
+Jansi Core
+https://github.com/jline/jline3/jansi-core
+Licensed under BSD-3-Clause (https://spdx.org/licenses/BSD-3-Clause.html)
+Copyright (c) 2002-2022, the original author or authors.
+
+JLine Native Library
+https://github.com/jline/jline3/jline-native
+Licensed under BSD-3-Clause (https://spdx.org/licenses/BSD-3-Clause.html)
+Copyright (c) 2023, the original author or authors.
+
+JLine Terminal
+https://github.com/jline/jline3/jline-terminal
+Licensed under BSD-3-Clause (https://spdx.org/licenses/BSD-3-Clause.html)
+Copyright (c) 2002-2020, the original author or authors.
 
 JsonSchemaValidator
 https://github.com/networknt/json-schema-validator

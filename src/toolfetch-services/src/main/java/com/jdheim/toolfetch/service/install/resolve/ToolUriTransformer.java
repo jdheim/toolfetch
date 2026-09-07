@@ -6,14 +6,13 @@
 package com.jdheim.toolfetch.service.install.resolve;
 
 import java.net.URI;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.tool.Tool;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ToolUriTransformer implements UriTransformer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ToolUriTransformer.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolUriTransformer.class);
 
     private static final String VERSION_VARIABLE = "${version}";
 
@@ -27,7 +26,7 @@ public class ToolUriTransformer implements UriTransformer {
         if (url.contains(VERSION_VARIABLE)) {
             String version = tool.version();
             if (version == null) {
-                LOG.warn("Missing required parameter: version");
+                LOGGER.log("tool-uri.version-missing");
                 return null;
             }
             url = url.replace(VERSION_VARIABLE, version);
@@ -38,7 +37,7 @@ public class ToolUriTransformer implements UriTransformer {
     private @Nullable URI toUri(String url) {
         URI uri = URI.create(url);
         if (isNotHttpHttpsScheme(uri)) {
-            LOG.warn("Forbidden scheme detected. Only {}/{} are allowed", HTTP_SCHEME, HTTPS_SCHEME);
+            LOGGER.log("tool-uri.scheme-unsupported", HTTP_SCHEME, HTTPS_SCHEME);
             return null;
         }
         return uri;

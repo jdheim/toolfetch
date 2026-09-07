@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.crypto.checksum.ChecksumService;
@@ -21,12 +22,11 @@ import com.jdheim.toolfetch.service.install.extract.ExtractService;
 import com.jdheim.toolfetch.service.install.resolve.DestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 public class ArchiveInstallationService implements InstallationService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArchiveInstallationService.class);
+    private static final ToolFetchLogger LOG = ToolFetchLogger.getLogger(ArchiveInstallationService.class);
 
     private final DownloadService downloadService;
 
@@ -51,7 +51,7 @@ public class ArchiveInstallationService implements InstallationService {
                 if (checksumService().verify(tool, archivePath)) {
                     extractService().extract(configuration, tool, archivePath);
                 } else {
-                    LOG.warn("Checksum verification failed. Skipping {}", tool.id());
+                    LOG.log("archive-install.checksum-failed", tool.id());
                 }
             });
             cleanup(configuration, tool);
@@ -62,14 +62,14 @@ public class ArchiveInstallationService implements InstallationService {
         Path destinationPath = destinationResolver().resolve(configuration, tool);
         Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
         if (Files.exists(destinationPath) && Files.exists(backupPath)) {
-            LOG.info("Removing {}", backupPath);
+            LOG.log("path.remove", backupPath);
             FileUtils.deleteQuietly(backupPath.toFile());
         } else if (!Files.exists(destinationPath) && Files.exists(backupPath)) {
-            LOG.info("Reverting {} to {}", backupPath, destinationPath);
+            LOG.log("path.revert", backupPath, destinationPath);
             try {
                 Files.move(backupPath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
-                LOG.warn("Revert failed due to exception: \"{}: {}\"", e.getClass().getName(), e.getMessage());
+                LOG.log("path.revert-exception", e.getClass().getName(), StringUtils.trimToEmpty(e.getMessage()));
             }
         }
     }

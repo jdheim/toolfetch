@@ -26,9 +26,14 @@ declare -Ar HARDCODED_URLS=(
   ["ch.qos.logback:logback-core"]="https://logback.qos.ch"
   ["org.brotli:dec"]="https://brotli.org"
 )
+declare -Ar HARDCODED_SPDX_LICENSES=(
+  ["org.jline:jansi-core"]="BSD-3-Clause"
+  ["org.jline:jline-native"]="BSD-3-Clause"
+  ["org.jline:jline-terminal"]="BSD-3-Clause"
+)
 declare -Ar SPDX_LICENSES=(
-  ["0BSD"]="0BSD"
   [".*Apache.*2\.0.*"]="Apache-2.0"
+  ["0BSD"]="0BSD"
   ["BSD.*2-Clause.*"]="BSD-2-Clause"
   ["(EPL-2.0|Eclipse.*Public.*License.*2\.0)"]="EPL-2.0"
   ["LGPL-2.1-only"]="LGPL-2.1-only"
@@ -179,6 +184,11 @@ toSpdxLicense() {
       return 0
     fi
   done
+  local hardcodedSpdxLicense="${HARDCODED_SPDX_LICENSES["${groupId}:${artifactId}"]:-}"
+  if [[ -n "${hardcodedSpdxLicense:-}" ]]; then
+    printf '%s\n' "${hardcodedSpdxLicense}"
+    return 0
+  fi
 
   error "Unknown license: ${license}" >&2
   return 1

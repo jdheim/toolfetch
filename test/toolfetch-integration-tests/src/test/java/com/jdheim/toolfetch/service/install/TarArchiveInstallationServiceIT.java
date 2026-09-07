@@ -8,9 +8,9 @@ package com.jdheim.toolfetch.service.install;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
 import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import org.apache.commons.compress.compressors.brotli.BrotliUtils;
@@ -86,7 +86,7 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
             brotliUtils.when(BrotliUtils::isBrotliCompressionAvailable).thenReturn(false);
 
             testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-                getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                         "Extract failed due to exception: \"org.apache.commons.compress.compressors.CompressorException: "
                                 + "Brotli compression is not available. In addition to Apache Commons Compress you need the Google Brotli Dec library - see https://github.com/google/brotli/\". Skipping toolfetch");
                 assertThat(destinationPath).doesNotExist();

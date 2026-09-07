@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
-import ch.qos.logback.classic.Level;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class YamlParserServiceUnhappyTest {
     void setUp() {
         parserService = new YamlParserService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(YamlParserService.class);
+        testLogListAppenderSteps.start();
     }
 
     @Test
@@ -48,7 +48,7 @@ class YamlParserServiceUnhappyTest {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         Files.createFile(toolfetchConfigPath);
         parserService.parse(toolfetchConfigPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                 "Error occurred when parsing YAML configuration: should not be empty");
     }
 
@@ -58,7 +58,7 @@ class YamlParserServiceUnhappyTest {
         boolean valid = parserService.validateConfig(rawConfiguration);
         assertThat(valid).isEqualTo(expectedValid);
         if (!expectedValid) {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, message);
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), message);
         }
     }
 

@@ -10,6 +10,24 @@
       ]
     },
     {
+      "type": "ch.qos.logback.classic.filter.ThresholdFilter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLevel",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.classic.spi.ILoggingEvent"
+    },
+    {
       "type": "ch.qos.logback.classic.spi.LogbackServiceProvider"
     },
     {
@@ -22,17 +40,32 @@
       ]
     },
     {
-      "type": "ch.qos.logback.core.ConsoleAppender",
+      "type": "ch.qos.logback.core.FileAppender",
       "methods": [
         {
           "name": "<init>",
           "parameterTypes": []
         },
         {
-          "name": "setWithJansi",
+          "name": "setAppend",
           "parameterTypes": [
             "boolean"
           ]
+        },
+        {
+          "name": "setFile",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.JansiConsoleAppender",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
         }
       ]
     },
@@ -43,6 +76,17 @@
           "name": "setEncoder",
           "parameterTypes": [
             "ch.qos.logback.core.encoder.Encoder"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ch.qos.logback.core.UnsynchronizedAppenderBase",
+      "methods": [
+        {
+          "name": "addFilter",
+          "parameterTypes": [
+            "ch.qos.logback.core.filter.Filter"
           ]
         }
       ]
@@ -62,6 +106,9 @@
       ]
     },
     {
+      "type": "ch.qos.logback.core.filter.Filter"
+    },
+    {
       "type": "ch.qos.logback.core.pattern.PatternLayoutEncoderBase",
       "methods": [
         {
@@ -74,6 +121,9 @@
     },
     {
       "type": "ch.qos.logback.core.spi.ContextAware"
+    },
+    {
+      "type": "ch.qos.logback.core.spi.DeferredProcessingAware"
     },
     {
       "type": "com.ethlo.time.ITU"
@@ -112,6 +162,51 @@
     },
     {
       "type": "com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.logging.ToolFetchLogger",
+      "methods": [
+        {
+          "name": "messages",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.logging.pattern.JansiLogLevelConverter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.logging.pattern.JansiLogMessageConverter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.logging.pattern.PlainLogLevelConverter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.logging.pattern.PlainLogMessageConverter",
       "methods": [
         {
           "name": "<init>",
@@ -231,8 +326,73 @@
       ]
     },
     {
+      "type": "com.jdheim.toolfetch.model.util.EnvResolver",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.info.JavaHome",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "pathEnv",
+          "parameterTypes": []
+        },
+        {
+          "name": "resolveJavaHomePath",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.info.JavaHome$LazyHolder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.info.OsRelease",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "osReleasePath",
+          "parameterTypes": []
+        },
+        {
+          "name": "parseOsRelease",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.info.OsRelease$LazyHolder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "com.jdheim.toolfetch.service.info.ToolFetchInfo$LazyHolder",
       "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
         {
           "name": "getProperties",
           "parameterTypes": []
@@ -315,6 +475,10 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        },
+        {
+          "name": "compressorStreamFactory",
+          "parameterTypes": []
         }
       ]
     },
@@ -335,6 +499,15 @@
     },
     {
       "type": "com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor"
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "com.jdheim.toolfetch.service.install.resolve.ArchiveNameResolver",
@@ -379,6 +552,41 @@
       "type": "com.jdheim.toolfetch.service.install.resolve.FileNameResolver"
     },
     {
+      "type": "com.jdheim.toolfetch.service.log.LogHelper",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.util.CharacterConstants",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.service.util.OperatingSystemPredicates",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "isMacOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "isWindows",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "java.io.FilterInputStream",
       "fields": [
         {
@@ -391,6 +599,9 @@
     },
     {
       "type": "org.apache.commons.compress.archivers.ArchiveInputStream"
+    },
+    {
+      "type": "org.apache.commons.compress.archivers.ArchiveStreamFactory"
     },
     {
       "type": "org.apache.commons.compress.archivers.EntryStreamOffsets"
@@ -411,6 +622,18 @@
       "type": "org.apache.commons.compress.compressors.CompressorInputStream"
     },
     {
+      "type": "org.apache.commons.compress.compressors.CompressorStreamFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.apache.commons.compress.compressors.CompressorStreamProvider"
+    },
+    {
       "type": "org.apache.commons.compress.compressors.brotli.BrotliUtils"
     },
     {
@@ -429,20 +652,16 @@
       "type": "org.brotli.dec.BrotliInputStream"
     },
     {
-      "type": "org.fusesource.jansi.AnsiConsole",
+      "type": "org.jline.terminal.impl.exec.ExecTerminalProvider",
       "methods": [
         {
-          "name": "out",
-          "parameterTypes": []
-        },
-        {
-          "name": "systemInstall",
+          "name": "<init>",
           "parameterTypes": []
         }
       ]
     },
     {
-      "type": "org.jline.jansi.AnsiConsole"
+      "type": "org.springframework.util.MultiValueMapAdapter"
     },
     {
       "type": "picocli.CommandLine",
@@ -494,6 +713,18 @@
   "resources": [
     {
       "glob": "/schema/toolfetch.schema.json"
+    },
+    {
+      "glob": "META-INF/jline/providers/exec"
+    },
+    {
+      "glob": "META-INF/jline/providers/ffm"
+    },
+    {
+      "glob": "META-INF/jline/providers/jni"
+    },
+    {
+      "glob": "META-INF/maven/org.jline/jline-native/pom.properties"
     },
     {
       "glob": "META-INF/services/ch.qos.logback.classic.spi.Configurator"
@@ -766,6 +997,15 @@
       "glob": "ch/qos/logback/core/logback-core-version.properties"
     },
     {
+      "glob": "com/jdheim/bundle/log/messages.properties"
+    },
+    {
+      "glob": "com/jdheim/bundle/log/messages_en.properties"
+    },
+    {
+      "glob": "com/jdheim/bundle/log/messages_en_US.properties"
+    },
+    {
       "glob": "com/jdheim/toolfetch"
     },
     {
@@ -823,10 +1063,10 @@
       "glob": "org/eclipse/jetty/version/build.properties"
     },
     {
-      "glob": "org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so"
+      "glob": "org/jline/nativ/Linux/x86_64/libjlinenative.so"
     },
     {
-      "glob": "org/fusesource/jansi/jansi.properties"
+      "glob": "org/jline/utils/capabilities.txt"
     },
     {
       "glob": "org/publicsuffix/list/effective_tld_names.dat"
@@ -856,6 +1096,9 @@
     {
       "module": "jdk.jfr",
       "glob": "jdk/jfr/internal/types/metadata.bin"
+    },
+    {
+      "bundle": "com.jdheim.bundle.log.messages"
     },
     {
       "bundle": "jakarta.servlet.LocalStrings"

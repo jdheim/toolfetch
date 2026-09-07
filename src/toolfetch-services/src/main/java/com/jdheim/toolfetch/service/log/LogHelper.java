@@ -5,16 +5,19 @@
 
 package com.jdheim.toolfetch.service.log;
 
+import java.util.Locale;
+
 public final class LogHelper {
 
-    private static final double TO_SECONDS = 1_000_000_000.0;
+    private static final double NANOS_PER_SECOND = 1_000_000_000.0;
 
-    LogHelper() {
+    private LogHelper() {
         throw new AssertionError();
     }
 
     public static String elapsedTime(long startTime) {
-        return String.format("%.2f", (System.nanoTime() - startTime) / TO_SECONDS);
+        double seconds = (System.nanoTime() - startTime) / NANOS_PER_SECOND;
+        return String.format(Locale.ROOT, "%.2f", seconds);
     }
 
 }

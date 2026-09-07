@@ -19,18 +19,17 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.http.Http;
 import com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class ToolFetchHttpClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ToolFetchHttpClient.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetchHttpClient.class);
 
     private static final String TLS = "TLS";
 
@@ -101,8 +100,7 @@ public final class ToolFetchHttpClient {
     private @Nullable SSLContext initSslContext(Configuration configuration) {
         TrustStore trustStore = configuration.trustStore();
         if (trustStore != null) {
-            SSLContext sslContext = initSslContext(trustStore.resolvedPath(),
-                    trustStore.type(),
+            SSLContext sslContext = initSslContext(trustStore.resolvedPath(), trustStore.type(),
                     customTrustStoreDefaultPassword());
             if (sslContext != null) {
                 return sslContext;
@@ -110,15 +108,15 @@ public final class ToolFetchHttpClient {
         }
         String javaHome = javaHomeEnv();
         if (StringUtils.isNotBlank(javaHome)) {
-            Path javaCacerts = resolveJavaCacerts(Path.of(javaHome));
+            Path javaHomePath = Path.of(javaHome);
+            Path javaCacerts = resolveJavaCacerts(javaHomePath);
             if (javaCacerts == null) {
-                LOG.warn("{} does not exist. Falling back to the bundled default TrustStore",
-                        Path.of(javaHome).resolve(JDK_9_CACERTS_RELATIVE_PATH));
+                LOGGER.log("http-client.default-truststore-fallback", javaHomePath.resolve(JDK_9_CACERTS_RELATIVE_PATH));
                 return null;
             }
             return initSslContext(javaCacerts, javaCacertsDefaultPassword());
         }
-        LOG.info("Using bundled default TrustStore");
+        LOGGER.log("http-client.default-truststore-found");
         return null;
     }
 
@@ -154,14 +152,11 @@ public final class ToolFetchHttpClient {
 
             SSLContext sslContext = SSLContext.getInstance(TLS);
             sslContext.init(null, tmf.getTrustManagers(), null);
-            LOG.info("Using TrustStore from {}", resolvedPath);
+            LOGGER.log("http-client.custom-truststore-found", resolvedPath);
             return sslContext;
         } catch (Exception e) {
-            LOG.warn(
-                    "Failed to build SSL context from \"{}\" due to exception: \"{}: {}\". Falling back to the next available TrustStore",
-                    resolvedPath,
-                    e.getClass().getName(),
-                    e.getMessage());
+            LOGGER.log("http-client.custom-truststore-fallback", resolvedPath, e.getClass().getName(),
+                    StringUtils.trimToEmpty(e.getMessage()));
             return null;
         }
     }

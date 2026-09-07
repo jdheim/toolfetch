@@ -14,14 +14,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ArchiveNameResolver implements FileNameResolver {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArchiveNameResolver.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveNameResolver.class);
 
     private static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
 
@@ -51,8 +50,7 @@ public class ArchiveNameResolver implements FileNameResolver {
 
     String resolveFromHeader(String contentDisposition) {
         if (contentDisposition.length() > CONTENT_DISPOSITION_HEADER_MAX_LENGTH) {
-            LOG.warn("{} header longer than {} characters. Skipping archive name resolution from header",
-                    CONTENT_DISPOSITION_HEADER, CONTENT_DISPOSITION_HEADER_MAX_LENGTH);
+            LOGGER.log("archive-name.header-failed", CONTENT_DISPOSITION_HEADER, CONTENT_DISPOSITION_HEADER_MAX_LENGTH);
             return StringUtils.EMPTY;
         }
         String archiveName = resolveFromFilenameRfc5987Pattern(contentDisposition);
@@ -73,8 +71,7 @@ public class ArchiveNameResolver implements FileNameResolver {
             if (Charset.isSupported(charsetName)) {
                 charset = Charset.forName(charsetName);
             } else {
-                LOG.warn("{} header contains unsupported charset: {}. Falling back to UTF-8", CONTENT_DISPOSITION_HEADER,
-                        charsetName);
+                LOGGER.log("archive-name.header-unsupported-charset", CONTENT_DISPOSITION_HEADER, charsetName);
                 charset = StandardCharsets.UTF_8;
             }
             String filename = escapePlusBeforeUrlDecode(matcher.group(3).trim());

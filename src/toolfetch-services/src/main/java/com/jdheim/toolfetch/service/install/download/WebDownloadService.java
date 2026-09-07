@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Optional;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.http.Http;
 import com.jdheim.toolfetch.model.tool.Tool;
@@ -29,16 +30,13 @@ import com.jdheim.toolfetch.service.install.resolve.FileNameResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.service.install.resolve.UriTransformer;
-import com.jdheim.toolfetch.service.log.AnsiHelper;
 import com.jdheim.toolfetch.service.log.LogHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebDownloadService implements DownloadService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebDownloadService.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(WebDownloadService.class);
 
     private static final String USER_AGENT_HEADER = "User-Agent";
 
@@ -58,11 +56,10 @@ public class WebDownloadService implements DownloadService {
 
     @Override
     public Optional<Path> download(Configuration configuration, Tool tool) {
-        String header = AnsiHelper.header(tool);
-        LOG.info(header);
+        LOGGER.log("download.install-tool", tool.id());
         URI toolUri = uriTransformer.transform(tool);
         if (toolUri == null) {
-            LOG.warn("URI could not be resolved. Skipping {}", tool.id());
+            LOGGER.log("download.uri-not-resolved", tool.id());
             return Optional.empty();
         }
         Path destinationPath = destinationResolver.resolve(configuration, tool);
@@ -85,12 +82,12 @@ public class WebDownloadService implements DownloadService {
                 .send(buildHttpRequest(configuration, toolUri), HttpResponse.BodyHandlers.ofInputStream());
         int statusCode = httpResponse.statusCode();
         if (isNotOK(statusCode)) {
-            LOG.warn("Download failed: received HTTP {} response. Skipping {}", statusCode, tool.id());
+            LOGGER.log("download.response-failed", statusCode, tool.id());
             return Optional.empty();
         }
         String archiveName = fileNameResolver.resolve(httpResponse);
         if (StringUtils.isEmpty(archiveName)) {
-            LOG.warn("Archive name could not be resolved. Skipping {}", tool.id());
+            LOGGER.log("download.archive-name-failed", tool.id());
             return Optional.empty();
         }
         Path destinationPath = createDirectories(configuration, tool);
@@ -127,32 +124,32 @@ public class WebDownloadService implements DownloadService {
         if (Files.exists(destinationPath)) {
             Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
             if (Files.exists(backupPath)) {
-                LOG.info("Backup Path already exists: {}. Removing", backupPath);
+                LOGGER.log("download.backup-exists", backupPath);
                 FileUtils.deleteQuietly(backupPath.toFile());
             }
-            LOG.info("Destination Path already exists: {}. Moving to {}", destinationPath, backupPath);
+            LOGGER.log("download.destination-exists", destinationPath, backupPath);
             Files.move(destinationPath, backupPath, StandardCopyOption.ATOMIC_MOVE);
         }
-        LOG.info("Creating {}", destinationPath);
+        LOGGER.log("path.create", destinationPath);
         Files.createDirectories(destinationPath);
         return destinationPath;
     }
 
     private void downloadFromResponseBody(HttpResponse<InputStream> httpResponse, URI toolUri, Path archivePath) throws
             IOException {
-        LOG.info("Downloading {} to {}", toolUri, archivePath);
+        LOGGER.log("download.started", toolUri, archivePath);
         long startTime = System.nanoTime();
         try (InputStream inputStream = httpResponse.body()) {
             Files.copy(inputStream, archivePath, StandardCopyOption.REPLACE_EXISTING);
         } finally {
             String elapsedTime = LogHelper.elapsedTime(startTime);
-            LOG.info("Download completed in {}s", elapsedTime);
+            LOGGER.log("download.completed", elapsedTime);
         }
     }
 
     private void logException(Exception exception, Tool tool) {
-        LOG.warn("Download failed due to exception: \"{}: {}\". Skipping {}", exception.getClass().getName(),
-                exception.getMessage(), tool.id());
+        LOGGER.log("download.exception", exception.getClass().getName(), StringUtils.trimToEmpty(exception.getMessage()),
+                tool.id());
     }
 
     private void cleanup(Configuration configuration, Tool tool, boolean isUpdateMode) {
@@ -160,7 +157,7 @@ public class WebDownloadService implements DownloadService {
         Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
         boolean isInstallMode = !isUpdateMode;
         if (isInstallMode || Files.exists(backupPath)) {
-            LOG.info("Removing {}", destinationPath);
+            LOGGER.log("path.remove", destinationPath);
             FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }

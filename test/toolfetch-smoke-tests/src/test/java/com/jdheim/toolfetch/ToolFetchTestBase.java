@@ -16,17 +16,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import ch.qos.logback.classic.Level;
-import com.jdheim.toolfetch.service.config.parse.YamlParserService;
-import com.jdheim.toolfetch.service.config.validation.JsonSchemaValidationService;
-import com.jdheim.toolfetch.service.install.download.WebDownloadService;
-import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
-import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
-import com.jdheim.toolfetch.service.install.resolve.ArchiveNameResolver;
-import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 public class ToolFetchTestBase {
@@ -95,20 +93,30 @@ public class ToolFetchTestBase {
     }
 
     private ExecResult executeTest(String[] args) {
-        CommandLine toolFetch = Main.commandLine();
+        CommandLine toolFetch = ToolFetch.commandLine();
         StringWriter log = new StringWriter();
         toolFetch.setOut(new PrintWriter(log));
         toolFetch.setErr(new PrintWriter(log));
         TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(YamlParserService.class, JsonSchemaValidationService.class, WebDownloadService.class,
-                ArchiveExtractService.class, ArchiveScanner.class, ArchiveNameResolver.class, ToolUriTransformer.class);
+        testLogListAppenderSteps.start();
         int exitCode = toolFetch.execute(args);
         List<String> writerLogs = log.toString().lines().toList();
-        List<String> collectedLogs = testLogListAppenderSteps.list.stream()
-                .map(event -> "[%s] %s".formatted(event.getLevel(), event.getFormattedMessage()))
-                .toList();
+        List<String> collectedLogs = formatLogs(testLogListAppenderSteps.list);
         List<String> logs = Stream.concat(writerLogs.stream(), collectedLogs.stream()).toList();
         return new ExecResult(exitCode, logs);
+    }
+
+    private List<String> formatLogs(List<ILoggingEvent> events) {
+        PatternLayout layout = new PatternLayout();
+        try {
+            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+            layout.setContext(context);
+            layout.setPattern("%toolFetchPlainLogLevel %toolFetchPlainLogMessage");
+            layout.start();
+            return events.stream().map(layout::doLayout).toList();
+        } finally {
+            layout.stop();
+        }
     }
 
     void assertAnyMatch(ExecResult execResult, String message) {
@@ -116,14 +124,14 @@ public class ToolFetchTestBase {
     }
 
     void assertNoErrorNoWarn(ExecResult execResult) {
-        assertThat(execResult.logs()).noneMatch(
-                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(Level.ERROR)) || line.contains(
-                        "[%s]".formatted(Level.WARN)));
+        assertThat(execResult.logs()).noneMatch(line -> line.contains("Exception in thread")
+                || line.contains("[%s]".formatted(LogLevel.ERROR.toString()))
+                || line.contains("[%s]".formatted(LogLevel.WARN.toString())));
     }
 
     void assertNoError(ExecResult execResult) {
         assertThat(execResult.logs()).noneMatch(
-                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(Level.ERROR)));
+                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(LogLevel.ERROR.toString())));
     }
 
     void assertLogbackInit(ExecResult execResult) {

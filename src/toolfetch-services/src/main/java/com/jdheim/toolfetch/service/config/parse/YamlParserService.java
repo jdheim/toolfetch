@@ -11,25 +11,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 
 public class YamlParserService implements ParserService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(YamlParserService.class);
-
-    private static final String ERROR_MESSAGE_PREFIX = "Error occurred when parsing YAML configuration";
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(YamlParserService.class);
 
     @Override
     public Optional<Object> parse(Path yamlConfigPath) {
         try (InputStream in = Files.newInputStream(yamlConfigPath)) {
             return loadFromInputStream(in);
         } catch (IOException | YamlEngineException e) {
-            LOG.error("{}: {}", ERROR_MESSAGE_PREFIX, getExceptionMessage(e));
+            LOGGER.log("configuration-parser.exception", getExceptionMessage(e));
             return Optional.empty();
         }
     }
@@ -42,14 +39,14 @@ public class YamlParserService implements ParserService {
 
     Object logIfNull(Object rawConfiguration) {
         if (rawConfiguration == null) {
-            LOG.error("{}: should not be empty", ERROR_MESSAGE_PREFIX);
+            LOGGER.log("configuration-parser.empty");
         }
         return rawConfiguration;
     }
 
     boolean validateConfig(Object rawConfiguration) {
         if (!(rawConfiguration instanceof Map)) {
-            LOG.error("{}: should be a map object", ERROR_MESSAGE_PREFIX);
+            LOGGER.log("configuration-parser.not-map");
             return false;
         }
         return true;

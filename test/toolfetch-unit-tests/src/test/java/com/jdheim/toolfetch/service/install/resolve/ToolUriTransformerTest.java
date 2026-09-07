@@ -8,7 +8,7 @@ package com.jdheim.toolfetch.service.install.resolve;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import ch.qos.logback.classic.Level;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ class ToolUriTransformerTest {
     void setUp() {
         uriTransformer = new ToolUriTransformer();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(ToolUriTransformer.class);
+        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -47,7 +47,7 @@ class ToolUriTransformerTest {
     @ParameterizedTest
     @CsvSource({
             "http://localhost/download/${version}/toolfetch.zip, 'Missing required parameter: version'",
-            "ftp://localhost/download/toolfetch.zip, 'Forbidden scheme detected. Only http/https are allowed'"
+            "ftp://localhost/download/toolfetch.zip, 'Unsupported URI scheme. Only http/https are allowed'"
     })
     void testTransform_Unhappy(String url, String logMessage) {
         Tool tool = new Tool("toolfetch", url);
@@ -55,7 +55,7 @@ class ToolUriTransformerTest {
         URI actualURI = uriTransformer.transform(tool);
 
         assertThat(actualURI).isNull();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, logMessage);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), logMessage);
     }
 
 }

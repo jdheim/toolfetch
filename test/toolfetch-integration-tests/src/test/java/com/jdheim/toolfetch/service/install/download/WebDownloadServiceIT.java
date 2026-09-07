@@ -30,14 +30,14 @@ import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
+import com.jdheim.toolfetch.logging.LogMarker;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
-import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -65,7 +65,7 @@ class WebDownloadServiceIT {
     void setUp() {
         webDownloadService = new WebDownloadService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(WebDownloadService.class, ToolUriTransformer.class);
+        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -92,11 +92,12 @@ class WebDownloadServiceIT {
                         actualPath -> assertThat(actualPath).isEqualTo(tempDir.resolve(tool.id()).resolve("toolfetch.zip"))
                                 .exists()
                                 .isRegularFile());
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "=== Installing " + tool.id() + " ===");
+        testLogListAppenderSteps.assertAnyMatch(LogMarker.STEP.toString(), "=== Installing " + tool.id() + " ===");
         Path parentPath = path.get().getParent();
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Creating " + parentPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Downloading %s to %s".formatted(expectedUrl, parentPath));
-        testLogListAppenderSteps.assertAnyMatch(Level.INFO, "Download completed in ");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Creating " + parentPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
+                "Downloading %s to %s".formatted(expectedUrl, parentPath));
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
     }
 
     @Test
@@ -111,8 +112,8 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Forbidden scheme detected. Only http/https are allowed");
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "URI could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Unsupported URI scheme. Only http/https are allowed");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "URI could not be resolved. Skipping " + tool.id());
     }
 
     @Test
@@ -128,8 +129,8 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Missing required parameter: version");
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "URI could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Missing required parameter: version");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "URI could not be resolved. Skipping " + tool.id());
     }
 
     @Test
@@ -145,7 +146,8 @@ class WebDownloadServiceIT {
         verify(1, getRequestedFor(urlEqualTo(mockUrl)));
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Download failed: received HTTP 404 response. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Download failed: received HTTP 404 response. Skipping " + tool.id());
     }
 
     @Test
@@ -161,7 +163,8 @@ class WebDownloadServiceIT {
         verify(1, getRequestedFor(urlEqualTo(mockUrl)));
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Archive name could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Archive name could not be resolved. Skipping " + tool.id());
     }
 
     @Test
@@ -179,7 +182,7 @@ class WebDownloadServiceIT {
         verify(1, getRequestedFor(urlEqualTo(mockUrl)));
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed due to exception: \"java.io.IOException: I/O error occurred\". Skipping " + tool.id());
     }
 
@@ -207,7 +210,7 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + tool.id());
     }
 
@@ -230,7 +233,7 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
                         + tool.id());
     }

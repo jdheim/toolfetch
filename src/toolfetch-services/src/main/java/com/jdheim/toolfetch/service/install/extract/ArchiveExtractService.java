@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.exception.SkippedArchiveException;
@@ -29,12 +30,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ArchiveExtractService implements ExtractService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArchiveExtractService.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveExtractService.class);
 
     private static final String SLASH = "/";
 
@@ -53,33 +52,30 @@ public class ArchiveExtractService implements ExtractService {
     public void extract(Configuration configuration, Tool tool, Path archivePath) {
         Path destinationPath = archivePath.getParent();
         if (destinationPath == null) {
-            LOG.warn("Destination Path could not be resolved. Skipping {}", tool.id());
+            LOGGER.log("archive-extract.destination-not-found", tool.id());
             return;
         }
         try {
             extract(archivePath, destinationPath);
             cleanup(archivePath, destinationPath);
         } catch (SkippedArchiveException _) {
-            LOG.info("Detected binary file. Skipping archive extraction");
+            LOGGER.log("archive-extract.binary-file-found");
             tryRenameAndSetExecutable(archivePath, tool);
         } catch (Exception e) {
-            LOG.warn("Extract failed due to exception: \"{}: {}\". Skipping {}",
-                    e.getClass().getName(),
-                    e.getMessage(),
-                    tool.id());
+            LOGGER.log("archive-extract.exception", e.getClass().getName(), StringUtils.trimToEmpty(e.getMessage()), tool.id());
             FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }
 
     private void extract(Path archivePath, Path destinationPath) throws IOException {
         String topLevelDir = normalize(pathScanner.scan(archivePath));
-        LOG.info("Extracting {} to {}", archivePath, destinationPath);
+        LOGGER.log("archive-extract.started", archivePath, destinationPath);
         long startTime = System.nanoTime();
         try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
             extractStream(acis, destinationPath, topLevelDir);
         } finally {
             String elapsedTime = LogHelper.elapsedTime(startTime);
-            LOG.info("Extract completed in {}s", elapsedTime);
+            LOGGER.log("archive-extract.completed", elapsedTime);
         }
     }
 
@@ -93,7 +89,7 @@ public class ArchiveExtractService implements ExtractService {
             boolean canReadEntryData = acis.canReadEntryData(archiveEntry);
             if (!canReadEntryData || archiveEntry.isDirectory()) {
                 if (!canReadEntryData) {
-                    LOG.warn("Couldn't read archive entry \"{}\". Skipping", archiveEntry);
+                    LOGGER.log("archive-extract.entry-failed", archiveEntry);
                 }
                 continue;
             }
@@ -135,10 +131,9 @@ public class ArchiveExtractService implements ExtractService {
         Path normalizedDestination = destinationPath.toAbsolutePath().normalize();
         Path normalizedTarget = normalizedDestination.resolve(entryName).normalize();
         if (!normalizedTarget.startsWith(normalizedDestination)) {
-            throw new UnsupportedOperationException("Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"".formatted(
-                    normalizedDestination,
-                    entryName,
-                    normalizedTarget));
+            throw new UnsupportedOperationException(
+                    "Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"".formatted(normalizedDestination, entryName,
+                            normalizedTarget));
         }
         return normalizedTarget;
     }
@@ -207,10 +202,10 @@ public class ArchiveExtractService implements ExtractService {
     }
 
     private void cleanup(Path archivePath, Path destinationPath) throws IOException {
-        LOG.info("Removing {}", archivePath);
+        LOGGER.log("path.remove", archivePath);
         FileUtils.deleteQuietly(archivePath.toFile());
         if (FileUtils.isEmptyDirectory(destinationPath.toFile())) {
-            LOG.warn("Nothing has been extracted. Removing {}", destinationPath);
+            LOGGER.log("archive-extract.path-remove", destinationPath);
             FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }
@@ -218,11 +213,11 @@ public class ArchiveExtractService implements ExtractService {
     private void tryRenameAndSetExecutable(Path sourcePath, Tool tool) {
         try {
             applyUnixPermissions(sourcePath, 0770);
-            LOG.info("Setting {} as executable", sourcePath);
+            LOGGER.log("archive-extract.set-executable", sourcePath);
             Path targetPath = sourcePath.resolveSibling(tool.id() + getFileSuffix(sourcePath));
             if (!sourcePath.equals(targetPath)) {
                 Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
-                LOG.info("Renaming {} to {}", sourcePath, targetPath);
+                LOGGER.log("path.rename", sourcePath, targetPath);
             }
         } catch (IOException _) {
             // Ignored

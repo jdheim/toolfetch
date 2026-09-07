@@ -6,7 +6,6 @@
 package com.jdheim.toolfetch.service.info;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
@@ -19,8 +18,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
-import ch.qos.logback.classic.Level;
 import com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider;
+import com.jdheim.toolfetch.logging.LogLevel;
+import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +51,7 @@ class ToolFetchVersionInfoProviderIT {
     void setUp() {
         provider = new ToolFetchVersionInfoProvider();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(ToolFetchInfo.class);
+        testLogListAppenderSteps.start();
     }
 
     @AfterEach
@@ -88,7 +88,7 @@ class ToolFetchVersionInfoProviderIT {
     @Test
     void testVersion_ResourceNotFound() {
         assertVersionWithVersionInfo("/version-info/version-info_not-found.properties");
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Resource not found: \"/version-info/version-info_not-found.properties\"");
     }
 
@@ -101,7 +101,7 @@ class ToolFetchVersionInfoProviderIT {
             assertVersionWithVersionInfo("/version-info.properties");
             lazyHolder.verify(ToolFetchInfo.LazyHolder::getProperties, times(1));
             verify(propertiesMock).load(any(InputStream.class));
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                     "Failed to load resource: \"/version-info.properties\" due to \"I/O error occurred\"");
         }
     }
@@ -131,8 +131,8 @@ class ToolFetchVersionInfoProviderIT {
     }
 
     @Test
-    void testLazyHolder_NoInstance() {
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(ToolFetchInfo.LazyHolder::new);
+    void testLazyHolderNotInstantiable() {
+        AssertionSteps.assertNotInstantiable(ToolFetchInfo.LazyHolder.class);
     }
 
 }

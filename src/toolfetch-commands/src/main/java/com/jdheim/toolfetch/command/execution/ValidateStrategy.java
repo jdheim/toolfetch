@@ -10,13 +10,13 @@ import com.jdheim.toolfetch.command.ToolFetch;
 import com.jdheim.toolfetch.command.execution.option.ConfigPathValidationRule;
 import picocli.CommandLine;
 
-public class ValidatingExecutionStrategy implements CommandLine.IExecutionStrategy {
+public class ValidateStrategy implements CommandLine.IExecutionStrategy {
 
     @Override
     public int execute(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException,
             CommandLine.ParameterException {
         validate(parseResult);
-        return new CommandLine.RunLast().execute(parseResult);
+        return CommandLine.ExitCode.OK;
     }
 
     private void validate(CommandLine.ParseResult parseResult) {

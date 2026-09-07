@@ -19,7 +19,7 @@ public final class EnvResolver {
 
     private static final Pattern ENV_PATTERN = Pattern.compile("\\$\\{([A-Z_][A-Z0-9_]*)}|\\$([A-Z_][A-Z0-9_]*)(?![A-Z0-9_]*})");
 
-    EnvResolver() {
+    private EnvResolver() {
         throw new AssertionError();
     }
 
@@ -38,12 +38,13 @@ public final class EnvResolver {
         Matcher matcher = ENV_PATTERN.matcher(input);
 
         while (matcher.find()) {
-            String envName = matcher.group(1) != null ? matcher.group(1) : matcher.group(2);
+            String envNameCandidate = matcher.group(1);
+            String envName = envNameCandidate != null ? envNameCandidate : matcher.group(2);
             String envValue = System.getenv(envName);
 
             if (envValue == null) {
-                throw new IllegalArgumentException("Environment variable \"%s\" is not set (provided in \"%s\")".formatted(envName,
-                        input));
+                throw new IllegalArgumentException(
+                        "Environment variable \"%s\" is not set (provided in \"%s\")".formatted(envName, input));
             }
 
             matcher.appendReplacement(result, Matcher.quoteReplacement(envValue));

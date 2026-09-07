@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import ch.qos.logback.classic.Level;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
@@ -40,7 +40,7 @@ class ArchiveExtractServiceTest {
     void setUp() {
         archiveExtractService = new ArchiveExtractService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(ArchiveExtractService.class);
+        testLogListAppenderSteps.start();
     }
 
     @Test
@@ -50,7 +50,8 @@ class ArchiveExtractServiceTest {
         archiveExtractService.extract(configuration, tool, Path.of("toolfetch.zip"));
 
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(Level.WARN, "Destination Path could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Destination path could not be resolved. Skipping " + tool.id());
     }
 
     @Test

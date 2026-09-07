@@ -20,6 +20,8 @@ public class ToolFetchVersionInfoProvider implements CommandLine.IVersionProvide
 
     private static final String SEPARATOR_CHAR = "-";
 
+    private static final int LABEL_WIDTH = 16;
+
     private static final int DEFAULT_SEPARATOR_COUNT = 70;
 
     public static String separator(String... lines) {
@@ -34,15 +36,19 @@ public class ToolFetchVersionInfoProvider implements CommandLine.IVersionProvide
     @Override
     public String[] getVersion() {
         String titleWithVersion = "%s %s by JDHeim.com".formatted(TITLE.value(), VERSION.value());
-        String buildTime = "Build Time:     " + BUILD_TIME.value();
-        String revision = "Build Revision: " + BUILD_REVISION.value();
-        String jvm = "Build GraalVM:  " + BUILD_GRAALVM.value();
+        String buildTime = rightPad("Build Time", BUILD_TIME.value());
+        String revision = rightPad("Build Revision", BUILD_REVISION.value());
+        String jvm = rightPad("Build GraalVM", BUILD_GRAALVM.value());
 
         String separator = separator(titleWithVersion, buildTime, revision, jvm);
 
         return new String[]{
                 separator, titleWithVersion, separator, buildTime, revision, jvm, separator
         };
+    }
+
+    private String rightPad(String label, Object value) {
+        return StringUtils.rightPad(label + ":", LABEL_WIDTH) + value;
     }
 
 }

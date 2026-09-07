@@ -19,7 +19,7 @@ public final class ArchiveZipBombValidator {
 
     private static final double THRESHOLD_RATIO = 100.0;
 
-    ArchiveZipBombValidator() {
+    private ArchiveZipBombValidator() {
         throw new AssertionError();
     }
 

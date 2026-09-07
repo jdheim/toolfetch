@@ -6,7 +6,10 @@
 package com.jdheim.toolfetch.step.assertion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 
 /// Utility class for performing common assertions
@@ -14,6 +17,20 @@ public final class AssertionSteps {
 
     private AssertionSteps() {
         throw new AssertionError();
+    }
+
+    /// Reflection should not be used to increase accessibility of classes, methods, or fields (java:S3011)
+    /// Justification: Test-only method
+    @SuppressWarnings("java:S3011")
+    public static <T> void assertNotInstantiable(Class<T> clazz) {
+        try {
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            assertThatThrownBy(constructor::newInstance).isInstanceOf(InvocationTargetException.class)
+                    .hasCauseInstanceOf(AssertionError.class);
+        } catch (ReflectiveOperationException e) {
+            throw new LinkageError("Failed to assert that class is not instantiable", e);
+        }
     }
 
     /// Asserts the structure and contents of the specified destination directory after the "sample1" archive is extracted

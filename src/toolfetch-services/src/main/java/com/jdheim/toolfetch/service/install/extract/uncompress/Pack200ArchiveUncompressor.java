@@ -31,7 +31,7 @@ public class Pack200ArchiveUncompressor extends AutoDetectArchiveUncompressor {
         if (isPack200(archivePath)) {
             return ImmutablePair.of(getPack200InputStream(bis), null);
         } else if (isPack200Gz(archivePath)) {
-            CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(bis);
+            CompressorInputStream cis = compressorStreamFactory().createCompressorInputStream(bis);
             return ImmutablePair.of(getPack200InputStream(new BufferedInputStream(cis)), cis);
         }
         return ImmutablePair.of(bis, null);

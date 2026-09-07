@@ -26,17 +26,23 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class AutoDetectArchiveUncompressor implements Uncompressor {
 
-    protected static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY = new CompressorStreamFactory(true);
+    private static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY = new CompressorStreamFactory(true);
 
-    protected static final ArchiveStreamFactory ARCHIVE_STREAM_FACTORY = new ArchiveStreamFactory();
+    private static final ArchiveStreamFactory ARCHIVE_STREAM_FACTORY = new ArchiveStreamFactory();
 
     private static final String NO_ARCHIVER_FOUND_FOR_THE_STREAM_SIGNATURE = "No Archiver found for the stream signature";
 
     /// [@Patch COMPRESS-710](https://issues.apache.org/jira/browse/COMPRESS-710)
-    private static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR,
-            ArchiveStreamFactory.ARJ,
-            ArchiveStreamFactory.CPIO,
-            ArchiveStreamFactory.DUMP);
+    private static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR, ArchiveStreamFactory.ARJ,
+            ArchiveStreamFactory.CPIO, ArchiveStreamFactory.DUMP);
+
+    protected static CompressorStreamFactory compressorStreamFactory() {
+        return COMPRESSOR_STREAM_FACTORY;
+    }
+
+    protected static ArchiveStreamFactory archiveStreamFactory() {
+        return ARCHIVE_STREAM_FACTORY;
+    }
 
     @Override
     public boolean isApplicable(Path archivePath) {
@@ -49,7 +55,7 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
         BufferedInputStream bis = new BufferedInputStream(in);
         ImmutablePair<BufferedInputStream, CompressorInputStream> cis = createCompressorInputStream(bis, archivePath);
         BufferedInputStream bufferedCis = cis.getLeft();
-        ArchiveInputStream<ArchiveEntry> ais = ARCHIVE_STREAM_FACTORY.createArchiveInputStream(detect(bufferedCis), bufferedCis);
+        ArchiveInputStream<ArchiveEntry> ais = archiveStreamFactory().createArchiveInputStream(detect(bufferedCis), bufferedCis);
         CompressorInputStream lastCis = cis.getRight();
         return new ArchiveWithCompressorInputStream(ais, lastCis);
     }
@@ -64,7 +70,7 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
         CompressorInputStream lastCis = null;
         while (!progress.finished()) {
             try {
-                CompressorInputStream cis = COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(progress.stream());
+                CompressorInputStream cis = compressorStreamFactory().createCompressorInputStream(progress.stream());
                 lastCis = cis;
                 progress = new ArchiveUncompressProgress(false, new BufferedInputStream(cis));
             } catch (CompressorException _) {

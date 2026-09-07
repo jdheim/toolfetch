@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.file.Path;
+import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -75,8 +76,8 @@ class EnvResolverTest {
     }
 
     @Test
-    void testNoInstance() {
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(EnvResolver::new);
+    void testNotInstantiable() {
+        AssertionSteps.assertNotInstantiable(EnvResolver.class);
     }
 
 }

@@ -7,9 +7,9 @@ package com.jdheim.toolfetch.service.install;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,7 @@ class ArjArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/arj/" + archiveName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: "
                             + "No Archiver found for the stream signature\". Skipping toolfetch");
             assertThat(destinationPath).doesNotExist();

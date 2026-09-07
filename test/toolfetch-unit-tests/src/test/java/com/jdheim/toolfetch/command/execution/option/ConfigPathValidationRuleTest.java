@@ -53,7 +53,7 @@ class ConfigPathValidationRuleTest {
 
     @BeforeEach
     void setUp() {
-        commandLine = new CommandLine(new ToolFetch());
+        commandLine = ToolFetch.commandLine();
     }
 
     @ParameterizedTest

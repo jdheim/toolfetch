@@ -8,9 +8,9 @@ package com.jdheim.toolfetch.service.install;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import ch.qos.logback.classic.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
 import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import org.junit.jupiter.api.Disabled;
@@ -96,10 +96,11 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/7z/sample%d-password.7z".formatted(index));
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
-            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Couldn't read archive entry \"%s\". Skipping".formatted(file)));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.INFO, "Removing " + tempDir.resolve("toolfetch/toolfetch.7z"));
-            getTestLogListAppenderSteps().assertAnyMatch(Level.WARN,
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                    "Removing " + tempDir.resolve("toolfetch/toolfetch.7z"));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
             assertThat(destinationPath).doesNotExist();
         });

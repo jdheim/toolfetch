@@ -6,18 +6,17 @@
 package com.jdheim.toolfetch.service.config.validation;
 
 import java.util.List;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 public class JsonSchemaValidationService implements ValidationService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JsonSchemaValidationService.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(JsonSchemaValidationService.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -30,8 +29,8 @@ public class JsonSchemaValidationService implements ValidationService {
         List<Error> errors = schema.validate(jsonConfiguration, executionContext -> executionContext.executionConfig(
                 executionConfig -> executionConfig.formatAssertionsEnabled(true)));
         if (!errors.isEmpty()) {
-            LOG.error("Config does not conform to schema:");
-            errors.forEach(error -> LOG.error("- {}", error.getMessage()));
+            LOGGER.log("json-schema-validation.issue-header");
+            errors.forEach(error -> LOGGER.log("json-schema-validation.issue", error.getMessage()));
             return false;
         }
         return true;

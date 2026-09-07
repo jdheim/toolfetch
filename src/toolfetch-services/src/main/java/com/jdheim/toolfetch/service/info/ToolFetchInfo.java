@@ -8,9 +8,8 @@ package com.jdheim.toolfetch.service.info;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public enum ToolFetchInfo {
 
@@ -20,7 +19,7 @@ public enum ToolFetchInfo {
     BUILD_REVISION("toolfetch.build.revision", "dev"),
     BUILD_GRAALVM("toolfetch.build.graalvm", "-");
 
-    private static final Logger LOG = LoggerFactory.getLogger(ToolFetchInfo.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetchInfo.class);
 
     private static final String VERSION_INFO_FILE_PATH = "/version-info.properties";
 
@@ -47,7 +46,7 @@ public enum ToolFetchInfo {
 
         private static Properties versionInfoProps = load(VERSION_INFO_FILE_PATH);
 
-        LazyHolder() {
+        private LazyHolder() {
             throw new AssertionError();
         }
 
@@ -57,10 +56,10 @@ public enum ToolFetchInfo {
                 if (in != null) {
                     props.load(in);
                 } else {
-                    LOG.warn("Resource not found: \"{}\"", versionInfoFilePath);
+                    LOGGER.log("info.resource-not-found", versionInfoFilePath);
                 }
             } catch (IOException e) {
-                LOG.error("Failed to load resource: \"{}\" due to \"{}\"", versionInfoFilePath, e.getMessage());
+                LOGGER.log("info.resource-load-failed", versionInfoFilePath, StringUtils.trimToEmpty(e.getMessage()));
             }
             return props;
         }

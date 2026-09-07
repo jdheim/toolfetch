@@ -9,10 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.util.Optional;
-import ch.qos.logback.classic.Level;
+import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.service.config.parse.YamlParserService;
-import com.jdheim.toolfetch.service.config.validation.JsonSchemaValidationService;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +36,7 @@ class YamlConfigurationServiceUnhappyTest {
     void setUp() {
         configurationService = new YamlConfigurationService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start(YamlParserService.class, JsonSchemaValidationService.class);
+        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -47,21 +45,21 @@ class YamlConfigurationServiceUnhappyTest {
     })
     void testConfigPath(String configPath) {
         parseConfigPath(configPath);
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Error occurred when parsing YAML configuration:");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Error occurred when parsing YAML configuration:");
     }
 
     @Test
     void testRequiredPropertyNotFound() {
         parseConfigPath("toolfetch_required-property-not-found.yaml");
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "- required property 'destination' not found");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "- required property 'destination' not found");
     }
 
     @Test
     void testPropertyNotDefined() {
         parseConfigPath("toolfetch_property-not-defined.yaml");
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-        testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                 "- property 'incorrect' is not defined in the schema and the schema does not allow additional properties");
     }
 
@@ -73,14 +71,14 @@ class YamlConfigurationServiceUnhappyTest {
     void testId(String configPath) {
         parseConfigPath("id/" + configPath);
         if (configPath.contains("-null")) {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "- null found, string expected");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "- null found, string expected");
         } else if (configPath.contains("-empty")) {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "- must be at least 1 characters long");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "- must be at least 1 characters long");
         } else {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "- does not match the regex pattern ^\\S+$");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "- does not match the regex pattern ^\\S+$");
         }
     }
 
@@ -94,19 +92,19 @@ class YamlConfigurationServiceUnhappyTest {
     void testUrl(String configPath) {
         parseConfigPath("url/" + configPath);
         if (configPath.contains("-empty")) {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "- must be at least 1 characters long");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "- must be at least 1 characters long");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                     "- does not match the regex pattern ^https?://(?:(?!\\$\\{(?!version\\})).)*$");
         } else if (configPath.contains("-no-variable-with-version")) {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                     "- must not be valid to the schema {\"required\":[\"version\"]}");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                     "- must not be valid to the schema {\"required\":[\"version\"]}");
         } else {
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR, "Config does not conform to schema:");
-            testLogListAppenderSteps.assertAnyMatch(Level.ERROR,
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
                     "- does not match the regex pattern ^https?://(?:(?!\\$\\{(?!version\\})).)*$");
         }
     }
