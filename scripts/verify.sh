@@ -148,7 +148,7 @@ spotBugsHtml() {
   shift
   local modulePath
   modulePath="$(modulePath "${1:-}")"
-  run open "${modulePath}/target/site/spotbugs.html"
+  run open "${modulePath}/target/reports/spotbugs.html"
   exit $?
 }
 

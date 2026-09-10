@@ -51,4 +51,4 @@ jobs:
         with:
           name: ${{ matrix.scan.id }}-report
           if-no-files-found: error
-          path: "**/target/site/spotbugs.html"
+          path: "**/target/reports/spotbugs.html"
