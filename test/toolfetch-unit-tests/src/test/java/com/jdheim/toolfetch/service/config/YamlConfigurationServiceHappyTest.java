@@ -51,7 +51,7 @@ class YamlConfigurationServiceHappyTest {
 
         if (configPath.contains("_trustStore")) {
             TrustStore trustStore = configuration.map(Configuration::http).map(Http::ssl).map(Ssl::trustStore).orElseThrow();
-            TrustStore expectedTrustStore = new TrustStore("$JAVA_HOME/lib/security/cacerts", "PKCS12");
+            TrustStore expectedTrustStore = new TrustStore("custom/cacerts", "PKCS12");
             assertThat(trustStore).isNotNull().isEqualTo(expectedTrustStore);
         }
 

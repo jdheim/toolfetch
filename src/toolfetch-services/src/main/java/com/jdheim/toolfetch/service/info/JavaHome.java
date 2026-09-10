@@ -15,7 +15,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 
-/// Resolves the Java home directory from the first valid Java executable found on the `PATH` environment variable.
+/// Resolves the Java home directory from the first valid Java executable found on the `$PATH` environment variable.
 public final class JavaHome {
 
     static final String JAVA_EXEC = "java";

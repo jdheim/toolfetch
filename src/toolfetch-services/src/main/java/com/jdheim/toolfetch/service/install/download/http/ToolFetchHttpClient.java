@@ -23,7 +23,7 @@ import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.http.Http;
 import com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.jdheim.toolfetch.service.info.JavaHome;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -32,8 +32,6 @@ public final class ToolFetchHttpClient {
     private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetchHttpClient.class);
 
     private static final String TLS = "TLS";
-
-    private static final String JAVA_HOME_ENV = "JAVA_HOME";
 
     private static final String TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD_ENV = "TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD";
 
@@ -106,12 +104,11 @@ public final class ToolFetchHttpClient {
                 return sslContext;
             }
         }
-        String javaHome = javaHomeEnv();
-        if (StringUtils.isNotBlank(javaHome)) {
-            Path javaHomePath = Path.of(javaHome);
-            Path javaCacerts = resolveJavaCacerts(javaHomePath);
+        Path javaHome = JavaHome.get();
+        if (javaHome != null) {
+            Path javaCacerts = resolveJavaCacerts(javaHome);
             if (javaCacerts == null) {
-                LOGGER.log("http-client.default-truststore-fallback", javaHomePath.resolve(JDK_9_CACERTS_RELATIVE_PATH));
+                LOGGER.log("http-client.default-truststore-fallback", javaHome.resolve(JDK_9_CACERTS_RELATIVE_PATH));
                 return null;
             }
             return initSslContext(javaCacerts, javaCacertsDefaultPassword());
@@ -130,13 +127,6 @@ public final class ToolFetchHttpClient {
             return java8Cacerts;
         }
         return null;
-    }
-
-    @SuppressFBWarnings(value = "ENV_USE_PROPERTY_INSTEAD_OF_ENV", justification =
-            "JAVA_HOME is intentionally used as an external JDK location. "
-                    + "java.home is not reliable for locating lib/security/cacerts in GraalVM Native Image")
-    private @Nullable String javaHomeEnv() {
-        return System.getenv(JAVA_HOME_ENV);
     }
 
     private @Nullable SSLContext initSslContext(Path resolvedPath, char[] defaultPassword) {

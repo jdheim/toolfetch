@@ -13,8 +13,6 @@ import org.jspecify.annotations.Nullable;
 /// Http Builder for Tests
 public class TestHttpBuilder {
 
-    private static final String DEFAULT_TRUSTSTORE_PATH = "$JAVA_HOME/lib/security/cacerts";
-
     private static final String DEFAULT_TRUSTSTORE_TYPE = "PKCS12";
 
     private @Nullable Integer connectTimeout;
@@ -46,23 +44,12 @@ public class TestHttpBuilder {
         return this;
     }
 
-    public TestHttpBuilder withDefaultTrustStorePath() {
-        trustStorePath = DEFAULT_TRUSTSTORE_PATH;
-        return this;
-    }
-
     public TestHttpBuilder trustStoreType(String trustStoreType) {
         this.trustStoreType = trustStoreType;
         return this;
     }
 
     public TestHttpBuilder withDefaultTrustStoreType() {
-        trustStoreType = DEFAULT_TRUSTSTORE_TYPE;
-        return this;
-    }
-
-    public TestHttpBuilder withDefaultTrustStore() {
-        trustStorePath = DEFAULT_TRUSTSTORE_PATH;
         trustStoreType = DEFAULT_TRUSTSTORE_TYPE;
         return this;
     }

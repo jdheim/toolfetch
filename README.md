@@ -206,7 +206,9 @@ destination: "/opt"
 http:
   ssl:
     trustStore:
-      path: "/path/to/truststore" # Location of the TrustStore file containing trusted CA certificates. Default: $JAVA_HOME/lib/security/cacerts, $JAVA_HOME/jre/lib/security/cacerts or the bundled default TrustStore
+      path: "/path/to/truststore" # Location of the TrustStore file containing trusted CA certificates.
+                                  # Default: lib/security/cacerts or jre/lib/security/cacerts under JavaHome, which ToolFetch resolves from the first valid java executable on $PATH;
+                                  # otherwise the bundled default TrustStore
       type: "PKCS12"              # TrustStore type. Default: autodetected. Set the type if autodetection fails
       # If the TrustStore is password-protected, specify the password using the TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD environment variable
 tools:
@@ -223,16 +225,17 @@ sun.security.provider.certpath.SunCertPathBuilderException:
 unable to find valid certification path to requested target
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > TrustStore precedence:
 > 1. `http.ssl.trustStore.path`
-> 2. `$JAVA_HOME/lib/security/cacerts` (JDK 9+)
-> 3. `$JAVA_HOME/jre/lib/security/cacerts` (JDK 8)
+> 2. `JavaHome/lib/security/cacerts` (JDK 9+)
+> 3. `JavaHome/jre/lib/security/cacerts` (JDK 8)
 > 4. The bundled default TrustStore
 
-> [!TIP]  
-> If you [import a Certificate for the CA](https://dev.java/learn/jvm/tool/security/keytool/#importing-for-ca) into `$JAVA_HOME/lib/security/cacerts`
-> or `$JAVA_HOME/jre/lib/security/cacerts`, you do not need to configure `http.ssl.trustStore`.
+> [!TIP]
+> ToolFetch resolves `JavaHome` from the first valid `java` executable on `$PATH`. If
+you [import a Certificate for the CA](https://dev.java/learn/jvm/tool/security/keytool/#importing-for-ca) into `JavaHome/lib/security/cacerts`
+> or `JavaHome/jre/lib/security/cacerts`, you do not need to configure `http.ssl.trustStore`.
 
 ## Archive and Compression Formats
 
@@ -242,7 +245,7 @@ Currently, the following Archive Formats are supported:
 - `zip`
 - `jar`
 
-> [!WARNING]  
+> [!WARNING]
 > `7z` support is planned
 
 and Compression Formats:

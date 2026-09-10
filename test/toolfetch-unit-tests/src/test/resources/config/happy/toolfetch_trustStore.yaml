@@ -2,7 +2,7 @@ destination: "/tmp"
 http:
   ssl:
     trustStore:
-      path: "$JAVA_HOME/lib/security/cacerts"
+      path: "custom/cacerts"
       type: "PKCS12"
       # Use TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD env variable for password
 tools:

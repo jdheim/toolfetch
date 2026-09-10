@@ -40,7 +40,7 @@
               "properties": {
                 "path": {
                   "type": "string",
-                  "description": "Location of the TrustStore file containing trusted CA certificates. Default: $JAVA_HOME/lib/security/cacerts, $JAVA_HOME/jre/lib/security/cacerts or the bundled default TrustStore",
+                  "description": "Location of the TrustStore file containing trusted CA certificates. Default: lib/security/cacerts or jre/lib/security/cacerts under JavaHome, which ToolFetch resolves from the first valid java executable on $PATH; otherwise the bundled default TrustStore",
                   "minLength": 1,
                   "pattern": ".*\\S.*"
                 },

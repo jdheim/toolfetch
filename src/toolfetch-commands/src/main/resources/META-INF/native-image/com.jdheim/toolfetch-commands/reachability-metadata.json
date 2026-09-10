@@ -467,7 +467,22 @@
       ]
     },
     {
-      "type": "com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient"
+      "type": "com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient",
+      "methods": [
+        {
+          "name": "getInstance",
+          "parameterTypes": [
+            "com.jdheim.toolfetch.model.Configuration"
+          ]
+        },
+        {
+          "name": "trustStorePasswordOrDefault",
+          "parameterTypes": [
+            "java.util.function.Supplier",
+            "char[]"
+          ]
+        }
+      ]
     },
     {
       "type": "com.jdheim.toolfetch.service.install.extract.uncompress.AutoDetectArchiveUncompressor",
