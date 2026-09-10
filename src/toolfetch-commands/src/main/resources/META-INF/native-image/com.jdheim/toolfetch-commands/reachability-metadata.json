@@ -1060,7 +1060,7 @@
       "glob": "keystore"
     },
     {
-      "glob": "linux/amd64/libzstd-jni-1.5.7-15.so"
+      "glob": "linux/amd64/libzstd-jni-1.5.7-16.so"
     },
     {
       "glob": "logback.xml"
