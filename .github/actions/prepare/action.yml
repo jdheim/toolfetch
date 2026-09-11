@@ -128,7 +128,7 @@ runs:
     - name: "Set Project Version in Maven"
       if: ${{ inputs.release-type != 'SNAPSHOT' }}
       shell: bash
-      run: ./mvnw -ntp versions:set -DnewVersion="${PROJECT_VERSION}" -DgenerateBackupPoms=false
+      run: ./mvnw -ntp versions:set -DnewVersion="${PROJECT_VERSION}" -DprocessAllModules=true -DgenerateBackupPoms=false
 
     - name: "Generate Workflow Stats"
       if: ${{ inputs.generate-workflow-stats == 'true' }}
