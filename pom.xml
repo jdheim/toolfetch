@@ -9,7 +9,7 @@
 
     <groupId>com.jdheim</groupId>
     <artifactId>toolfetch</artifactId>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ToolFetch</name>
@@ -35,7 +35,7 @@
         <main.class.file>com/jdheim/toolfetch/Main</main.class.file>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.graalvm>${java.version} (${java.vendor} ${java.vm.version})</project.build.graalvm>
-        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-09-12T23:05:34Z</project.build.outputTimestamp>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
