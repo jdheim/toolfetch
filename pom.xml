@@ -363,36 +363,18 @@
         <module>src/toolfetch-models</module>
         <module>src/toolfetch-services</module>
         <module>src/toolfetch-commands</module>
+
+        <module>test/toolfetch-native-agent</module>
+        <module>test/toolfetch-test-steps</module>
+        <module>test/toolfetch-unit-tests</module>
+        <module>test/toolfetch-integration-tests</module>
+        <module>test/toolfetch-smoke-tests</module>
+        <module>test/toolfetch-test-coverage</module>
+
+        <module>build/toolfetch-native-image</module>
     </modules>
 
     <profiles>
-        <profile>
-            <id>native-agent-scan</id>
-            <modules>
-                <module>test/toolfetch-native-agent</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>tests</id>
-            <activation>
-                <property>
-                    <name>!skipAllTests</name>
-                </property>
-            </activation>
-            <modules>
-                <module>test/toolfetch-test-steps</module>
-                <module>test/toolfetch-unit-tests</module>
-                <module>test/toolfetch-integration-tests</module>
-                <module>test/toolfetch-smoke-tests</module>
-                <module>test/toolfetch-test-coverage</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>native-image</id>
-            <modules>
-                <module>build/toolfetch-native-image</module>
-            </modules>
-        </profile>
         <profile>
             <id>linux-amd64</id>
             <activation>

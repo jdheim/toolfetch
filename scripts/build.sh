@@ -51,7 +51,7 @@ readOptions() {
 }
 
 enrichNativeOptions() {
-  remainingOptions+=("-DskipAllTests" "-Psetup-graalvm" "-Pnative-image")
+  remainingOptions+=("-Psetup-graalvm")
 }
 
 addMvnPhase() {
