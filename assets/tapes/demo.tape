@@ -63,7 +63,7 @@ Set Shell "bash"
 Set FontSize 12
 Set FontFamily "MesloLGS NF"
 Set Width 800
-Set Height 470
+Set Height 480
 Set Padding 10
 
 Hide

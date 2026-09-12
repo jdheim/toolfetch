@@ -71,7 +71,7 @@ Given the following configuration file named `toolfetch.yaml`:
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    url: "https://github.com/jdheim/toolfetch/releases/download/v0.0.3/toolfetch-0.0.3-linux-amd64.tar.gz"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v0.0.6/toolfetch-0.0.6-linux-amd64.tar.gz"
 ```
 
 When you invoke the command: `toolfetch --config "toolfetch.yaml"`, the latest version of the tool will be installed like this:
@@ -89,10 +89,10 @@ You can use optional placeholder: `${version}` in `url` which will be replaced w
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
   - id: "intellij-idea"
-    version: "2026.1.1"
+    version: "2026.2.2"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
@@ -112,11 +112,11 @@ You can optionally define a `destination` key for a specific tool to install it 
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     destination: "best-tools" # or absolute path: "/opt/best-tools"
   - id: "intellij-idea"
-    version: "2026.1.1"
+    version: "2026.2.2"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
@@ -139,15 +139,15 @@ You can optionally define a `checksums` key for a specific tool to verify the do
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     checksums:
-      sha256: "5c0a98ae80e06eea619ae878d84748154405903b42fc12c1cd02ddf98440eb77"
+      sha256: "5a246140b879e434dd8abaf3d9c0c5379d428011867680bb6d5f5760593403f6"
   - id: "intellij-idea"
-    version: "2026.1.1"
+    version: "2026.2.2"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
     checksums:
-      sha256: "7a58d386f2a2e5a8cd7e4591657b4fe599aeac22d960c7accf5f927846507bfb"
+      sha256: "f1cc5329a7adf3ab3bd8886744103f7d3bcf1ca12e699762ecd9bffe57335f8b"
 ```
 
 Currently, the following Checksum Verification Formats are supported:
@@ -174,11 +174,11 @@ Example:
 destination: "$HOME/tools"
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     destination: "${DEV_HOME}/best-tools"
   - id: "intellij-idea"
-    version: "2026.1.1"
+    version: "2026.2.2"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
 ```
 
@@ -195,7 +195,7 @@ http:
   requestTimeout: 300 # HTTP request timeout in seconds. Default: 900 seconds (15 minutes)
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
 ```
 
@@ -213,7 +213,7 @@ http:
       # If the TrustStore is password-protected, specify the password using the TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD environment variable
 tools:
   - id: "toolfetch"
-    version: "0.0.3"
+    version: "0.0.6"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
 ```
 
