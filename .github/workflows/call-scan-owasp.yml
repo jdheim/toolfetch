@@ -27,7 +27,7 @@ jobs:
 
       - name: "Build"
         working-directory: scripts
-        run: ./build.sh -c
+        run: ./build.sh
 
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
       - name: "Install .NET SDK required by AssemblyAnalyzer"

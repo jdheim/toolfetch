@@ -37,7 +37,7 @@ jobs:
 
       - name: "Build"
         working-directory: scripts
-        run: ./build.sh -c
+        run: ./build.sh
 
       - name: "${{ matrix.scan.name }}"
         working-directory: scripts

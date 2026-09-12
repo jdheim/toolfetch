@@ -41,7 +41,7 @@ jobs:
 
       - name: "Build"
         working-directory: scripts
-        run: ./build.sh -c
+        run: ./build.sh
 
       - name: "Download ToolFetch Binary"
         uses: actions/download-artifact@v8
