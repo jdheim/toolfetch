@@ -51,10 +51,6 @@ declare -Ar HARDCODED_COPYRIGHT_NOTICES=(
 
 main() {
   step "Update Notice"
-  if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
-    warn "Skipping in GitHub Actions"
-    return
-  fi
   if [[ -f "${THIRD_PARTY}" ]]; then
     validateLibs
     generateNotice
