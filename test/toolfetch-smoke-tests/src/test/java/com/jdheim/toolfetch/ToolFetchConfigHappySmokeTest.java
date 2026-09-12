@@ -82,12 +82,10 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             String binaryFileName = tool.id() + "_" + tool.version() + ".AppImage";
             Path binaryFilePath = destinationPath.resolve(binaryFileName);
             assertLogs(execResult, tool, destinationPath, binaryFilePath);
-            assertAnyMatch(execResult,
-                    "[%s] Detected binary file. Skipping archive extraction".formatted(LogLevel.INFO.toString()));
-            assertAnyMatch(execResult, "[%s] Setting %s as executable".formatted(LogLevel.INFO.toString(), binaryFilePath));
+            assertAnyMatch(execResult, "[%s] Detected binary file. Skipping archive extraction".formatted(LogLevel.INFO));
+            assertAnyMatch(execResult, "[%s] Setting %s as executable".formatted(LogLevel.INFO, binaryFilePath));
             Path renamedBinaryFilePath = destinationPath.resolve(tool.id() + ".AppImage");
-            assertAnyMatch(execResult,
-                    "[%s] Renaming %s to %s".formatted(LogLevel.INFO.toString(), binaryFilePath, renamedBinaryFilePath));
+            assertAnyMatch(execResult, "[%s] Renaming %s to %s".formatted(LogLevel.INFO, binaryFilePath, renamedBinaryFilePath));
             verify(1, getRequestedFor(urlEqualTo("/download/%s/%s".formatted(tool.version(), binaryFileName))));
             assertThat(destinationPath).isDirectory();
             assertThat(binaryFilePath).doesNotExist();
@@ -134,7 +132,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             assertLogs(execResult, tool, destinationPath, archivePath);
             verify(1, getRequestedFor(urlEqualTo("/download/%s/%s".formatted(tool.version(), archiveName))));
             assertSingleArchive(destinationPath);
-            assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO.toString(), archivePath));
+            assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO, archivePath));
             assertThat(archivePath).doesNotExist();
         });
     }
@@ -159,21 +157,19 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             if (isExcluded(archiveName)) {
                 assertAnyMatch(execResult, (
                         "[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: "
-                                + "No Archiver found for the stream signature\". Skipping %s").formatted(LogLevel.WARN.toString(),
+                                + "No Archiver found for the stream signature\". Skipping %s").formatted(LogLevel.WARN,
                         tool.id()));
             } else if (tool.url().contains(".7z")) {
                 assertAnyMatch(execResult, (
                         "[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: "
-                                + "The 7z doesn't support streaming.\". Skipping %s").formatted(LogLevel.WARN.toString(),
-                        tool.id()));
+                                + "The 7z doesn't support streaming.\". Skipping %s").formatted(LogLevel.WARN, tool.id()));
             } else {
-                assertAnyMatch(execResult,
-                        "[%s] Extracting %s to %s".formatted(LogLevel.INFO.toString(), archivePath, destinationPath));
-                assertAnyMatch(execResult, "[%s] Extract completed in ".formatted(LogLevel.INFO.toString()));
-                assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO.toString(), archivePath));
+                assertAnyMatch(execResult, "[%s] Extracting %s to %s".formatted(LogLevel.INFO, archivePath, destinationPath));
+                assertAnyMatch(execResult, "[%s] Extract completed in ".formatted(LogLevel.INFO));
+                assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO, archivePath));
                 if (tool.url().contains("-password")) {
                     assertAnyMatch(execResult,
-                            "[%s] Nothing has been extracted. Removing %s".formatted(LogLevel.WARN.toString(), destinationPath));
+                            "[%s] Nothing has been extracted. Removing %s".formatted(LogLevel.WARN, destinationPath));
                 } else if (tool.id().contains("sample1")) {
                     AssertionSteps.assertSample1Archive(destinationPath);
                 } else if (tool.id().contains("sample2")) {
@@ -256,12 +252,12 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
     private void assertLogs(ExecResult execResult, Tool tool, Path destinationPath, Path archivePath) {
         assertAnyMatch(execResult, "[%s] === Installing %s ===".formatted(LogMarker.STEP, tool.id()));
-        assertAnyMatch(execResult, "[%s] Creating %s".formatted(LogLevel.INFO.toString(), destinationPath));
+        assertAnyMatch(execResult, "[%s] Creating %s".formatted(LogLevel.INFO, destinationPath));
         assertAnyMatch(execResult,
-                "[%s] Downloading %s to %s".formatted(LogLevel.INFO.toString(), uriTransformer.transform(tool), destinationPath));
-        assertAnyMatch(execResult, "[%s] Download completed in ".formatted(LogLevel.INFO.toString()));
-        assertAnyMatch(execResult, "[%s] Scanning %s".formatted(LogLevel.INFO.toString(), archivePath));
-        assertAnyMatch(execResult, "[%s] Scan completed in ".formatted(LogLevel.INFO.toString()));
+                "[%s] Downloading %s to %s".formatted(LogLevel.INFO, uriTransformer.transform(tool), destinationPath));
+        assertAnyMatch(execResult, "[%s] Download completed in ".formatted(LogLevel.INFO));
+        assertAnyMatch(execResult, "[%s] Scanning %s".formatted(LogLevel.INFO, archivePath));
+        assertAnyMatch(execResult, "[%s] Scan completed in ".formatted(LogLevel.INFO));
     }
 
     private void assertSingleArchive(Path destinationPath) {

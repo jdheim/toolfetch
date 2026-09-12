@@ -74,7 +74,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         ExecResult execResult = execute(option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
         assertAnyMatch(execResult,
-                "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(LogLevel.ERROR.toString()));
+                "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(LogLevel.ERROR));
     }
 
     @ParameterizedTest
@@ -86,8 +86,8 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         }
         ExecResult execResult = execute(option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
-        assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(LogLevel.ERROR.toString()));
-        assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(LogLevel.ERROR.toString()));
+        assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(LogLevel.ERROR));
+        assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(LogLevel.ERROR));
     }
 
 }

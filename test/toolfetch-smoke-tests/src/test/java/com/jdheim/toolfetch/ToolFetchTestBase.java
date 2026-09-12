@@ -124,14 +124,14 @@ public class ToolFetchTestBase {
     }
 
     void assertNoErrorNoWarn(ExecResult execResult) {
-        assertThat(execResult.logs()).noneMatch(line -> line.contains("Exception in thread")
-                || line.contains("[%s]".formatted(LogLevel.ERROR.toString()))
-                || line.contains("[%s]".formatted(LogLevel.WARN.toString())));
+        assertThat(execResult.logs()).noneMatch(
+                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(LogLevel.ERROR)) || line.contains(
+                        "[%s]".formatted(LogLevel.WARN)));
     }
 
     void assertNoError(ExecResult execResult) {
         assertThat(execResult.logs()).noneMatch(
-                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(LogLevel.ERROR.toString())));
+                line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(LogLevel.ERROR)));
     }
 
     void assertLogbackInit(ExecResult execResult) {
