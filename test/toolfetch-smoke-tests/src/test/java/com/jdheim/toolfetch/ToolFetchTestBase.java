@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.regex.Pattern;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -42,6 +43,10 @@ public class ToolFetchTestBase {
 
     static final Path LIBSVMJDWP_LIBRARY = Path.of("../../target", "libsvmjdwp.so");
 
+    private static final Path TOOLFETCH_LOG = Path.of(System.getProperty("user.home"), ".toolfetch", "toolfetch.log");
+
+    private static final Pattern DEBUG_LOGGER_NAME = Pattern.compile("(\\[DEBUG]) \\[[^]]+] ");
+
     ExecResult execute(String... args) throws IOException, InterruptedException {
         if (IS_FORCE_NATIVE_MODE_ENABLED) {
             assertThat(NATIVE_IMAGE_EXEC).withFailMessage(
@@ -59,8 +64,11 @@ public class ToolFetchTestBase {
     private ExecResult executeNativeImage(String[] args) throws IOException, InterruptedException {
         args = enrichArgs(args);
         Process process = new ProcessBuilder(args).redirectErrorStream(true).start();
-        List<String> logs = readLogs(process);
+        List<String> consoleLogs = readLogs(process);
         int exitCode = process.waitFor();
+        List<String> debugLogs = Files.readAllLines(TOOLFETCH_LOG).stream().filter(line -> line.contains("[DEBUG]")).map(
+                line -> DEBUG_LOGGER_NAME.matcher(line).replaceFirst("$1 ")).toList();
+        List<String> logs = Stream.concat(consoleLogs.stream(), debugLogs.stream()).toList();
         return new ExecResult(exitCode, logs);
     }
 

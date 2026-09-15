@@ -47,7 +47,7 @@ public class DebugStrategy implements CommandLine.IExecutionStrategy {
         if (OperatingSystemPredicates.isLinux()) {
             Map<String, String> osRelease = OsRelease.get();
             debug("Distro", osRelease.get(OsRelease.NAME));
-            debug("Distro Version", osRelease.get(OsRelease.VERSION_ID));
+            debug("Distro Version", osRelease.get(OsRelease.VERSION));
         }
         return CommandLine.ExitCode.OK;
     }
