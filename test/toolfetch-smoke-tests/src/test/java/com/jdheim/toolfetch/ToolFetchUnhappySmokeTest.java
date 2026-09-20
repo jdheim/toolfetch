@@ -7,22 +7,28 @@ package com.jdheim.toolfetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import com.jdheim.toolfetch.command.ToolFetch;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
 /// Smoke Tests for [ToolFetch]
 class ToolFetchUnhappySmokeTest extends ToolFetchTestBase {
 
-    @ParameterizedTest
-    @ValueSource(strings = {StringUtils.EMPTY, "-z"})
-    void testMissingRequiredOption(String option) throws Exception {
-        String[] args = StringUtils.EMPTY.equals(option) ? new String[]{} : new String[]{option};
-        ExecResult execResult = execute(args);
+    @Test
+    void testAutoDetectedConfigNotFound() throws Exception {
+        ExecResult execResult = execute();
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
-        assertAnyMatch(execResult, "Missing required option: '--config=<configPath>'");
+        Path configPath = Path.of(SystemUtils.USER_DIR, "toolfetch.yaml");
+        assertAnyMatch(execResult, "File \"%s\" does not exist".formatted(configPath));
+    }
+
+    @Test
+    void testUnknownOption() throws Exception {
+        ExecResult execResult = execute("-z");
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
+        assertAnyMatch(execResult, "Unknown option: '-z'");
     }
 
 }

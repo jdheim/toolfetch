@@ -20,10 +20,14 @@ public class CompositeStrategy implements CommandLine.IExecutionStrategy {
     public int execute(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException,
             CommandLine.ParameterException {
         int exitCode = CommandLine.ExitCode.OK;
-        for (CommandLine.IExecutionStrategy executionStrategy : executionStrategies) {
-            exitCode = executionStrategy.execute(parseResult);
-            if (exitCode != CommandLine.ExitCode.OK) {
-                break;
+        if (parseResult.isUsageHelpRequested() || parseResult.isVersionHelpRequested()) {
+            exitCode = executionStrategies.getLast().execute(parseResult);
+        } else {
+            for (CommandLine.IExecutionStrategy executionStrategy : executionStrategies) {
+                exitCode = executionStrategy.execute(parseResult);
+                if (exitCode != CommandLine.ExitCode.OK) {
+                    break;
+                }
             }
         }
         return exitCode;

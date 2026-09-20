@@ -11,6 +11,7 @@ import com.jdheim.toolfetch.command.convert.PathTrimConverter;
 import com.jdheim.toolfetch.command.execution.CompositeStrategy;
 import com.jdheim.toolfetch.command.execution.DebugStrategy;
 import com.jdheim.toolfetch.command.execution.ValidateStrategy;
+import com.jdheim.toolfetch.command.execution.option.ConfigPathDefaultValueProvider;
 import com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider;
 import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
@@ -23,7 +24,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "toolfetch", versionProvider = ToolFetchVersionInfoProvider.class,
-        description = "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file")
+        description = "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file",
+        defaultValueProvider = ConfigPathDefaultValueProvider.class)
 public final class ToolFetch implements Callable<Integer> {
 
     private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetch.class);
@@ -39,8 +41,9 @@ public final class ToolFetch implements Callable<Integer> {
     /// [@Patch jspecify#431](https://github.com/jspecify/jspecify/issues/431)
     /// and [@Patch NullAway#313](https://github.com/uber/NullAway/issues/313)
     @SuppressWarnings("NullAway.Init")
-    @CommandLine.Option(names = {"-c", "--config"}, required = true, description = "Path to toolfetch.yaml",
-            converter = PathTrimConverter.class)
+    @CommandLine.Option(names = {"-c", "--config"}, description = {
+            "Path to a YAML configuration file", "Autodetected as toolfetch.yaml or toolfetch.yml in the current directory"
+    }, converter = PathTrimConverter.class)
     private Path configPath;
 
     /// Populated reflectively by PicoCLI when it handles a help request
@@ -59,11 +62,14 @@ public final class ToolFetch implements Callable<Integer> {
     }
 
     public static int execute(long startTime, String[] args) {
-        if (!ArrayUtils.containsAny(args, HELP_VERSION_OPTIONS)) {
+        boolean containsHelpOrVersionArgs = ArrayUtils.containsAny(args, HELP_VERSION_OPTIONS);
+        if (!containsHelpOrVersionArgs) {
             addShutdownHook(startTime);
         }
         int exitCode = ToolFetch.commandLine().execute(args);
-        LOGGER.log("command.exitcode", exitCode);
+        if (!containsHelpOrVersionArgs) {
+            LOGGER.log("command.exitcode", exitCode);
+        }
         return exitCode;
     }
 

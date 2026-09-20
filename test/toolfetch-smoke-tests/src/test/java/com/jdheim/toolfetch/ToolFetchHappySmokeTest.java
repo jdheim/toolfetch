@@ -7,6 +7,7 @@ package com.jdheim.toolfetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.util.Map;
 import com.jdheim.toolfetch.command.ToolFetch;
 import com.jdheim.toolfetch.logging.LogLevel;
@@ -15,6 +16,7 @@ import com.jdheim.toolfetch.service.util.OperatingSystemPredicates;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
@@ -22,10 +24,13 @@ import picocli.CommandLine;
 /// Smoke Tests for [ToolFetch]
 class ToolFetchHappySmokeTest extends ToolFetchTestBase {
 
+    @TempDir
+    Path tempDir;
+
     @Test
     void testDebugStrategy() throws Exception {
-        ExecResult execResult = execute("-h");
-        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+        ExecResult execResult = execute("-c", tempDir.resolve("missing.yaml").toString());
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
         assertLogbackInit(execResult);
         assertAnyMatch(execResult, "[%s] ToolFetch".formatted(LogLevel.DEBUG));
         assertAnyMatch(execResult, "[%s] Build Time:".formatted(LogLevel.DEBUG));

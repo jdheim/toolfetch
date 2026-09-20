@@ -167,6 +167,15 @@
       ]
     },
     {
+      "type": "com.jdheim.toolfetch.command.execution.option.ConfigPathDefaultValueProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider",
       "methods": [
         {
@@ -695,6 +704,9 @@
           ]
         }
       ]
+    },
+    {
+      "type": "picocli.CommandLine$Model$ArgSpec"
     },
     {
       "type": "picocli.CommandLine$Model$CommandSpec",
