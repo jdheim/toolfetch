@@ -148,6 +148,12 @@
       "fields": [
         {
           "name": "configPath"
+        },
+        {
+          "name": "helpRequested"
+        },
+        {
+          "name": "versionRequested"
         }
       ]
     },
@@ -687,17 +693,6 @@
             "java.lang.Object",
             "picocli.CommandLine$IFactory"
           ]
-        }
-      ]
-    },
-    {
-      "type": "picocli.CommandLine$AutoHelpMixin",
-      "fields": [
-        {
-          "name": "helpRequested"
-        },
-        {
-          "name": "versionRequested"
         }
       ]
     },

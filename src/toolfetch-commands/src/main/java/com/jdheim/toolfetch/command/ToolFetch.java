@@ -22,13 +22,13 @@ import com.jdheim.toolfetch.service.log.LogHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "toolfetch", versionProvider = ToolFetchVersionInfoProvider.class, mixinStandardHelpOptions = true,
+@CommandLine.Command(name = "toolfetch", versionProvider = ToolFetchVersionInfoProvider.class,
         description = "CLI for fetching and installing external tools from release URLs (e.g. GitHub releases) using a YAML configuration file")
 public final class ToolFetch implements Callable<Integer> {
 
     private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetch.class);
 
-    private static final Object[] HELP_VERSION_OPTIONS = {"-h", "--help", "-V", "--version"};
+    private static final Object[] HELP_VERSION_OPTIONS = {"-h", "--help", "-v", "--version"};
 
     private static final String TOOLFETCH_SHUTDOWN_HOOK = "toolfetch-shutdown-hook";
 
@@ -42,6 +42,16 @@ public final class ToolFetch implements Callable<Integer> {
     @CommandLine.Option(names = {"-c", "--config"}, required = true, description = "Path to toolfetch.yaml",
             converter = PathTrimConverter.class)
     private Path configPath;
+
+    /// Populated reflectively by PicoCLI when it handles a help request
+    @SuppressWarnings("UnusedVariable")
+    @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Show this help message and exit")
+    private boolean helpRequested;
+
+    /// Populated reflectively by PicoCLI when it handles a version request
+    @SuppressWarnings("UnusedVariable")
+    @CommandLine.Option(names = {"-v", "--version"}, versionHelp = true, description = "Show version information and exit")
+    private boolean versionRequested;
 
     private ToolFetch() {
         configurationService = new YamlConfigurationService();

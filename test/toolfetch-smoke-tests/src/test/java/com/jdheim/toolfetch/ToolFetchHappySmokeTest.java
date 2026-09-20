@@ -63,7 +63,7 @@ class ToolFetchHappySmokeTest extends ToolFetchTestBase {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"-V", "--version", "-h", "--help"})
+    @ValueSource(strings = {"-v", "--version", "-h", "--help"})
     void testVersionAndHelp(String option) throws Exception {
         ExecResult execResult = execute(option);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
