@@ -82,8 +82,7 @@ assemble:
   nativeImage:
     toolfetch_binary:
       executable: '{{projectName}}-{{projectVersion}}'
-      archiving:
-        enabled: false
+      archive: false
       graalJdks:
         - path: '{{basedir}}/target/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'
@@ -99,8 +98,7 @@ assemble:
         - pattern: '{{baseOutputDirectory}}/third-party/lib/*.jar'
     toolfetch_debug:
       executable: '{{projectName}}-{{projectVersion}}'
-      archiving:
-        enabled: false
+      archive: false
       graalJdks:
         - path: '{{basedir}}/target/jdks/graalvm-linux-amd64/{{graalVmDir}}'
           platform: 'linux-x86_64'

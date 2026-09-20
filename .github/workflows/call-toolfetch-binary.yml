@@ -51,7 +51,7 @@ jobs:
         env:
           JRELEASER_ASSEMBLE_NATIVE_IMAGE_TOOLFETCH_BINARY_ACTIVE: ALWAYS
         with:
-          version: 1.24.0 # @Patch Migrate to latest
+          version: latest
           setup-java: false
           arguments: assemble --output-directory=build/toolfetch-native-image/target
 

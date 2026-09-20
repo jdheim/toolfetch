@@ -77,7 +77,7 @@ jobs:
           JRELEASER_ASSEMBLE_ARCHIVE_TOOLFETCH_ACTIVE: ALWAYS
           JRELEASER_DRAFT: ${{ inputs.draft-release }}
         with:
-          version: 1.24.0 # @Patch Migrate to latest
+          version: latest
           setup-java: false
           arguments: full-release --output-directory=build/toolfetch-native-image/target
 
