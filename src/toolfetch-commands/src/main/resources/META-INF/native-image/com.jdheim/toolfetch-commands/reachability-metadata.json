@@ -147,9 +147,6 @@
       "type": "com.jdheim.toolfetch.command.ToolFetch",
       "fields": [
         {
-          "name": "configPath"
-        },
-        {
           "name": "helpRequested"
         },
         {
@@ -177,6 +174,23 @@
     },
     {
       "type": "com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.command.subcommand.Install",
+      "fields": [
+        {
+          "name": "configPath"
+        },
+        {
+          "name": "helpRequested"
+        }
+      ],
       "methods": [
         {
           "name": "<init>",

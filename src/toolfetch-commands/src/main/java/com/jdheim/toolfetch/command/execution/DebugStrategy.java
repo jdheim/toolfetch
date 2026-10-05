@@ -13,6 +13,7 @@ import com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider;
 import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.info.JavaHome;
 import com.jdheim.toolfetch.service.info.OsRelease;
+import com.jdheim.toolfetch.service.log.LogHelper;
 import com.jdheim.toolfetch.service.util.OperatingSystemPredicates;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -73,6 +74,11 @@ public class DebugStrategy implements CommandLine.IExecutionStrategy {
 
     private String runtimeMode() {
         return System.getProperty(GRAALVM_NATIVE_IMAGE_PROPERTY) != null ? EXECUTABLE_MODE_NATIVE_IMAGE : EXECUTABLE_MODE_JVM;
+    }
+
+    public static void logCompletion(long startTime, int exitCode) {
+        LOGGER.log("command.exitcode", exitCode);
+        LOGGER.log("command.completed", LogHelper.elapsedTime(startTime));
     }
 
 }

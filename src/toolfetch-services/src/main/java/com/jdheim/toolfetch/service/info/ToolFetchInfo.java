@@ -19,8 +19,6 @@ public enum ToolFetchInfo {
     BUILD_REVISION("toolfetch.build.revision", "dev"),
     BUILD_GRAALVM("toolfetch.build.graalvm", "-");
 
-    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ToolFetchInfo.class);
-
     private static final String VERSION_INFO_FILE_PATH = "/version-info.properties";
 
     private static final String VARIABLE_PREFIX = "${";
@@ -56,12 +54,16 @@ public enum ToolFetchInfo {
                 if (in != null) {
                     props.load(in);
                 } else {
-                    LOGGER.log("info.resource-not-found", versionInfoFilePath);
+                    getLogger().log("info.resource-not-found", versionInfoFilePath);
                 }
             } catch (IOException e) {
-                LOGGER.log("info.resource-load-failed", versionInfoFilePath, StringUtils.trimToEmpty(e.getMessage()));
+                getLogger().log("info.resource-load-failed", versionInfoFilePath, StringUtils.trimToEmpty(e.getMessage()));
             }
             return props;
+        }
+
+        private static ToolFetchLogger getLogger() {
+            return ToolFetchLogger.getLogger(ToolFetchInfo.class);
         }
 
         static Properties getProperties() {

@@ -30,9 +30,11 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
     void testUnknownOption(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         Files.createFile(toolfetchConfigPath);
-        ExecResult execResult = execute(option, toolfetchConfigPath.toString(), "-z");
+        ExecResult execResult = execute("install", option, toolfetchConfigPath.toString(), "-z");
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
         assertAnyMatch(execResult, "Unknown option: '-z'");
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
     @ParameterizedTest
@@ -40,23 +42,29 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
     void testUnmatchedArgument(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         Files.createFile(toolfetchConfigPath);
-        ExecResult execResult = execute(option, toolfetchConfigPath.toString(), "arg");
+        ExecResult execResult = execute("install", option, toolfetchConfigPath.toString(), "arg");
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
-        assertAnyMatch(execResult, "Unmatched argument at index 2: 'arg'");
+        assertAnyMatch(execResult, "Unmatched argument at index 3: 'arg'");
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
     void testMissingConfigPath(String option) throws Exception {
-        ExecResult execResult = execute(option);
+        ExecResult execResult = execute("install", option);
         assertMissingRequiredParameterConfigPath(execResult);
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
     void testEmptyConfigPath(String option) throws Exception {
-        ExecResult execResult = execute(option, StringUtils.EMPTY);
+        ExecResult execResult = execute("install", option, StringUtils.EMPTY);
         assertMissingRequiredParameterConfigPath(execResult);
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
     private void assertMissingRequiredParameterConfigPath(ExecResult execResult) {
@@ -71,10 +79,14 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         if (!Files.exists(toolfetchConfigPath)) {
             Files.createFile(toolfetchConfigPath);
         }
-        ExecResult execResult = execute(option, toolfetchConfigPath.toString());
+        ExecResult execResult = execute("install", option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
         assertAnyMatch(execResult,
                 "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(LogLevel.ERROR));
+        if (runtimeModeNativeImage()) {
+            assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.SOFTWARE);
+            assertOneMatch(execResult, "[INFO] Command completed in ");
+        }
     }
 
     @ParameterizedTest
@@ -84,10 +96,14 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         if (!Files.exists(toolfetchConfigPath)) {
             Files.writeString(toolfetchConfigPath, "destination: /tmp");
         }
-        ExecResult execResult = execute(option, toolfetchConfigPath.toString());
+        ExecResult execResult = execute("install", option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
         assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(LogLevel.ERROR));
         assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(LogLevel.ERROR));
+        if (runtimeModeNativeImage()) {
+            assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.SOFTWARE);
+            assertOneMatch(execResult, "[INFO] Command completed in ");
+        }
     }
 
 }

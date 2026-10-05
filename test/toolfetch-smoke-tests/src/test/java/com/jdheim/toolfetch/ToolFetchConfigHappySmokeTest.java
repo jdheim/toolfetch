@@ -72,7 +72,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigWithOneToolAsBinaryFile(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoErrorNoWarn(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
@@ -91,6 +91,10 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             assertThat(binaryFilePath).doesNotExist();
             assertThat(renamedBinaryFilePath).isExecutable().hasContent("Hello ToolFetch!\nThis is a dummy AppImage.");
         });
+        if (runtimeModeNativeImage()) {
+            assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
+            assertOneMatch(execResult, "[INFO] Command completed in ");
+        }
     }
 
     private Configuration createConfigWithOneToolAsBinaryFile(int httpPort) {
@@ -120,7 +124,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigWithOneToolAsArchive(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoErrorNoWarn(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
@@ -135,6 +139,10 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO, archivePath));
             assertThat(archivePath).doesNotExist();
         });
+        if (runtimeModeNativeImage()) {
+            assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
+            assertOneMatch(execResult, "[INFO] Command completed in ");
+        }
     }
 
     @ParameterizedTest
@@ -143,7 +151,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigFromArchiveDir(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoError(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
@@ -180,6 +188,10 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             }
             assertThat(archivePath).doesNotExist();
         });
+        if (runtimeModeNativeImage()) {
+            assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
+            assertOneMatch(execResult, "[INFO] Command completed in ");
+        }
     }
 
     private Configuration createConfigWithOneToolAsArchive(int httpPort) {

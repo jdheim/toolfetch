@@ -15,8 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -25,6 +25,8 @@ import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
@@ -52,10 +54,14 @@ public class ToolFetchTestBase {
             assertThat(NATIVE_IMAGE_EXEC).withFailMessage(
                     "File not found: %s. Run: ./build.sh --native".formatted(NATIVE_IMAGE_EXEC)).exists();
         }
-        if (Files.exists(NATIVE_IMAGE_EXEC)) {
+        if (runtimeModeNativeImage()) {
             return executeNativeImage(args);
         }
         return executeTest(args);
+    }
+
+    boolean runtimeModeNativeImage() {
+        return Files.exists(NATIVE_IMAGE_EXEC);
     }
 
     /// Run: `./build.sh --native-debug` and use `-Dnative-debug=true` in VM Options to enable debugging of Native Image
@@ -63,10 +69,12 @@ public class ToolFetchTestBase {
             justification = "Test-only code. Arguments are constructed internally for controlled Smoke Tests of Native Image and are not influenced by external or user input")
     private ExecResult executeNativeImage(String[] args) throws IOException, InterruptedException {
         args = enrichArgs(args);
+        Files.deleteIfExists(TOOLFETCH_LOG);
         Process process = new ProcessBuilder(args).redirectErrorStream(true).start();
         List<String> consoleLogs = readLogs(process);
         int exitCode = process.waitFor();
-        List<String> debugLogs = Files.readAllLines(TOOLFETCH_LOG).stream().filter(line -> line.contains("[DEBUG]")).map(
+        List<String> fileLogs = Files.exists(TOOLFETCH_LOG) ? Files.readAllLines(TOOLFETCH_LOG) : List.of();
+        List<String> debugLogs = fileLogs.stream().filter(line -> line.contains("[DEBUG]")).map(
                 line -> DEBUG_LOGGER_NAME.matcher(line).replaceFirst("$1 ")).toList();
         List<String> logs = Stream.concat(consoleLogs.stream(), debugLogs.stream()).toList();
         return new ExecResult(exitCode, logs);
@@ -131,6 +139,14 @@ public class ToolFetchTestBase {
         assertThat(execResult.logs()).anyMatch(line -> line.contains(message));
     }
 
+    void assertOneMatch(ExecResult execResult, String message) {
+        assertThat(execResult.logs()).filteredOn(line -> line.contains(message)).hasSize(1);
+    }
+
+    void assertNoMatch(ExecResult execResult, String message) {
+        assertThat(execResult.logs()).noneMatch(line -> line.contains(message));
+    }
+
     void assertNoErrorNoWarn(ExecResult execResult) {
         assertThat(execResult.logs()).noneMatch(
                 line -> line.contains("Exception in thread") || line.contains("[%s]".formatted(LogLevel.ERROR)) || line.contains(
@@ -144,6 +160,15 @@ public class ToolFetchTestBase {
 
     void assertLogbackInit(ExecResult execResult) {
         assertThat(execResult.logs()).noneMatch(line -> line.contains("logback"));
+    }
+
+    String debug(String label) {
+        return debug(label, null);
+    }
+
+    String debug(String label, @Nullable Object value) {
+        return "[%s] %s%s".formatted(LogLevel.DEBUG, StringUtils.rightPad(label + ":", 19),
+                value == null ? StringUtils.EMPTY : value);
     }
 
     record ExecResult(int exitCode, List<String> logs) {}
