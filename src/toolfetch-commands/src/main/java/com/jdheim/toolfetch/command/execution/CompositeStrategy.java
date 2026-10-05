@@ -20,7 +20,7 @@ public class CompositeStrategy implements CommandLine.IExecutionStrategy {
     public int execute(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException,
             CommandLine.ParameterException {
         int exitCode = CommandLine.ExitCode.OK;
-        if (parseResult.isUsageHelpRequested() || parseResult.isVersionHelpRequested()) {
+        if (isHelpOrVersionRequested(parseResult)) {
             exitCode = executionStrategies.getLast().execute(parseResult);
         } else {
             for (CommandLine.IExecutionStrategy executionStrategy : executionStrategies) {
@@ -31,6 +31,11 @@ public class CompositeStrategy implements CommandLine.IExecutionStrategy {
             }
         }
         return exitCode;
+    }
+
+    private boolean isHelpOrVersionRequested(CommandLine.ParseResult parseResult) {
+        return parseResult.isUsageHelpRequested() || parseResult.isVersionHelpRequested()
+                || parseResult.subcommands().stream().anyMatch(this::isHelpOrVersionRequested);
     }
 
 }

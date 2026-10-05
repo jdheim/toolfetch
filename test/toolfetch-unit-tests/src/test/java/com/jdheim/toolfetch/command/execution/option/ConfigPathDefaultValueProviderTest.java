@@ -11,7 +11,9 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.command.subcommand.Install;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -58,11 +60,11 @@ class ConfigPathDefaultValueProviderTest {
     void testAutoDetectWithMissingConfigOption() {
         CommandLine commandLine = ToolFetch.commandLine();
 
-        commandLine.parseArgs();
+        commandLine.parseArgs("install");
 
-        ToolFetch toolFetch = commandLine.getCommand();
+        Install install = Objects.requireNonNull(commandLine.getSubcommands().get("install")).getCommand();
         Path configPath = Path.of(SystemUtils.USER_DIR, ConfigPathDefaultValueProvider.YAML_FILE_NAME);
-        assertThat(toolFetch.getConfigPath()).isEqualTo(configPath);
+        assertThat(install.getConfigPath()).isEqualTo(configPath);
     }
 
     @ParameterizedTest
@@ -71,10 +73,10 @@ class ConfigPathDefaultValueProviderTest {
         CommandLine commandLine = ToolFetch.commandLine();
         Path configPath = tempDir.resolve("custom.yaml");
 
-        commandLine.parseArgs(configOption, configPath.toString());
+        commandLine.parseArgs("install", configOption, configPath.toString());
 
-        ToolFetch toolFetch = commandLine.getCommand();
-        assertThat(toolFetch.getConfigPath()).isEqualTo(configPath);
+        Install install = Objects.requireNonNull(commandLine.getSubcommands().get("install")).getCommand();
+        assertThat(install.getConfigPath()).isEqualTo(configPath);
     }
 
     @ParameterizedTest

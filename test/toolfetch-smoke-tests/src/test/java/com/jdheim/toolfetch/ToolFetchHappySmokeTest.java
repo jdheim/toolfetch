@@ -29,7 +29,7 @@ class ToolFetchHappySmokeTest extends ToolFetchTestBase {
 
     @Test
     void testDebugStrategy() throws Exception {
-        ExecResult execResult = execute("-c", tempDir.resolve("missing.yaml").toString());
+        ExecResult execResult = execute("install", "-c", tempDir.resolve("missing.yaml").toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
         assertLogbackInit(execResult);
         assertAnyMatch(execResult, "[%s] ToolFetch".formatted(LogLevel.DEBUG));
@@ -72,6 +72,15 @@ class ToolFetchHappySmokeTest extends ToolFetchTestBase {
     void testVersionAndHelp(String option) throws Exception {
         ExecResult execResult = execute(option);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-h", "--help"})
+    void testInstallHelp(String option) throws Exception {
+        ExecResult execResult = execute("install", option);
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+        assertAnyMatch(execResult, "Usage: toolfetch install");
+        assertAnyMatch(execResult, "Install tools");
     }
 
 }

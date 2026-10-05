@@ -72,7 +72,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigWithOneToolAsBinaryFile(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoErrorNoWarn(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
@@ -120,7 +120,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigWithOneToolAsArchive(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoErrorNoWarn(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
@@ -143,7 +143,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         Configuration config = createConfigFromArchiveDir(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
-        ExecResult execResult = execute(option, configPath.toString());
+        ExecResult execResult = execute("install", option, configPath.toString());
 
         assertNoError(execResult);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);

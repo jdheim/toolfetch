@@ -5,9 +5,8 @@
 
 package com.jdheim.toolfetch.command.execution;
 
-import java.util.Optional;
-import com.jdheim.toolfetch.command.ToolFetch;
 import com.jdheim.toolfetch.command.execution.option.ConfigPathValidationRule;
+import com.jdheim.toolfetch.command.subcommand.Install;
 import picocli.CommandLine;
 
 public class ValidateStrategy implements CommandLine.IExecutionStrategy {
@@ -15,7 +14,10 @@ public class ValidateStrategy implements CommandLine.IExecutionStrategy {
     @Override
     public int execute(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException,
             CommandLine.ParameterException {
-        validate(parseResult);
+        if (!parseResult.hasSubcommand()) {
+            throw new CommandLine.ParameterException(parseResult.commandSpec().commandLine(), "Missing required subcommand");
+        }
+        validate(parseResult.subcommands().getLast());
         return CommandLine.ExitCode.OK;
     }
 
@@ -24,10 +26,8 @@ public class ValidateStrategy implements CommandLine.IExecutionStrategy {
         CommandLine commandLine = commandSpec.commandLine();
 
         Object userObject = commandSpec.userObject();
-        if (userObject instanceof ToolFetch toolFetch) {
-            Optional.of(toolFetch)
-                    .map(ToolFetch::getConfigPath)
-                    .ifPresent(configPath -> ConfigPathValidationRule.validateAll(commandLine, configPath));
+        if (userObject instanceof Install install) {
+            ConfigPathValidationRule.validateAll(commandLine, install.getConfigPath());
         } else {
             throw new CommandLine.ParameterException(commandLine,
                     "Command %s not supported".formatted(userObject.getClass().getSimpleName()));
