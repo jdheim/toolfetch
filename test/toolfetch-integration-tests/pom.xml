@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.jdheim</groupId>
         <artifactId>toolfetch</artifactId>
-        <version>0.0.8-SNAPSHOT</version>
+        <version>0.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
