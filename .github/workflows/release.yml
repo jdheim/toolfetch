@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       project-version-bump-type:
-        description: "Part of the project version to bump"
+        description: "Release version: PATCH uses the current target; MINOR/MAJOR starts a new release line"
         required: true
         type: choice
         options:
@@ -35,101 +35,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  toolfetch-binary:
-    name: "Assemble ToolFetch Binary"
-    permissions:
-      contents: read
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
-    with:
-      release-type: ${{ inputs.release-type }}
-
-  test-native:
-    name: "Test Native"
-    needs: toolfetch-binary
-    permissions:
-      contents: read
-    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
-    with:
-      release-type: ${{ inputs.release-type }}
-
-  test-report-native:
-    name: "Test Report Native"
-    needs: test-native
-    if: ${{ !cancelled() }}
-    permissions:
-      contents: read
-      actions: read
-      checks: write
-    uses: jdheim/toolfetch/.github/workflows/call-test-report-native.yml@main
-
-  toolfetch-archive:
-    name: "Assemble ToolFetch Archive"
-    needs: test-report-native
-    permissions:
-      contents: read
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-archive.yml@main
-    with:
-      release-type: ${{ inputs.release-type }}
-
-  toolfetch-sboms:
-    name: "Assemble ToolFetch SBOM"
-    needs: test-report-native
-    permissions:
-      contents: read
-    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-sboms.yml@main
-    with:
-      release-type: ${{ inputs.release-type }}
-
-  release:
-    name: "Release"
-    needs: [ toolfetch-archive, toolfetch-sboms ]
+  prepare-release:
+    name: "Prepare Release Version"
     permissions:
       contents: write
-    uses: jdheim/toolfetch/.github/workflows/call-release.yml@main
-    secrets:
-      JDHEIM_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
-      JDHEIM_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
-      JDHEIM_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
-    with:
-      release-type: ${{ inputs.release-type }}
-      draft-release: ${{ inputs.draft-release }}
-
-  project-version-bump:
-    name: "Project Version Bump"
-    if: ${{ inputs.release-type == 'GA' }}
-    needs: release
-    permissions:
-      contents: write
-    uses: jdheim/toolfetch/.github/workflows/call-project-version-bump.yml@main
+    uses: jdheim/toolfetch/.github/workflows/call-prepare-release.yml@main
     secrets:
       JDHEIM_ACTIONS_BOT_CLIENT_ID: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
       JDHEIM_ACTIONS_BOT_PRIVATE_KEY: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
     with:
       project-version-bump-type: ${{ inputs.project-version-bump-type }}
+      release-type: ${{ inputs.release-type }}
       draft-release: ${{ inputs.draft-release }}
 
-  github-slsa-provenance:
-    name: "GitHub SLSA Provenance"
-    needs: release
+  release-prepared:
+    name: "Start Prepared Release"
+    needs: prepare-release
+    timeout-minutes: 5
     permissions:
-      id-token: write
-      attestations: write
-      artifact-metadata: write
-    uses: jdheim/toolfetch/.github/workflows/call-github-slsa-provenance.yml@main
-    with:
-      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Start Release at Prepared Commit"
+        id: dispatch
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: release-prepared.yml
+          ref: ${{ github.ref_name }}
+          wait-for-completion: false
+          inputs: |
+            {
+              "source-ref": ${{ toJSON(needs.prepare-release.outputs.source-ref) }},
+              "project-version": ${{ toJSON(needs.prepare-release.outputs.version) }},
+              "release-type": ${{ toJSON(inputs.release-type) }},
+              "draft-release": ${{ toJSON(inputs.draft-release) }}
+            }
 
-  slsa-provenance:
-    name: "SLSA Provenance"
-    needs: release
-    permissions:
-      contents: write
-      id-token: write
-      actions: read
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-    with:
-      upload-assets: true
-      provenance-name: toolfetch-${{ needs.release.outputs.version }}-provenance.intoto.jsonl
-      upload-tag-name: ${{ needs.release.outputs.tag_name }}
-      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
-      draft-release: ${{ inputs.draft-release }}
+      - name: "Link Prepared Release"
+        shell: bash
+        env:
+          RELEASE_URL: ${{ steps.dispatch.outputs.runUrlHtml }}
+        run: |
+          printf 'Follow the [prepared release](%s) for build, publication, and provenance results.\n' "${RELEASE_URL}" >> "$GITHUB_STEP_SUMMARY"

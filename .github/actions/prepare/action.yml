@@ -21,6 +21,10 @@ inputs:
     description: "Enables or disables 'Install UPX' step"
     required: false
     default: "false"
+  project-version:
+    description: "Explicit project version to prepare"
+    required: false
+    default: ""
   release-type:
     description: "Release type"
     required: false
@@ -33,8 +37,11 @@ runs:
       shell: bash
       env:
         RELEASE_TYPE: ${{ inputs.release-type }}
+        PROJECT_VERSION: ${{ inputs.project-version }}
       run: |
-        PROJECT_VERSION="$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")"
+        if [[ -z "${PROJECT_VERSION}" ]]; then
+          PROJECT_VERSION="$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")"
+        fi
         if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
           echo "Project Version could not be resolved"
           exit 1

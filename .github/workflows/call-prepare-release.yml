@@ -1,0 +1,92 @@
+name: "Call: Prepare Release"
+
+on:
+  workflow_call:
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID:
+        required: true
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY:
+        required: true
+    inputs:
+      project-version-bump-type:
+        description: "Release version: PATCH uses the current target; MINOR/MAJOR starts a new release line"
+        required: true
+        type: string
+      release-type:
+        description: "Release type"
+        required: true
+        type: string
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: string
+    outputs:
+      version:
+        description: "Release Version"
+        value: ${{ jobs.prepare-release.outputs.version }}
+      source-ref:
+        description: "Commit to build and release"
+        value: ${{ jobs.prepare-release.outputs.source-ref }}
+
+jobs:
+  prepare-release:
+    name: "Prepare Release Version"
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      source-ref: ${{ steps.commit.outputs.commit || github.sha }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: "Resolve Release Version"
+        id: version
+        env:
+          PROJECT_VERSION_BUMP_TYPE: ${{ inputs.project-version-bump-type }}
+        shell: bash
+        run: |
+          PROJECT_VERSION="$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")"
+          if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
+            echo "Release version could not be resolved"
+            exit 1
+          fi
+          IFS='.' read -r major minor patch <<< "${PROJECT_VERSION%%-*}"
+          case "${PROJECT_VERSION_BUMP_TYPE}" in
+            MAJOR) major=$((major + 1)); minor=0; patch=0 ;;
+            MINOR) minor=$((minor + 1)); patch=0 ;;
+            PATCH) ;;
+            *) echo "Invalid project-version-bump-type: ${PROJECT_VERSION_BUMP_TYPE}"; exit 1 ;;
+          esac
+          echo "version=${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
+
+      - name: "Prepare"
+        if: ${{ inputs.release-type == 'GA' && inputs.draft-release != 'true' }}
+        uses: ./.github/actions/prepare
+        with:
+          release-type: ${{ inputs.release-type }}
+          project-version: ${{ steps.version.outputs.version }}
+
+      - name: "Generate Token of jdheim-actions[bot]"
+        id: jdheim-actions-bot-token
+        if: ${{ inputs.release-type == 'GA' && inputs.draft-release != 'true' }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+
+      - name: "Commit Release Version"
+        id: commit
+        if: ${{ inputs.release-type == 'GA' && inputs.draft-release != 'true' }}
+        uses: IAreKyleW00t/verified-bot-commit@v2
+        with:
+          message: "chore: Bump Project Version to ${{ steps.version.outputs.version }}"
+          ref: ${{ github.ref_name }}
+          token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          files: |
+            **/pom.xml
+            jreleaser.yml

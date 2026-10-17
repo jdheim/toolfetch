@@ -8,8 +8,8 @@ on:
       JDHEIM_ACTIONS_BOT_PRIVATE_KEY:
         required: true
     inputs:
-      project-version-bump-type:
-        description: "Part of the project version to bump: MAJOR, MINOR, or PATCH"
+      project-version:
+        description: "Version that was released"
         required: true
         type: string
       draft-release:
@@ -36,26 +36,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
+          ref: ${{ github.ref_name }}
 
       - name: "Bump Project Version"
         env:
-          PROJECT_VERSION_BUMP_TYPE: ${{ inputs.project-version-bump-type }}
+          PROJECT_VERSION: ${{ inputs.project-version }}
         shell: bash
         run: |
-          PROJECT_VERSION=$(grep "version:" "jreleaser.yml" | awk '{print $2}' | tr -d "'\"")
-          if [[ -z "${PROJECT_VERSION}" || "${PROJECT_VERSION}" == "null" ]]; then
-            echo "Project Version Bump failed as it could not be resolved"
-            exit 1
-          fi
           IFS='.' read -r major minor patch <<< "${PROJECT_VERSION%%-*}"
-          case "${PROJECT_VERSION_BUMP_TYPE}" in
-            MAJOR) major=$((major + 1)); minor=0; patch=0 ;;
-            MINOR) minor=$((minor + 1)); patch=0 ;;
-            PATCH) patch=$((patch + 1)) ;;
-            *) echo "Invalid project-version-bump-type: ${PROJECT_VERSION_BUMP_TYPE}"
-              echo "Allowed values: MAJOR, MINOR, PATCH"
-              exit 1 ;;
-          esac
+          patch=$((patch + 1))
           BUMPED_PROJECT_VERSION="${major}.${minor}.${patch}-SNAPSHOT"
           echo "BUMPED_PROJECT_VERSION=${BUMPED_PROJECT_VERSION}" >> "$GITHUB_ENV"
 

@@ -1,0 +1,166 @@
+name: "Release Prepared"
+run-name: "${{ github.workflow }} • ${{ github.ref_name }} • ${{ inputs.project-version }} • ${{ inputs.release-type }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-ref:
+        description: "Expected prepared commit (set by the Release workflow)"
+        required: true
+        type: string
+      project-version:
+        description: "Prepared release version (set by the Release workflow)"
+        required: true
+        type: string
+      release-type:
+        description: "Release type"
+        required: true
+        type: choice
+        options:
+          - "EA"
+          - "GA"
+        default: "EA"
+      draft-release:
+        description: "Create draft release"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-release:
+    name: "Validate Prepared Release"
+    timeout-minutes: 5
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Verify Source Revision and Version"
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source-ref }}
+          PROJECT_VERSION: ${{ inputs.project-version }}
+        run: |
+          if [[ "${SOURCE_REF}" != "${GITHUB_SHA}" ]]; then
+            echo "The branch moved after release preparation. Refusing to build a different commit!"
+            exit 1
+          fi
+          if [[ ! "${PROJECT_VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid prepared release version: ${PROJECT_VERSION}"
+            exit 1
+          fi
+
+  toolfetch-binary:
+    name: "Assemble ToolFetch Binary"
+    needs: validate-release
+    permissions:
+      contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-binary.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
+      source-ref: ${{ github.sha }}
+      project-version: ${{ inputs.project-version }}
+
+  test-native:
+    name: "Test Native"
+    needs: toolfetch-binary
+    permissions:
+      contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-test-native.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
+      source-ref: ${{ github.sha }}
+      project-version: ${{ inputs.project-version }}
+
+  test-report-native:
+    name: "Test Report Native"
+    needs: test-native
+    if: ${{ !cancelled() && needs.test-native.result != 'skipped' }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    uses: jdheim/toolfetch/.github/workflows/call-test-report-native.yml@main
+
+  toolfetch-archive:
+    name: "Assemble ToolFetch Archive"
+    needs: test-report-native
+    permissions:
+      contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-archive.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
+      source-ref: ${{ github.sha }}
+      project-version: ${{ inputs.project-version }}
+
+  toolfetch-sboms:
+    name: "Assemble ToolFetch SBOM"
+    needs: test-report-native
+    permissions:
+      contents: read
+    uses: jdheim/toolfetch/.github/workflows/call-toolfetch-sboms.yml@main
+    with:
+      release-type: ${{ inputs.release-type }}
+      source-ref: ${{ github.sha }}
+      project-version: ${{ inputs.project-version }}
+
+  release:
+    name: "Release"
+    needs: [ toolfetch-archive, toolfetch-sboms ]
+    permissions:
+      contents: write
+    uses: jdheim/toolfetch/.github/workflows/call-release.yml@main
+    secrets:
+      JDHEIM_GPG_PUBLIC_KEY: ${{ secrets.JDHEIM_GPG_PUBLIC_KEY }}
+      JDHEIM_GPG_SECRET_KEY: ${{ secrets.JDHEIM_GPG_SECRET_KEY }}
+      JDHEIM_GPG_PASSPHRASE: ${{ secrets.JDHEIM_GPG_PASSPHRASE }}
+    with:
+      release-type: ${{ inputs.release-type }}
+      source-ref: ${{ github.sha }}
+      project-version: ${{ inputs.project-version }}
+      draft-release: ${{ inputs.draft-release }}
+
+  project-version-bump:
+    name: "Project Version Bump"
+    if: ${{ inputs.release-type == 'GA' }}
+    needs: release
+    permissions:
+      contents: write
+    uses: jdheim/toolfetch/.github/workflows/call-project-version-bump.yml@main
+    secrets:
+      JDHEIM_ACTIONS_BOT_CLIENT_ID: ${{ secrets.JDHEIM_ACTIONS_BOT_CLIENT_ID }}
+      JDHEIM_ACTIONS_BOT_PRIVATE_KEY: ${{ secrets.JDHEIM_ACTIONS_BOT_PRIVATE_KEY }}
+    with:
+      project-version: ${{ needs.release.outputs.version }}
+      draft-release: ${{ inputs.draft-release }}
+
+  github-slsa-provenance:
+    name: "GitHub SLSA Provenance"
+    needs: release
+    permissions:
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: jdheim/toolfetch/.github/workflows/call-github-slsa-provenance.yml@main
+    with:
+      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
+
+  slsa-provenance:
+    name: "SLSA Provenance"
+    needs: release
+    permissions:
+      contents: write
+      id-token: write
+      actions: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      upload-assets: true
+      provenance-name: toolfetch-${{ needs.release.outputs.version }}-provenance.intoto.jsonl
+      upload-tag-name: ${{ needs.release.outputs.tag_name }}
+      base64-subjects: ${{ needs.release.outputs.base64_subjects }}
+      draft-release: ${{ inputs.draft-release }}

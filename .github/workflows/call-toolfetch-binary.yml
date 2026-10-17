@@ -3,6 +3,16 @@ name: "Call: Assemble ToolFetch Binary"
 on:
   workflow_call:
     inputs:
+      source-ref:
+        description: "Commit to build and release"
+        required: false
+        type: string
+        default: ""
+      project-version:
+        description: "Explicit project version to prepare"
+        required: false
+        type: string
+        default: ""
       maven-repo-cache-key-prefix:
         description: "Cache Key for Maven Repository. The key created when saving a cache and the key used to search for a cache"
         required: false
@@ -31,6 +41,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.source-ref }}
           persist-credentials: false
 
       - name: "Prepare"
@@ -40,6 +51,7 @@ jobs:
           install-syft: true
           install-upx: true
           release-type: ${{ inputs.release-type }}
+          project-version: ${{ inputs.project-version }}
 
       - name: "Prepare Native Build"
         working-directory: scripts
