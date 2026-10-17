@@ -185,10 +185,33 @@
       "type": "com.jdheim.toolfetch.command.subcommand.Install",
       "fields": [
         {
+          "name": "commandSpec"
+        },
+        {
           "name": "configPath"
         },
         {
           "name": "helpRequested"
+        },
+        {
+          "name": "selection"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jdheim.toolfetch.command.subcommand.Install$ToolSelection",
+      "fields": [
+        {
+          "name": "only"
+        },
+        {
+          "name": "skip"
         }
       ],
       "methods": [

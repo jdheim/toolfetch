@@ -64,7 +64,7 @@ class ConfigPathDefaultValueProviderTest {
 
         Install install = Objects.requireNonNull(commandLine.getSubcommands().get("install")).getCommand();
         Path configPath = Path.of(SystemUtils.USER_DIR, ConfigPathDefaultValueProvider.YAML_FILE_NAME);
-        assertThat(install.getConfigPath()).isEqualTo(configPath);
+        assertThat(install.configPath()).isEqualTo(configPath);
     }
 
     @ParameterizedTest
@@ -76,7 +76,7 @@ class ConfigPathDefaultValueProviderTest {
         commandLine.parseArgs("install", configOption, configPath.toString());
 
         Install install = Objects.requireNonNull(commandLine.getSubcommands().get("install")).getCommand();
-        assertThat(install.getConfigPath()).isEqualTo(configPath);
+        assertThat(install.configPath()).isEqualTo(configPath);
     }
 
     @ParameterizedTest

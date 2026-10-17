@@ -27,7 +27,7 @@ public class ValidateStrategy implements CommandLine.IExecutionStrategy {
 
         Object userObject = commandSpec.userObject();
         if (userObject instanceof Install install) {
-            ConfigPathValidationRule.validateAll(commandLine, install.getConfigPath());
+            ConfigPathValidationRule.validateAll(commandLine, install.configPath());
         } else {
             throw new CommandLine.ParameterException(commandLine,
                     "Command %s not supported".formatted(userObject.getClass().getSimpleName()));

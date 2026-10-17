@@ -85,6 +85,16 @@ When you invoke the command: `toolfetch install`, the latest version of the tool
 > The configuration file is autodetected as `toolfetch.yaml` or `toolfetch.yml` in the current directory.
 > You can customize the configuration path with `-c` or `--config`, for example: `toolfetch install --config "path/to/config.yaml"`.
 
+Install selected tools by their YAML IDs, or skip tools and install all others:
+
+```shell
+toolfetch install --only firefox --only toolfetch
+toolfetch install --skip firefox
+```
+
+Both options are repeatable and mutually exclusive. IDs are case-sensitive and must exist in the configuration. Tools are installed in YAML order -
+repeated IDs are ignored. Without either option, all tools are installed.
+
 ---
 
 You can use optional placeholder: `${version}` in `url` which will be replaced with `version` value at runtime:

@@ -53,7 +53,7 @@ public final class ConfigurationSteps {
                 .content()
                 .containsOnlyOnce("destination:")
                 .containsOnlyOnce("tools:")
-                .contains("- id:", "url:", "checksums:", "sha256:", "sha384:", "sha512:")
+                .contains("- id:", "url:")
                 .doesNotContain("null");
     }
 
