@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
+import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.Test;
 
 /// Integration Tests for [ArchiveInstallationService]
@@ -34,6 +35,7 @@ class DumpArchiveInstallationServiceIT extends TestCommonArchiveInstallationServ
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
                     "Extraction failed: \"org.apache.commons.compress.archivers.ArchiveException: "
                             + "No Archiver found for the stream signature\". Skipping tool: toolfetch");
+            getTestLogListAppenderSteps().assertExceptionLogged(ArchiveException.class);
             assertThat(destinationPath).doesNotExist();
         });
     }

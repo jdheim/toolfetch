@@ -69,23 +69,54 @@ class ToolFetchLoggerTest {
     void testLogException() {
         RuntimeException exception = new RuntimeException("exception message");
 
-        logger.log(exception, "info", "info message");
+        logger.log(exception, "checksum.exception");
 
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "info message");
-        assertThat(testLogListAppenderSteps.list).anySatisfy(event -> {
-            assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
-            assertThat(event.getFormattedMessage()).isEqualTo("Exception stack trace:");
-            assertThat(event.getThrowableProxy()).satisfies(throwable -> {
-                assertThat(throwable.getClassName()).isEqualTo(RuntimeException.class.getName());
-                assertThat(throwable.getMessage()).isEqualTo("exception message");
-            });
-        });
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Checksum verification failed: \"java.lang.RuntimeException: exception message\"");
+        testLogListAppenderSteps.assertExceptionLogged(RuntimeException.class);
+    }
+
+    @Test
+    void testLogExceptionWithArguments() {
+        logger.log(new IllegalStateException("failed"), "download.exception", "toolfetch");
+
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Download failed: \"java.lang.IllegalStateException: failed\". Skipping tool: toolfetch");
+        testLogListAppenderSteps.assertExceptionLogged(IllegalStateException.class);
+    }
+
+    @Test
+    void testLogExceptionTrimsMessage() {
+        logger.log(new IllegalStateException("  failed  "), "checksum.exception");
+
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Checksum verification failed: \"java.lang.IllegalStateException: failed\"");
+        testLogListAppenderSteps.assertExceptionLogged(IllegalStateException.class);
+    }
+
+    @Test
+    void testLogExceptionWithoutMessage() {
+        logger.log(new IllegalStateException(), "checksum.exception");
+
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Checksum verification failed: \"java.lang.IllegalStateException: \"");
+        testLogListAppenderSteps.assertExceptionLogged(IllegalStateException.class);
+    }
+
+    @Test
+    void testLogExceptionWithNullArgument() {
+        String nullArg = null;
+        logger.log(new IllegalStateException("failed"), "download.exception", nullArg);
+
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                "Download failed: \"java.lang.IllegalStateException: failed\". Skipping tool: null");
+        testLogListAppenderSteps.assertExceptionLogged(IllegalStateException.class);
     }
 
     @Test
     void testLogWithNullArgument() {
-        String nullArgument = null;
-        logger.log("info", nullArgument);
+        String nullArg = null;
+        logger.log("info", nullArg);
 
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "null");
     }

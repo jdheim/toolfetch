@@ -57,7 +57,7 @@ public enum ToolFetchInfo {
                     getLogger().log("info.resource-not-found", versionInfoFilePath);
                 }
             } catch (IOException e) {
-                getLogger().log("info.resource-load-failed", versionInfoFilePath, StringUtils.trimToEmpty(e.getMessage()));
+                getLogger().log(e, "info.resource-load-failed", versionInfoFilePath);
             }
             return props;
         }

@@ -145,8 +145,7 @@ public final class ToolFetchHttpClient {
             LOGGER.log("http-client.custom-truststore-found", resolvedPath);
             return sslContext;
         } catch (Exception e) {
-            LOGGER.log("http-client.custom-truststore-fallback", resolvedPath, e.getClass().getName(),
-                    StringUtils.trimToEmpty(e.getMessage()));
+            LOGGER.log(e, "http-client.custom-truststore-fallback", resolvedPath);
             return null;
         }
     }

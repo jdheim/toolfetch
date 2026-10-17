@@ -8,6 +8,7 @@ package com.jdheim.toolfetch.step.log;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
@@ -23,6 +24,18 @@ public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent> {
 
     public void assertNoMatch(String level, String message) {
         assertThat(formatLogs(list)).noneMatch(line -> line.contains("[%s] %s".formatted(level, message)));
+    }
+
+    public void assertExceptionLogged(Class<? extends Throwable> exceptionType) {
+        assertThat(list).anySatisfy(event -> {
+            assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
+            assertThat(event.getThrowableProxy()).satisfies(throwable -> {
+                assertThat(throwable.getClassName()).isEqualTo(exceptionType.getName());
+                assertThat(throwable.getStackTraceElementProxyArray()).isNotEmpty();
+            });
+        });
+        assertThat(list).filteredOn(event -> event.getLevel().isGreaterOrEqual(Level.INFO))
+                .allSatisfy(event -> assertThat(event.getThrowableProxy()).isNull());
     }
 
     public void assertNoErrorNoWarn() {

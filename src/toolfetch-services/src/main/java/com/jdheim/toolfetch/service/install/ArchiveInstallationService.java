@@ -22,7 +22,6 @@ import com.jdheim.toolfetch.service.install.extract.ExtractService;
 import com.jdheim.toolfetch.service.install.resolve.DestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class ArchiveInstallationService implements InstallationService {
 
@@ -69,7 +68,7 @@ public class ArchiveInstallationService implements InstallationService {
             try {
                 Files.move(backupPath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
-                LOG.log("path.revert-exception", e.getClass().getName(), StringUtils.trimToEmpty(e.getMessage()));
+                LOG.log(e, "path.revert-exception");
             }
         }
     }

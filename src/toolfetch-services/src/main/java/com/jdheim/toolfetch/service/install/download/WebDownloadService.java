@@ -148,8 +148,7 @@ public class WebDownloadService implements DownloadService {
     }
 
     private void logException(Exception exception, Tool tool) {
-        LOGGER.log("download.exception", exception.getClass().getName(), StringUtils.trimToEmpty(exception.getMessage()),
-                tool.id());
+        LOGGER.log(exception, "download.exception", tool.id());
     }
 
     private void cleanup(Configuration configuration, Tool tool, boolean isUpdateMode) {

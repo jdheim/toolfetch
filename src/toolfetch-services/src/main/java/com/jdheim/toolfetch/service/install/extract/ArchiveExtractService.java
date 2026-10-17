@@ -62,7 +62,7 @@ public class ArchiveExtractService implements ExtractService {
             LOGGER.log("archive-extract.binary-file-found");
             tryRenameAndSetExecutable(archivePath, tool);
         } catch (Exception e) {
-            LOGGER.log("archive-extract.exception", e.getClass().getName(), StringUtils.trimToEmpty(e.getMessage()), tool.id());
+            LOGGER.log(e, "archive-extract.exception", tool.id());
             FileUtils.deleteQuietly(destinationPath.toFile());
         }
     }

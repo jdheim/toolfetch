@@ -125,8 +125,11 @@ class ToolFetchHttpClientTest {
         try (MockedStatic<JavaHome> javaHome = mockStatic()) {
             javaHome.when(JavaHome::get).thenReturn(null);
             testHttpClient(configuration, "Default");
-            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                    "Cannot initialize TLS using TrustStore \"%s\"".formatted(tempDir.resolve("missing")));
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), (
+                    "Cannot initialize TLS: \"java.lang.IllegalArgumentException: File does not exist or it does not refer to a normal file: %s\". TrustStore: \"%s\". "
+                            + "Falling back to the next available TrustStore").formatted(tempDir.resolve("missing"),
+                    tempDir.resolve("missing")));
+            testLogListAppenderSteps.assertExceptionLogged(IllegalArgumentException.class);
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
         }
     }
@@ -144,8 +147,9 @@ class ToolFetchHttpClientTest {
 
             testHttpClient(configuration, "Default");
 
-            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                    "Cannot initialize TLS using TrustStore \"%s\":".formatted(cacerts));
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), (
+                    "Cannot initialize TLS: \"java.io.IOException: Integrity check failed: java.security.UnrecoverableKeyException: Failed PKCS12 integrity checking\". "
+                            + "TrustStore: \"%s\". Falling back to the next available TrustStore").formatted(cacerts));
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
         }
     }

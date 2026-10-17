@@ -14,7 +14,6 @@ import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class FileChecksumService implements ChecksumService {
 
@@ -41,7 +40,7 @@ public class FileChecksumService implements ChecksumService {
                 return match;
             });
         } catch (Exception e) {
-            LOGGER.log("checksum.exception", e.getClass().getName(), StringUtils.trimToEmpty(e.getMessage()));
+            LOGGER.log(e, "checksum.exception");
             return false;
         }
     }

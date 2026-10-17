@@ -184,6 +184,7 @@ class WebDownloadServiceIT {
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Download failed: \"java.io.IOException: I/O error occurred\". Skipping tool: " + tool.id());
+        testLogListAppenderSteps.assertExceptionLogged(IOException.class);
     }
 
     @Test

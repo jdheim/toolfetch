@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -41,6 +42,15 @@ class YamlParserServiceUnhappyTest {
         parserService = new YamlParserService();
         testLogListAppenderSteps = new TestLogListAppenderSteps();
         testLogListAppenderSteps.start();
+    }
+
+    @Test
+    void testParseLogsExceptionAtDebugLevel() {
+        Path toolfetchConfigPath = tempDir.resolve("missing.yaml");
+        assertThat(parserService.parse(toolfetchConfigPath)).isEmpty();
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
+                "Cannot parse YAML configuration: \"java.nio.file.NoSuchFileException: %s\"".formatted(toolfetchConfigPath));
+        testLogListAppenderSteps.assertExceptionLogged(NoSuchFileException.class);
     }
 
     @Test

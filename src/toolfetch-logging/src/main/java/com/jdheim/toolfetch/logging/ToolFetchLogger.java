@@ -7,6 +7,7 @@ package com.jdheim.toolfetch.logging;
 
 import java.util.ResourceBundle;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,8 @@ public final class ToolFetchLogger {
     }
 
     public void log(Exception exception, String key, @Nullable Object... args) {
-        log(key, args);
+        Object[] exceptionArgs = {exception.getClass().getName(), StringUtils.trimToEmpty(exception.getMessage())};
+        log(key, ArrayUtils.addAll(exceptionArgs, args));
         delegate.debug(EXCEPTION_STACK_TRACE_MESSAGE, exception);
     }
 

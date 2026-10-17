@@ -6,6 +6,7 @@
 package com.jdheim.toolfetch.builder;
 
 import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import org.jspecify.annotations.Nullable;
 
 /// Tool Builder for Tests
@@ -28,6 +29,8 @@ public final class TestToolBuilder {
     private @Nullable String version;
 
     private @Nullable String destination;
+
+    private @Nullable Checksums checksums;
 
     private TestToolBuilder() {
         id = DEFAULT_ID;
@@ -74,8 +77,13 @@ public final class TestToolBuilder {
         return this;
     }
 
+    public TestToolBuilder checksums(Checksums checksums) {
+        this.checksums = checksums;
+        return this;
+    }
+
     public Tool build() {
-        return new Tool(id, url, version, destination);
+        return new Tool(id, url, version, destination, checksums);
     }
 
 }
