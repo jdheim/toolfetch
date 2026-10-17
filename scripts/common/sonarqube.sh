@@ -217,7 +217,7 @@ sonarqubeQualityGateStatus() {
               else .
               end // "-") \(
             $condition.errorThreshold // "-")"
-  '
+  ' | tee "${SONARQUBE_SUMMARY_FILE:-/dev/null}"
 
   if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
     if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
