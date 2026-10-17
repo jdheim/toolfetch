@@ -71,9 +71,11 @@
         <graalvm-jdk.sha256.linux-arm64>7031aead8da4c6a7816c4e2be4eabfddaf7f4abcfe8e5f16134c4da69a5e70de</graalvm-jdk.sha256.linux-arm64>
 
         <!-- GitHub Actions -->
+        <!-- https://github.com/anchore/syft/releases -->
         <syft.version>1.54.1</syft.version>
         <syft.sha256.linux-amd64>c069905b391cc4c20a5ba65ad5c10be2a7ba074f8ea6ad203e24d14e303dad47</syft.sha256.linux-amd64>
         <syft.sha256.linux-arm64>dfdf0537610113edbefe1f1fc6548bc957b2d77439636ec824fcf0e10d46d054</syft.sha256.linux-arm64>
+        <!-- https://github.com/upx/upx/releases/ -->
         <upx.version>5.2.1</upx.version>
         <upx.sha256.linux-amd64>402162aad30af47e60dbd767fb2e64ca394ace9727ba1f40283641f1d1b91657</upx.sha256.linux-amd64>
         <upx.sha256.linux-arm64>a72d112c5970a904a31da0b9c84f919bc16b9a311787c12245508544a78c7d36</upx.sha256.linux-arm64>
