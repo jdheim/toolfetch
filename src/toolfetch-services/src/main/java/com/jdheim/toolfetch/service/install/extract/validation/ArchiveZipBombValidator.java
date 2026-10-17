@@ -5,6 +5,7 @@
 
 package com.jdheim.toolfetch.service.install.extract.validation;
 
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.io.FileUtils;
@@ -26,14 +27,13 @@ public final class ArchiveZipBombValidator {
     public static void validateEntryCount(int totalArchiveEntries) {
         if (totalArchiveEntries > THRESHOLD_ENTRIES) {
             throw new UnsupportedOperationException(
-                    "Detected Zip Bomb vulnerability: Archive contains more than %s entries".formatted(THRESHOLD_ENTRIES));
+                    ToolFetchLogger.message("exception.archive-extract.too-many-entries", THRESHOLD_ENTRIES));
         }
     }
 
     public static void validateTotalSize(long totalExtractedArchiveSize) {
         if (totalExtractedArchiveSize > THRESHOLD_SIZE) {
-            throw new UnsupportedOperationException(
-                    "Detected Zip Bomb vulnerability: Archive is larger than %s when extracted".formatted(
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.too-large",
                             FileUtils.byteCountToDisplaySize(THRESHOLD_SIZE)));
         }
     }
@@ -46,8 +46,8 @@ public final class ArchiveZipBombValidator {
                 double compressionRatio = (double) extractedSize / compressedSize;
                 if (compressionRatio > THRESHOLD_RATIO) {
                     throw new UnsupportedOperationException(
-                            "Detected Zip Bomb vulnerability: Archive Entry \"%s\" has suspicious compression ratio \"%.2f\" (compressed size = %s, extracted size = %s)".formatted(
-                                    archiveEntry, compressionRatio, FileUtils.byteCountToDisplaySize(compressedSize),
+                            ToolFetchLogger.message("exception.archive-extract.compression-ratio", archiveEntry,
+                                    "%.2f".formatted(compressionRatio), FileUtils.byteCountToDisplaySize(compressedSize),
                                     FileUtils.byteCountToDisplaySize(extractedSize)));
                 }
             }

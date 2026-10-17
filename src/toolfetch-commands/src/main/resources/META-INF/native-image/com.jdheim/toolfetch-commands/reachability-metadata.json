@@ -225,6 +225,13 @@
       "type": "com.jdheim.toolfetch.logging.ToolFetchLogger",
       "methods": [
         {
+          "name": "message",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.Object[]"
+          ]
+        },
+        {
           "name": "messages",
           "parameterTypes": []
         }
@@ -301,6 +308,18 @@
             "java.lang.Integer",
             "com.jdheim.toolfetch.model.http.ssl.Ssl"
           ]
+        },
+        {
+          "name": "connectTimeout",
+          "parameterTypes": []
+        },
+        {
+          "name": "requestTimeout",
+          "parameterTypes": []
+        },
+        {
+          "name": "ssl",
+          "parameterTypes": []
         }
       ]
     },
@@ -312,6 +331,10 @@
           "parameterTypes": [
             "com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore"
           ]
+        },
+        {
+          "name": "trustStore",
+          "parameterTypes": []
         }
       ]
     },
@@ -324,6 +347,14 @@
             "java.lang.String",
             "java.lang.String"
           ]
+        },
+        {
+          "name": "path",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
         }
       ]
     },
@@ -693,9 +724,7 @@
       "methods": [
         {
           "name": "<init>",
-          "parameterTypes": [
-            "boolean"
-          ]
+          "parameterTypes": []
         }
       ]
     },

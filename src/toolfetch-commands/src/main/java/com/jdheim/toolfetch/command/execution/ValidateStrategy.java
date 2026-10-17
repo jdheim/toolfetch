@@ -7,6 +7,7 @@ package com.jdheim.toolfetch.command.execution;
 
 import com.jdheim.toolfetch.command.execution.option.ConfigPathValidationRule;
 import com.jdheim.toolfetch.command.subcommand.Install;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import picocli.CommandLine;
 
 public class ValidateStrategy implements CommandLine.IExecutionStrategy {
@@ -15,7 +16,8 @@ public class ValidateStrategy implements CommandLine.IExecutionStrategy {
     public int execute(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException,
             CommandLine.ParameterException {
         if (!parseResult.hasSubcommand()) {
-            throw new CommandLine.ParameterException(parseResult.commandSpec().commandLine(), "Missing required subcommand");
+            throw new CommandLine.ParameterException(parseResult.commandSpec().commandLine(),
+                    ToolFetchLogger.message("exception.command.missing-subcommand"));
         }
         validate(parseResult.subcommands().getLast());
         return CommandLine.ExitCode.OK;
@@ -30,7 +32,7 @@ public class ValidateStrategy implements CommandLine.IExecutionStrategy {
             ConfigPathValidationRule.validateAll(commandLine, install.configPath());
         } else {
             throw new CommandLine.ParameterException(commandLine,
-                    "Command %s not supported".formatted(userObject.getClass().getSimpleName()));
+                    ToolFetchLogger.message("exception.command.unsupported", userObject.getClass().getSimpleName()));
         }
     }
 

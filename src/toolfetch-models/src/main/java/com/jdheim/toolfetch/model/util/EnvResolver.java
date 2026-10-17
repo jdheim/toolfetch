@@ -8,6 +8,7 @@ package com.jdheim.toolfetch.model.util;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -25,7 +26,7 @@ public final class EnvResolver {
 
     public static Path resolveAsPath(String input) {
         if (StringUtils.isBlank(input)) {
-            throw new IllegalArgumentException("Environment variable could not be resolved as the input is empty");
+            throw new IllegalArgumentException(ToolFetchLogger.message("exception.env-resolver.empty-input"));
         }
         return Path.of(resolve(input));
     }
@@ -43,8 +44,7 @@ public final class EnvResolver {
             String envValue = System.getenv(envName);
 
             if (envValue == null) {
-                throw new IllegalArgumentException(
-                        "Environment variable \"%s\" is not set (provided in \"%s\")".formatted(envName, input));
+                throw new IllegalArgumentException(ToolFetchLogger.message("exception.env-resolver.not-set", envName, input));
             }
 
             matcher.appendReplacement(result, Matcher.quoteReplacement(envValue));

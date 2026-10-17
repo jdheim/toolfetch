@@ -34,6 +34,10 @@ public final class ToolFetchLogger {
         return new ToolFetchLogger(type);
     }
 
+    public static String message(String key, @Nullable Object... args) {
+        return MessageFormatter.arrayFormat(messages().getString(key), args).getMessage();
+    }
+
     public void log(Exception exception, String key, @Nullable Object... args) {
         log(key, args);
         delegate.debug(EXCEPTION_STACK_TRACE_MESSAGE, exception);

@@ -9,9 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
 
 import java.util.ResourceBundle;
 import ch.qos.logback.classic.Level;
@@ -176,8 +176,8 @@ class ToolFetchLoggerTest {
     }
 
     private MockedStatic<ToolFetchLogger> mockMessages(String key, String fullMessage) {
-        ResourceBundle messages = mock();
-        when(messages.getString(key)).thenReturn(fullMessage);
+        ResourceBundle messages = spy(ToolFetchLogger.messages());
+        doReturn(fullMessage).when(messages).getString(key);
         MockedStatic<ToolFetchLogger> toolFetchLogger = mockStatic(ToolFetchLogger.class, CALLS_REAL_METHODS);
         toolFetchLogger.when(ToolFetchLogger::messages).thenReturn(messages);
         return toolFetchLogger;

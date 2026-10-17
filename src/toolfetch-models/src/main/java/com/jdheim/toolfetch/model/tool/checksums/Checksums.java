@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 public class Checksums {
@@ -57,7 +58,8 @@ public class Checksums {
             return Arrays.stream(values())
                     .filter(algorithm -> algorithm.configurationKey.equals(configurationKey))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown checksum algorithm: " + configurationKey));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            ToolFetchLogger.message("exception.checksum.unknown-algorithm", configurationKey)));
         }
 
         @Override

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.exception.SkippedArchiveException;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -30,7 +31,8 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
 
     private static final ArchiveStreamFactory ARCHIVE_STREAM_FACTORY = new ArchiveStreamFactory();
 
-    private static final String NO_ARCHIVER_FOUND_FOR_THE_STREAM_SIGNATURE = "No Archiver found for the stream signature";
+    private static final String NO_ARCHIVER_FOUND_FOR_THE_STREAM_SIGNATURE = ToolFetchLogger.message(
+            "exception.archive-uncompress.no-archiver");
 
     /// [@Patch COMPRESS-710](https://issues.apache.org/jira/browse/COMPRESS-710)
     private static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR, ArchiveStreamFactory.ARJ,

@@ -25,17 +25,16 @@ record LogMessage(LogLevel level, String message) {
     private static int requireDelimiterIndex(String fullMessage) {
         int delimiterIndex = fullMessage.indexOf(COMMA_CHAR);
         if (delimiterIndex <= 0) {
-            throw new IllegalArgumentException(
-                    "Invalid log message '%s'. Expected format: <level>,<message>".formatted(fullMessage));
+            throw new IllegalArgumentException(ToolFetchLogger.message("exception.log-message.invalid-format", fullMessage));
         }
         return delimiterIndex;
     }
 
     private static void validateMessage(String fullMessage, String message) {
         if (message.isEmpty()) {
-            throw new IllegalArgumentException("Log message must not be empty: '%s'".formatted(fullMessage));
+            throw new IllegalArgumentException(ToolFetchLogger.message("exception.log-message.empty", fullMessage));
         } else if (message.contains(PLACEHOLDER)) {
-            throw new IllegalArgumentException("Log message requires an argument: %s".formatted(fullMessage));
+            throw new IllegalArgumentException(ToolFetchLogger.message("exception.log-message.missing-argument", fullMessage));
         }
     }
 
@@ -44,7 +43,8 @@ record LogMessage(LogLevel level, String message) {
         try {
             level = LogLevel.valueOf(rawLevel.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Unsupported log level '%s' in message '%s'".formatted(rawLevel, fullMessage), e);
+            throw new IllegalArgumentException(
+                    ToolFetchLogger.message("exception.log-message.unsupported-level", rawLevel, fullMessage), e);
         }
         return level;
     }

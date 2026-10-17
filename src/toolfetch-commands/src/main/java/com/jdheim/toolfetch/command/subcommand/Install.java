@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import com.jdheim.toolfetch.command.convert.PathTrimConverter;
 import com.jdheim.toolfetch.command.execution.option.ConfigPathDefaultValueProvider;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.config.ConfigurationService;
@@ -67,12 +68,14 @@ public final class Install implements Callable<Integer> {
         Set<String> configuredIds = configuration.tools().stream().map(Tool::id).collect(Collectors.toSet());
         ids.forEach(id -> {
             if (!configuredIds.contains(id)) {
-                throw new CommandLine.ParameterException(commandSpec.commandLine(), "Unknown tool ID: '%s'".formatted(id));
+                throw new CommandLine.ParameterException(commandSpec.commandLine(),
+                        ToolFetchLogger.message("exception.install.unknown-tool-id", id));
             }
         });
         List<Tool> tools = configuration.tools().stream().filter(tool -> ids.contains(tool.id()) == only).toList();
         if (tools.isEmpty()) {
-            throw new CommandLine.ParameterException(commandSpec.commandLine(), "No tools selected");
+            throw new CommandLine.ParameterException(commandSpec.commandLine(),
+                    ToolFetchLogger.message("exception.install.no-tools-selected"));
         }
         return new Configuration(configuration.destination(), tools, configuration.http());
     }

@@ -132,7 +132,7 @@ public class ArchiveExtractService implements ExtractService {
         Path normalizedTarget = normalizedDestination.resolve(entryName).normalize();
         if (!normalizedTarget.startsWith(normalizedDestination)) {
             throw new UnsupportedOperationException(
-                    "Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"".formatted(normalizedDestination, entryName,
+                    ToolFetchLogger.message("exception.archive-extract.zip-slip", normalizedDestination, entryName,
                             normalizedTarget));
         }
         return normalizedTarget;
@@ -142,8 +142,7 @@ public class ArchiveExtractService implements ExtractService {
             long totalExtractedArchiveSize) throws IOException {
         Path parent = target.getParent();
         if (parent == null) {
-            throw new UnsupportedOperationException(
-                    "Detected Zip Slip vulnerability: Archive Entry \"%s\" does not have parent directory".formatted(target));
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.missing-parent", target));
         }
         if (!Files.exists(parent)) {
             Files.createDirectories(parent);

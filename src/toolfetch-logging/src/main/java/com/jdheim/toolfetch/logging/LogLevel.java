@@ -46,8 +46,7 @@ public enum LogLevel {
     TRACE {
         @Override
         void log(Logger logger, String message) {
-            throw new UnsupportedOperationException(
-                    "Trace logging must check ToolFetchLogger.isTraceEnabled() and use ToolFetchLogger.trace()");
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.log-level.trace-unsupported"));
         }
     };
 

@@ -8,6 +8,7 @@ package com.jdheim.toolfetch.service.install.extract.uncompress;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveException;
 
@@ -31,7 +32,7 @@ public class CompositeArchiveUncompressor extends AutoDetectArchiveUncompressor 
                 return uncompressor.uncompress(archivePath);
             }
         }
-        throw new ArchiveException("No Archiver found for the stream signature");
+        throw new ArchiveException(ToolFetchLogger.message("exception.archive-uncompress.no-archiver"));
     }
 
 }
