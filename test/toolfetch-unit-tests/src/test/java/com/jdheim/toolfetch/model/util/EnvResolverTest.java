@@ -39,7 +39,7 @@ class EnvResolverTest {
         }
         if (expectedResolvedString.contains("NOT_EXISTS")) {
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> EnvResolver.resolve(stringWithEnv))
-                    .withMessage("Environment variable \"NOT_EXISTS\" is not set (provided in \"%s\")".formatted(stringWithEnv));
+                    .withMessage("Environment variable \"NOT_EXISTS\" is not set (referenced in \"%s\")".formatted(stringWithEnv));
         } else {
             String envValue = EnvResolver.resolve(stringWithEnv);
             assertThat(expectedResolvedString).isEqualTo(envValue);
@@ -65,10 +65,10 @@ class EnvResolverTest {
         }
         if (expectedResolvedString == null) {
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> EnvResolver.resolveAsPath(stringWithEnv))
-                    .withMessage("Environment variable could not be resolved as the input is empty");
+                    .withMessage("Path is missing or contains only whitespace. Provide a file or directory path");
         } else if (expectedResolvedString.contains("NOT_EXISTS")) {
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> EnvResolver.resolveAsPath(stringWithEnv))
-                    .withMessage("Environment variable \"NOT_EXISTS\" is not set (provided in \"%s\")".formatted(stringWithEnv));
+                    .withMessage("Environment variable \"NOT_EXISTS\" is not set (referenced in \"%s\")".formatted(stringWithEnv));
         } else {
             Path envValue = EnvResolver.resolveAsPath(stringWithEnv);
             assertThat(Path.of(expectedResolvedString)).isEqualTo(envValue);

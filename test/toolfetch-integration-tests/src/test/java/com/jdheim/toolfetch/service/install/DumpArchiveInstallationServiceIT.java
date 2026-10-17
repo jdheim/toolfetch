@@ -32,8 +32,8 @@ class DumpArchiveInstallationServiceIT extends TestCommonArchiveInstallationServ
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
-                    "Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: "
-                            + "No Archiver found for the stream signature\". Skipping toolfetch");
+                    "Extraction failed: \"org.apache.commons.compress.archivers.ArchiveException: "
+                            + "No Archiver found for the stream signature\". Skipping tool: toolfetch");
             assertThat(destinationPath).doesNotExist();
         });
     }

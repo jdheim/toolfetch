@@ -34,12 +34,12 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
             Path backupPath = tempDir.resolve("toolfetch.bak");
             assertThat(backupPath).doesNotExist();
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
-                    "Backup path already exists: %s. Removing".formatted(backupPath));
+                    "Backup already exists: %s. Removing".formatted(backupPath));
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
-                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+                    "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
-                    "Reverting %s to %s".formatted(backupPath, destinationPath));
+                    "Restoring %s to %s".formatted(backupPath, destinationPath));
         });
     }
 
@@ -53,7 +53,7 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
             getTestLogListAppenderSteps().assertNoErrorNoWarn();
             AssertionSteps.assertSample2Archive(destinationPath);
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                    "Top-level directory \"test1/test11\" detected. Stripping during extraction");
+                    "Top-level directory \"test1/test11\" detected. Removing this directory level during extraction");
         });
     }
 
@@ -90,13 +90,13 @@ class ZipArchiveInstallationServiceHappyIT extends TestCommonArchiveInstallation
             assertThat(backupPath).doesNotExist();
             if (backupPathExists) {
                 getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                        "Backup path already exists: %s. Removing".formatted(backupPath));
+                        "Backup already exists: %s. Removing".formatted(backupPath));
             }
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+                    "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(),
-                    "Reverting %s to %s".formatted(backupPath, destinationPath));
+                    "Restoring %s to %s".formatted(backupPath, destinationPath));
         });
     }
 

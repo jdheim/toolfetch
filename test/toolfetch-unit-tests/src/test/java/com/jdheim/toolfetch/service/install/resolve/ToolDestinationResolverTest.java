@@ -51,7 +51,7 @@ class ToolDestinationResolverTest {
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
                             () -> destinationResolver.resolve(configuration, tool))
                     .withMessage(
-                            "Environment variable \"NOT_EXISTS\" is not set (provided in \"%s\")".formatted(expectedDestination));
+                            "Environment variable \"NOT_EXISTS\" is not set (referenced in \"%s\")".formatted(expectedDestination));
         } else {
             Path destinationPath = destinationResolver.resolve(configuration, tool);
             assertThat(destinationPath).isEqualTo(expectedDestinationAsPath.resolve(id));

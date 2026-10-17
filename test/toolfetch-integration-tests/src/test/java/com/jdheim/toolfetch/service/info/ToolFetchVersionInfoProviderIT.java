@@ -102,7 +102,7 @@ class ToolFetchVersionInfoProviderIT {
             lazyHolder.verify(ToolFetchInfo.LazyHolder::getProperties, times(1));
             verify(propertiesMock).load(any(InputStream.class));
             testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
-                    "Failed to load resource: \"/version-info.properties\" due to \"I/O error occurred\"");
+                    "Cannot load resource \"/version-info.properties\": I/O error occurred");
         }
     }
 

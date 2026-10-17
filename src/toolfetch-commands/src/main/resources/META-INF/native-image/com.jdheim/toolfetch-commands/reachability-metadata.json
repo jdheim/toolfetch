@@ -710,8 +710,7 @@
         {
           "name": "<init>",
           "parameterTypes": [
-            "java.io.File",
-            "java.lang.String"
+            "org.apache.commons.compress.archivers.zip.ZipArchiveEntry"
           ]
         }
       ]

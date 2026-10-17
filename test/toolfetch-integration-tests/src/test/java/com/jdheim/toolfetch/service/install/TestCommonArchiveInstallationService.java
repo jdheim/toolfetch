@@ -107,9 +107,9 @@ public class TestCommonArchiveInstallationService {
         if (Files.exists(destinationPath)) {
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
             if (getTestLogListAppenderSteps().list.stream()
-                    .noneMatch(line -> line.getFormattedMessage().startsWith("Extract failed due to exception")))
+                    .noneMatch(line -> line.getFormattedMessage().startsWith("Extraction failed")))
                 getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
         }
     }

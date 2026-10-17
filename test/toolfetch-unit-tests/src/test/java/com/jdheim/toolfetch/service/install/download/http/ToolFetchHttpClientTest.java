@@ -126,7 +126,7 @@ class ToolFetchHttpClientTest {
             javaHome.when(JavaHome::get).thenReturn(null);
             testHttpClient(configuration, "Default");
             testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                    "Failed to build SSL context from \"%s\"".formatted(tempDir.resolve("missing")));
+                    "Cannot initialize TLS using TrustStore \"%s\"".formatted(tempDir.resolve("missing")));
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
         }
     }
@@ -145,7 +145,7 @@ class ToolFetchHttpClientTest {
             testHttpClient(configuration, "Default");
 
             testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                    "Failed to build SSL context from \"%s\" due to exception:".formatted(cacerts));
+                    "Cannot initialize TLS using TrustStore \"%s\":".formatted(cacerts));
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
         }
     }

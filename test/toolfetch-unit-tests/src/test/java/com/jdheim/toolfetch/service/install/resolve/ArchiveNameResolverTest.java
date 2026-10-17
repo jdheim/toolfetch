@@ -102,7 +102,7 @@ class ArchiveNameResolverTest {
         }
         if (contentDisposition.contains("UTFF-8")) {
             testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                    "%s header contains unsupported charset: %s. Falling back to UTF-8".formatted(CONTENT_DISPOSITION_HEADER,
+                    "%s header uses an unsupported character encoding: %s. Falling back to UTF-8".formatted(CONTENT_DISPOSITION_HEADER,
                             "UTFF-8"));
         }
     }
@@ -119,7 +119,7 @@ class ArchiveNameResolverTest {
         verify(archiveNameResolver, never()).resolveFromFilenamePattern(anyString());
         verify(archiveNameResolver).resolveFromUri(any());
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "%s header longer than 8192 characters. Skipping archive name resolution from header".formatted(
+                "%s header exceeds 8192 characters. Ignoring this header when determining the archive name".formatted(
                         CONTENT_DISPOSITION_HEADER));
     }
 

@@ -82,8 +82,8 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             String binaryFileName = tool.id() + "_" + tool.version() + ".AppImage";
             Path binaryFilePath = destinationPath.resolve(binaryFileName);
             assertLogs(execResult, tool, destinationPath, binaryFilePath);
-            assertAnyMatch(execResult, "[%s] Detected binary file. Skipping archive extraction".formatted(LogLevel.INFO));
-            assertAnyMatch(execResult, "[%s] Setting %s as executable".formatted(LogLevel.INFO, binaryFilePath));
+            assertAnyMatch(execResult, "[%s] Binary file detected. Skipping archive extraction".formatted(LogLevel.INFO));
+            assertAnyMatch(execResult, "[%s] Making %s executable".formatted(LogLevel.INFO, binaryFilePath));
             Path renamedBinaryFilePath = destinationPath.resolve(tool.id() + ".AppImage");
             assertAnyMatch(execResult, "[%s] Renaming %s to %s".formatted(LogLevel.INFO, binaryFilePath, renamedBinaryFilePath));
             verify(1, getRequestedFor(urlEqualTo("/download/%s/%s".formatted(tool.version(), binaryFileName))));
@@ -164,20 +164,20 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             verify(1, getRequestedFor(urlEqualTo("/download/" + archiveName)));
             if (isExcluded(archiveName)) {
                 assertAnyMatch(execResult, (
-                        "[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.ArchiveException: "
-                                + "No Archiver found for the stream signature\". Skipping %s").formatted(LogLevel.WARN,
+                        "[%s] Extraction failed: \"org.apache.commons.compress.archivers.ArchiveException: "
+                                + "No Archiver found for the stream signature\". Skipping tool: %s").formatted(LogLevel.WARN,
                         tool.id()));
             } else if (tool.url().contains(".7z")) {
                 assertAnyMatch(execResult, (
-                        "[%s] Extract failed due to exception: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: "
-                                + "The 7z doesn't support streaming.\". Skipping %s").formatted(LogLevel.WARN, tool.id()));
+                        "[%s] Extraction failed: \"org.apache.commons.compress.archivers.StreamingNotSupportedException: "
+                                + "The 7z doesn't support streaming.\". Skipping tool: %s").formatted(LogLevel.WARN, tool.id()));
             } else {
                 assertAnyMatch(execResult, "[%s] Extracting %s to %s".formatted(LogLevel.INFO, archivePath, destinationPath));
-                assertAnyMatch(execResult, "[%s] Extract completed in ".formatted(LogLevel.INFO));
+                assertAnyMatch(execResult, "[%s] Extraction completed in ".formatted(LogLevel.INFO));
                 assertAnyMatch(execResult, "[%s] Removing %s".formatted(LogLevel.INFO, archivePath));
                 if (tool.url().contains("-password")) {
                     assertAnyMatch(execResult,
-                            "[%s] Nothing has been extracted. Removing %s".formatted(LogLevel.WARN, destinationPath));
+                            "[%s] No files were extracted. Removing %s".formatted(LogLevel.WARN, destinationPath));
                 } else if (tool.id().contains("sample1")) {
                     AssertionSteps.assertSample1Archive(destinationPath);
                 } else if (tool.id().contains("sample2")) {

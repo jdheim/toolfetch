@@ -155,7 +155,7 @@ class InstallTest {
     void testInvalidConfigurationPreventsInstallation() throws IOException {
         Files.writeString(configPath, "tools: invalid");
         assertUsageError(CommandLine.ExitCode.SOFTWARE, "--only", "firefox");
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Config does not conform to schema:");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Configuration does not match the schema:");
     }
 
     private Configuration installedConfiguration(String... options) {

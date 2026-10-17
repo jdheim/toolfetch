@@ -51,7 +51,7 @@ class ArchiveExtractServiceTest {
 
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Destination path could not be resolved. Skipping " + tool.id());
+                "Cannot determine the destination path. Skipping tool: " + tool.id());
     }
 
     @Test
@@ -63,7 +63,7 @@ class ArchiveExtractServiceTest {
             assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
                             () -> archiveExtractService.extractEntry(acis, archiveEntry, target, 0))
                     .withMessage(
-                            "Detected Zip Slip vulnerability: Archive Entry \"toolfetch.txt\" does not have parent directory");
+                            "Unsafe archive entry \"toolfetch.txt\" has no parent directory");
         }
     }
 

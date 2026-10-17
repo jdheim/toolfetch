@@ -33,7 +33,7 @@ class ArchiveZipBombValidatorTest {
     void testValidateEntryCount_Invalid() {
         assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
                         () -> ArchiveZipBombValidator.validateEntryCount(10_001))
-                .withMessage("Detected Zip Bomb vulnerability: Archive contains more than 10000 entries");
+                .withMessage("Possible zip bomb: archive contains more than 10000 entries");
     }
 
     @Test
@@ -45,7 +45,7 @@ class ArchiveZipBombValidatorTest {
     void testValidateTotalSize_Invalid() {
         assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
                         () -> ArchiveZipBombValidator.validateTotalSize(10L * 1024 * 1024 * 1024 + 1))
-                .withMessage("Detected Zip Bomb vulnerability: Archive is larger than 10 GB when extracted");
+                .withMessage("Possible zip bomb: extracted archive exceeds 10 GB");
     }
 
     @Test
@@ -86,7 +86,7 @@ class ArchiveZipBombValidatorTest {
             assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
                             () -> ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry))
                     .withMessage(
-                            "Detected Zip Bomb vulnerability: Archive Entry \"test/test.txt\" has suspicious compression ratio \"100.00\" (compressed size = 2 MB, extracted size = 200 MB)");
+                            "Possible zip bomb: archive entry \"test/test.txt\" has an unsafe compression ratio \"100.00\" (compressed size = 2 MB, extracted size = 200 MB)");
         }
     }
 
@@ -131,7 +131,7 @@ class ArchiveZipBombValidatorTest {
             assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
                             () -> ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry))
                     .withMessage(
-                            "Detected Zip Bomb vulnerability: Archive Entry \"test/test.txt\" has suspicious compression ratio \"100.00\" (compressed size = 2 MB, extracted size = 200 MB)");
+                            "Possible zip bomb: archive entry \"test/test.txt\" has an unsafe compression ratio \"100.00\" (compressed size = 2 MB, extracted size = 200 MB)");
         }
     }
 

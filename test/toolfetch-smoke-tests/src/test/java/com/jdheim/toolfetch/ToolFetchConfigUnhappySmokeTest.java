@@ -82,7 +82,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         ExecResult execResult = execute("install", option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
         assertAnyMatch(execResult,
-                "[%s] Error occurred when parsing YAML configuration: should not be empty".formatted(LogLevel.ERROR));
+                "[%s] YAML configuration is empty. Add configuration settings".formatted(LogLevel.ERROR));
         if (runtimeModeNativeImage()) {
             assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.SOFTWARE);
             assertOneMatch(execResult, "[INFO] Command completed in ");
@@ -98,7 +98,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
         }
         ExecResult execResult = execute("install", option, toolfetchConfigPath.toString());
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.SOFTWARE);
-        assertAnyMatch(execResult, "[%s] Config does not conform to schema:".formatted(LogLevel.ERROR));
+        assertAnyMatch(execResult, "[%s] Configuration does not match the schema:".formatted(LogLevel.ERROR));
         assertAnyMatch(execResult, "[%s] - required property 'tools' not found".formatted(LogLevel.ERROR));
         if (runtimeModeNativeImage()) {
             assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.SOFTWARE);

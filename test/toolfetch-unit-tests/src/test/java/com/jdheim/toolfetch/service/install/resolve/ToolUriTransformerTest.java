@@ -46,8 +46,8 @@ class ToolUriTransformerTest {
 
     @ParameterizedTest
     @CsvSource({
-            "http://localhost/download/${version}/toolfetch.zip, 'Missing required parameter: version'",
-            "ftp://localhost/download/toolfetch.zip, 'Unsupported URI scheme. Only http/https are allowed'"
+            "http://localhost/download/${version}/toolfetch.zip, 'Tool URL contains ${version}, but no version is configured. Set the version for this tool'",
+            "ftp://localhost/download/toolfetch.zip, 'Unsupported URL scheme. Use http or https'"
     })
     void testTransform_Unhappy(String url, String logMessage) {
         Tool tool = new Tool("toolfetch", url);

@@ -89,9 +89,9 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path archivePath = destinationPath.resolve("toolfetch.zip");
         getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                 "Extracting %s to %s".formatted(archivePath, destinationPath));
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
         getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
-                "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"%s\" = \"%s\"\"".formatted(
+                "Extraction failed: \"java.lang.UnsupportedOperationException: Unsafe archive path: destination \"%s\", entry \"%s\" resolves outside the destination to \"%s\"\"".formatted(
                         destinationPath, logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
     }
 
@@ -158,21 +158,21 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             assertThat(backupPath).doesNotExist();
             if (backupPathExists) {
                 getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                        "Backup path already exists: %s. Removing".formatted(backupPath));
+                        "Backup already exists: %s. Removing".formatted(backupPath));
             }
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                    "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+                    "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
             Path archivePath = destinationPath.resolve("toolfetch.zip");
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
-                    "Extract failed due to exception: \"java.lang.UnsupportedOperationException: Detected Zip Slip vulnerability: \"%s\" + \"../test2.txt\" = \"%s\"\"".formatted(
+                    "Extraction failed: \"java.lang.UnsupportedOperationException: Unsafe archive path: destination \"%s\", entry \"../test2.txt\" resolves outside the destination to \"%s\"\"".formatted(
                             destinationPath, tempDir.resolve(id + "/../test2.txt").normalize()));
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
             getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                    "Reverting %s to %s".formatted(backupPath, destinationPath));
+                    "Restoring %s to %s".formatted(backupPath, destinationPath));
         });
     }
 
@@ -197,13 +197,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(backupPath).doesNotExist();
         if (backupPathExists) {
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                    "Backup path already exists: %s. Removing".formatted(backupPath));
+                    "Backup already exists: %s. Removing".formatted(backupPath));
         }
         getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+                "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
         getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
         getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
-                "Reverting %s to %s".formatted(backupPath, destinationPath));
+                "Restoring %s to %s".formatted(backupPath, destinationPath));
     }
 
     private void testInstall_PasswordProtected(int index, List<String> files, WireMockRuntimeInfo wmRuntimeInfo) {
@@ -214,11 +214,11 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
             files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
-                    "Couldn't read archive entry \"%s\". Skipping".formatted(file)));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extract completed in ");
+                    "Cannot read archive entry \"%s\". Skipping".formatted(file)));
+            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
             getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
-                    "Nothing has been extracted. Removing " + tempDir.resolve("toolfetch"));
+                    "No files were extracted. Removing " + tempDir.resolve("toolfetch"));
         });
     }
 
@@ -247,9 +247,9 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(backupPath.resolve(backupTest)).isRegularFile().hasContent("Backup Test");
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
-                "Reverting %s to %s".formatted(backupPath, destinationPath));
+                "Restoring %s to %s".formatted(backupPath, destinationPath));
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Revert failed due to exception: \"java.io.IOException: Boom\"");
+                "Cannot restore the backup: \"java.io.IOException: Boom\"");
     }
 
     @Test
@@ -279,12 +279,12 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
+                "Download failed: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping tool: "
                         + id);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(),
-                "Reverting %s to %s".formatted(backupPath, destinationPath));
+                "Restoring %s to %s".formatted(backupPath, destinationPath));
     }
 
     @Test
@@ -307,11 +307,11 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed: received HTTP 404 response. Skipping " + id);
+                "Download failed: server returned HTTP 404 response. Skipping tool: " + id);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(),
-                "Reverting %s to %s".formatted(backupPath, destinationPath));
+                "Restoring %s to %s".formatted(backupPath, destinationPath));
     }
 
     @ParameterizedTest
@@ -353,21 +353,21 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(backupPath).doesNotExist();
         if (backupPathExists) {
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
-                    "Backup path already exists: %s. Removing".formatted(backupPath));
+                    "Backup already exists: %s. Removing".formatted(backupPath));
         }
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
-                "Destination path already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
+                "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Creating " + destinationPath);
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Downloading http://localhost:%s%s to %s".formatted(wmRuntimeInfo.getHttpPort(), mockUrl,
                         destinationPath.resolve(id + ".zip")));
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + id);
+                "Download failed: \"java.io.IOException: Boom\". Skipping tool: " + id);
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
         testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
-                "Reverting %s to %s".formatted(backupPath, destinationPath));
+                "Restoring %s to %s".formatted(backupPath, destinationPath));
     }
 
     private Configuration buildConfiguration(WireMockRuntimeInfo wmRuntimeInfo, String id, String mockUrl) {

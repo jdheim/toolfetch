@@ -112,8 +112,8 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Unsupported URI scheme. Only http/https are allowed");
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "URI could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Unsupported URL scheme. Use http or https");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Cannot determine the download URL. Skipping tool: " + tool.id());
     }
 
     @Test
@@ -129,8 +129,8 @@ class WebDownloadServiceIT {
         assertThat(getAllServeEvents()).isEmpty();
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Missing required parameter: version");
-        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "URI could not be resolved. Skipping " + tool.id());
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Tool URL contains ${version}, but no version is configured. Set the version for this tool");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), "Cannot determine the download URL. Skipping tool: " + tool.id());
     }
 
     @Test
@@ -147,7 +147,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed: received HTTP 404 response. Skipping " + tool.id());
+                "Download failed: server returned HTTP 404 response. Skipping tool: " + tool.id());
     }
 
     @Test
@@ -164,7 +164,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Archive name could not be resolved. Skipping " + tool.id());
+                "Cannot determine the archive name. Skipping tool: " + tool.id());
     }
 
     @Test
@@ -183,7 +183,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed due to exception: \"java.io.IOException: I/O error occurred\". Skipping " + tool.id());
+                "Download failed: \"java.io.IOException: I/O error occurred\". Skipping tool: " + tool.id());
     }
 
     @Test
@@ -211,7 +211,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed due to exception: \"java.io.IOException: Boom\". Skipping " + tool.id());
+                "Download failed: \"java.io.IOException: Boom\". Skipping tool: " + tool.id());
     }
 
     @Test
@@ -234,7 +234,7 @@ class WebDownloadServiceIT {
         assertThat(path).isEmpty();
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
-                "Download failed due to exception: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping "
+                "Download failed: \"java.lang.InterruptedException: Interrupted error occurred\". Skipping tool: "
                         + tool.id());
     }
 

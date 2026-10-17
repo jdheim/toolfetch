@@ -33,7 +33,7 @@ class YamlParserServiceUnhappyTest {
 
     static Stream<Arguments> validateConfigTestCases() {
         return Stream.of(Arguments.of(true, Map.of("testKey", "testValue"), null),
-                Arguments.of(false, "Not a Map", "Error occurred when parsing YAML configuration: should be a map object"));
+                Arguments.of(false, "Not a Map", "YAML configuration must use 'key: value' entries, such as 'destination: /path/to/tools'"));
     }
 
     @BeforeEach
@@ -49,7 +49,7 @@ class YamlParserServiceUnhappyTest {
         Files.createFile(toolfetchConfigPath);
         parserService.parse(toolfetchConfigPath);
         testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(),
-                "Error occurred when parsing YAML configuration: should not be empty");
+                "YAML configuration is empty. Add configuration settings");
     }
 
     @ParameterizedTest
