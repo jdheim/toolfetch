@@ -3,7 +3,7 @@ environment:
     graalVmDir: 'graalvm-jdk-25.0.4'
 project:
   name: 'toolfetch'
-  version: '0.1.0'
+  version: '0.1.1-SNAPSHOT'
   versionPattern: 'SEMVER'
   snapshot:
     pattern: '.*-(EA|SNAPSHOT)'
