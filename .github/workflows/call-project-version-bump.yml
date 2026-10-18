@@ -73,4 +73,5 @@ jobs:
           ref: ${{ github.ref_name }}
           token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
           files: |
-            **
+            **/pom.xml
+            jreleaser.yml

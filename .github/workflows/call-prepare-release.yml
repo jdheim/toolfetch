@@ -84,7 +84,7 @@ jobs:
         if: ${{ inputs.release-type == 'GA' && inputs.draft-release != 'true' }}
         uses: IAreKyleW00t/verified-bot-commit@v2
         with:
-          message: "chore: Bump Project Version to ${{ steps.version.outputs.version }}"
+          message: "chore: Bump Project Version to ${{ steps.version.outputs.version }} [skip ci]"
           ref: ${{ github.ref_name }}
           token: ${{ steps.jdheim-actions-bot-token.outputs.token }}
           files: |
