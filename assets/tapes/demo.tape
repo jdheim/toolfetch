@@ -63,7 +63,7 @@ Set Shell "bash"
 Set FontSize 12
 Set FontFamily "MesloLGS NF"
 Set Columns 94
-Set Rows 30
+Set Rows 31
 Set Padding 10
 
 Hide

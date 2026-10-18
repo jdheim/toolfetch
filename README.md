@@ -108,7 +108,7 @@ Given the following configuration file named `toolfetch.yaml`:
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    url: "https://github.com/jdheim/toolfetch/releases/download/v0.0.7/toolfetch-0.0.7-linux-amd64.tar.gz"
+    url: "https://github.com/jdheim/toolfetch/releases/download/v0.1.0/toolfetch-0.1.0-linux-amd64.tar.gz"
 ```
 
 When you invoke the command: `toolfetch install`, the latest version of the tool will be installed like this:
@@ -140,7 +140,7 @@ You can use optional placeholder: `${version}` in `url` which will be replaced w
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
   - id: "intellij-idea"
     version: "2026.2.3"
@@ -163,7 +163,7 @@ You can optionally define a `destination` key for a specific tool to install it 
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     destination: "best-tools" # or absolute path: "/opt/best-tools"
   - id: "intellij-idea"
@@ -190,10 +190,10 @@ You can optionally define a `checksums` key for a specific tool to verify the do
 destination: "/opt"
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     checksums:
-      sha256: "b505e3f905c9440f7719bf7b97e8e42f1d2dadc864223add1a759885c2935281"
+      sha256: "f61a13cefc303a97dfc8c2f0faf2913820130d803e50028941f030caa4208cc0"
   - id: "intellij-idea"
     version: "2026.2.3"
     url: "https://download.jetbrains.com/idea/idea-${version}.tar.gz"
@@ -225,7 +225,7 @@ Example:
 destination: "$HOME/tools"
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     destination: "${DEV_HOME}/best-tools"
   - id: "intellij-idea"
@@ -246,7 +246,7 @@ http:
   requestTimeout: 300 # HTTP request timeout in seconds. Default: 900 seconds (15 minutes)
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
 ```
 
@@ -264,7 +264,7 @@ http:
       # If the TrustStore is password-protected, specify the password using the TOOLFETCH_HTTP_SSL_TRUSTSTORE_PASSWORD environment variable
 tools:
   - id: "toolfetch"
-    version: "0.0.7"
+    version: "0.1.0"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
 ```
 
@@ -316,7 +316,7 @@ and Compression Formats:
 
 ## Troubleshooting
 
-ToolFetch stores log messages, including `DEBUG` messages, and exception stack traces in `.toolfetch/toolfetch.log` under the user's home directory.
+ToolFetch stores log messages, including `DEBUG` messages, and exception stack traces in `$HOME/.toolfetch/toolfetch.log`.
 
 The log file is overwritten on each run. Console output includes messages at `INFO` level and above. `DEBUG` level messages are available in the log
 file for troubleshooting.
