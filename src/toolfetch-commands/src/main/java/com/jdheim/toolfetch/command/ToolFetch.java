@@ -7,6 +7,7 @@ package com.jdheim.toolfetch.command;
 
 import com.jdheim.toolfetch.command.execution.CompositeStrategy;
 import com.jdheim.toolfetch.command.execution.DebugStrategy;
+import com.jdheim.toolfetch.command.execution.ExecutionExceptionHandler;
 import com.jdheim.toolfetch.command.execution.ValidateStrategy;
 import com.jdheim.toolfetch.command.info.ToolFetchVersionInfoProvider;
 import com.jdheim.toolfetch.command.subcommand.Install;
@@ -35,7 +36,8 @@ public final class ToolFetch {
         CompositeStrategy compositeStrategy = new CompositeStrategy(new ValidateStrategy(),
                 parseResult -> new DebugStrategy().execute(parseResult),
                 new CommandLine.RunLast());
-        return new CommandLine(new ToolFetch()).setExecutionStrategy(compositeStrategy);
+        return new CommandLine(new ToolFetch()).setExecutionStrategy(compositeStrategy)
+                .setExecutionExceptionHandler(new ExecutionExceptionHandler());
     }
 
 }

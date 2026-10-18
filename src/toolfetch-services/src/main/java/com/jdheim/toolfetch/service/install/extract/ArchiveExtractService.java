@@ -23,6 +23,7 @@ import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveU
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
 import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
 import com.jdheim.toolfetch.service.log.LogHelper;
+import com.jdheim.toolfetch.service.util.PathHelper;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -58,12 +59,13 @@ public class ArchiveExtractService implements ExtractService {
         try {
             extract(archivePath, destinationPath);
             cleanup(archivePath, destinationPath);
-        } catch (SkippedArchiveException _) {
+        } catch (SkippedArchiveException e) {
+            LOGGER.log(e);
             LOGGER.log("archive-extract.binary-file-found");
             tryRenameAndSetExecutable(archivePath, tool);
         } catch (Exception e) {
             LOGGER.log(e, "archive-extract.exception", tool.id());
-            FileUtils.deleteQuietly(destinationPath.toFile());
+            PathHelper.deleteQuietly(destinationPath);
         }
     }
 
@@ -195,17 +197,18 @@ public class ArchiveExtractService implements ExtractService {
             if ((perms & 0010) != 0) posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
 
             Files.setPosixFilePermissions(target, posixPermissions);
-        } catch (UnsupportedOperationException _) {
+        } catch (UnsupportedOperationException e) {
             // Non-POSIX filesystem (e.g. Windows)
+            LOGGER.log(e);
         }
     }
 
     private void cleanup(Path archivePath, Path destinationPath) throws IOException {
         LOGGER.log("path.remove", archivePath);
-        FileUtils.deleteQuietly(archivePath.toFile());
+        PathHelper.deleteQuietly(archivePath);
         if (FileUtils.isEmptyDirectory(destinationPath.toFile())) {
             LOGGER.log("archive-extract.path-remove", destinationPath);
-            FileUtils.deleteQuietly(destinationPath.toFile());
+            PathHelper.deleteQuietly(destinationPath);
         }
     }
 
@@ -218,8 +221,8 @@ public class ArchiveExtractService implements ExtractService {
                 Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
                 LOGGER.log("path.rename", sourcePath, targetPath);
             }
-        } catch (IOException _) {
-            // Ignored
+        } catch (IOException e) {
+            LOGGER.log(e);
         }
     }
 

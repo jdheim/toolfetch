@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.util.List;
+import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ class CompositeArchiveUncompressorTest {
         doReturn(uncompressors).when(spyUncompressor).getUncompressors();
 
         assertThatExceptionOfType(ArchiveException.class).isThrownBy(() -> {
-            try (var _ = spyUncompressor.uncompress(tempDir.resolve("toolfetch.zip"))) {
+            try (ArchiveWithCompressorInputStream _ = spyUncompressor.uncompress(tempDir.resolve("toolfetch.zip"))) {
                 throw new AssertionError("ArchiveException is expected");
             }
         }).withMessage("No Archiver found for the stream signature");

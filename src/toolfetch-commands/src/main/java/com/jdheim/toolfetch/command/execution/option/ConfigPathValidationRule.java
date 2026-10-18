@@ -55,7 +55,8 @@ public enum ConfigPathValidationRule {
         protected boolean validate(Path configPath) {
             try {
                 return Files.size(configPath) <= MAX_SIZE_1MB;
-            } catch (IOException _) {
+            } catch (IOException e) {
+                ToolFetchLogger.getLogger(ConfigPathValidationRule.class).log(e);
                 return false;
             }
         }

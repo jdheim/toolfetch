@@ -112,9 +112,10 @@ class ToolFetchHttpClientTest {
         try (MockedStatic<JavaHome> javaHome = mockStatic()) {
             javaHome.when(JavaHome::get).thenReturn(tempDir);
             testHttpClient(configuration, "Default");
-            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.DEBUG.toString(),
                     "%s does not exist. Falling back to the bundled default TrustStore".formatted(
                             tempDir.resolve("lib", "security", "cacerts")));
+            testLogListAppenderSteps.assertNoErrorNoWarn();
         }
     }
 
@@ -125,12 +126,13 @@ class ToolFetchHttpClientTest {
         try (MockedStatic<JavaHome> javaHome = mockStatic()) {
             javaHome.when(JavaHome::get).thenReturn(null);
             testHttpClient(configuration, "Default");
-            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), (
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.DEBUG.toString(), (
                     "Cannot initialize TLS: \"java.lang.IllegalArgumentException: File does not exist or it does not refer to a normal file: %s\". TrustStore: \"%s\". "
                             + "Falling back to the next available TrustStore").formatted(tempDir.resolve("missing"),
                     tempDir.resolve("missing")));
             testLogListAppenderSteps.assertExceptionLogged(IllegalArgumentException.class);
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
+            testLogListAppenderSteps.assertNoErrorNoWarn();
         }
     }
 
@@ -147,10 +149,11 @@ class ToolFetchHttpClientTest {
 
             testHttpClient(configuration, "Default");
 
-            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), (
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.DEBUG.toString(), (
                     "Cannot initialize TLS: \"java.io.IOException: Integrity check failed: java.security.UnrecoverableKeyException: Failed PKCS12 integrity checking\". "
                             + "TrustStore: \"%s\". Falling back to the next available TrustStore").formatted(cacerts));
             testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Using bundled default TrustStore");
+            testLogListAppenderSteps.assertNoErrorNoWarn();
         }
     }
 

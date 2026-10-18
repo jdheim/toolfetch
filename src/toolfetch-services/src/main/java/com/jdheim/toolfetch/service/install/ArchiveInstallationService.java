@@ -21,11 +21,11 @@ import com.jdheim.toolfetch.service.install.extract.ArchiveExtractService;
 import com.jdheim.toolfetch.service.install.extract.ExtractService;
 import com.jdheim.toolfetch.service.install.resolve.DestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
-import org.apache.commons.io.FileUtils;
+import com.jdheim.toolfetch.service.util.PathHelper;
 
 public class ArchiveInstallationService implements InstallationService {
 
-    private static final ToolFetchLogger LOG = ToolFetchLogger.getLogger(ArchiveInstallationService.class);
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveInstallationService.class);
 
     private final DownloadService downloadService;
 
@@ -50,7 +50,7 @@ public class ArchiveInstallationService implements InstallationService {
                 if (checksumService().verify(tool, archivePath)) {
                     extractService().extract(configuration, tool, archivePath);
                 } else {
-                    LOG.log("archive-install.checksum-failed", tool.id());
+                    LOGGER.log("archive-install.checksum-failed", tool.id());
                 }
             });
             cleanup(configuration, tool);
@@ -61,14 +61,14 @@ public class ArchiveInstallationService implements InstallationService {
         Path destinationPath = destinationResolver().resolve(configuration, tool);
         Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
         if (Files.exists(destinationPath) && Files.exists(backupPath)) {
-            LOG.log("path.remove", backupPath);
-            FileUtils.deleteQuietly(backupPath.toFile());
+            LOGGER.log("path.remove", backupPath);
+            PathHelper.deleteQuietly(backupPath);
         } else if (!Files.exists(destinationPath) && Files.exists(backupPath)) {
-            LOG.log("path.revert", backupPath, destinationPath);
+            LOGGER.log("path.revert", backupPath, destinationPath);
             try {
                 Files.move(backupPath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
-                LOG.log(e, "path.revert-exception");
+                LOGGER.log(e, "path.revert-exception");
             }
         }
     }

@@ -29,7 +29,7 @@ public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent> {
     public void assertExceptionLogged(Class<? extends Throwable> exceptionType) {
         assertThat(list).anySatisfy(event -> {
             assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
-            assertThat(event.getThrowableProxy()).satisfies(throwable -> {
+            assertThat(event.getThrowableProxy()).isNotNull().satisfies(throwable -> {
                 assertThat(throwable.getClassName()).isEqualTo(exceptionType.getName());
                 assertThat(throwable.getStackTraceElementProxyArray()).isNotEmpty();
             });

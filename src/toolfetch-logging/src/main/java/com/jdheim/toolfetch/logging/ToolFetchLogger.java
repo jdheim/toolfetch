@@ -6,6 +6,7 @@
 package com.jdheim.toolfetch.logging;
 
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
@@ -18,8 +19,6 @@ import org.slf4j.helpers.MessageFormatter;
 public final class ToolFetchLogger {
 
     private static final ResourceBundle MESSAGES = ResourceBundle.getBundle("com.jdheim.bundle.log.messages");
-
-    private static final String EXCEPTION_STACK_TRACE_MESSAGE = "Exception stack trace:";
 
     private final Logger delegate;
 
@@ -42,7 +41,11 @@ public final class ToolFetchLogger {
     public void log(Exception exception, String key, @Nullable Object... args) {
         Object[] exceptionArgs = {exception.getClass().getName(), StringUtils.trimToEmpty(exception.getMessage())};
         log(key, ArrayUtils.addAll(exceptionArgs, args));
-        delegate.debug(EXCEPTION_STACK_TRACE_MESSAGE, exception);
+        log(exception);
+    }
+
+    public void log(Exception exception) {
+        delegate.atDebug().setCause(exception).log(() -> message("exception.stack-trace"));
     }
 
     public void log(String key, @Nullable Object... args) {
@@ -59,12 +62,8 @@ public final class ToolFetchLogger {
         return MessageFormatter.arrayFormat(fullMessage, args).getMessage();
     }
 
-    public boolean isTraceEnabled() {
-        return delegate.isTraceEnabled();
-    }
-
-    public void trace(String message) {
-        delegate.trace(message);
+    public void trace(Supplier<String> messageSupplier) {
+        delegate.atTrace().log(messageSupplier);
     }
 
 }

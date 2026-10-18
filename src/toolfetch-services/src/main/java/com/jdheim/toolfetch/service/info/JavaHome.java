@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.util.OperatingSystemPredicates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,8 @@ import org.jspecify.annotations.Nullable;
 
 /// Resolves the Java home directory from the first valid Java executable found on the `$PATH` environment variable.
 public final class JavaHome {
+
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(JavaHome.class);
 
     static final String JAVA_EXEC = "java";
 
@@ -70,7 +73,8 @@ public final class JavaHome {
         try {
             Path java = Path.of(pathEntry, javaExecutableName);
             return Files.isRegularFile(java) && Files.isExecutable(java) ? java : null;
-        } catch (InvalidPathException _) {
+        } catch (InvalidPathException e) {
+            LOGGER.log(e);
             return null;
         }
     }
@@ -82,7 +86,8 @@ public final class JavaHome {
         try {
             Path realJava = java.toRealPath();
             return OperatingSystemPredicates.isMacOs() && MACOS_JAVA_STUB.equals(realJava) ? null : realJava;
-        } catch (IOException _) {
+        } catch (IOException e) {
+            LOGGER.log(e);
             return null;
         }
     }

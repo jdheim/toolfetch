@@ -31,7 +31,7 @@ import com.jdheim.toolfetch.service.install.resolve.ToolDestinationResolver;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.service.install.resolve.UriTransformer;
 import com.jdheim.toolfetch.service.log.LogHelper;
-import org.apache.commons.io.FileUtils;
+import com.jdheim.toolfetch.service.util.PathHelper;
 import org.apache.commons.lang3.StringUtils;
 
 public class WebDownloadService implements DownloadService {
@@ -125,7 +125,7 @@ public class WebDownloadService implements DownloadService {
             Path backupPath = destinationPath.resolveSibling(destinationPath.getFileName() + ".bak");
             if (Files.exists(backupPath)) {
                 LOGGER.log("download.backup-exists", backupPath);
-                FileUtils.deleteQuietly(backupPath.toFile());
+                PathHelper.deleteQuietly(backupPath);
             }
             LOGGER.log("download.destination-exists", destinationPath, backupPath);
             Files.move(destinationPath, backupPath, StandardCopyOption.ATOMIC_MOVE);
@@ -157,7 +157,7 @@ public class WebDownloadService implements DownloadService {
         boolean isInstallMode = !isUpdateMode;
         if (isInstallMode || Files.exists(backupPath)) {
             LOGGER.log("path.remove", destinationPath);
-            FileUtils.deleteQuietly(destinationPath.toFile());
+            PathHelper.deleteQuietly(destinationPath);
         }
     }
 

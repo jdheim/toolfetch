@@ -67,7 +67,8 @@ public class DebugStrategy implements CommandLine.IExecutionStrategy {
         Path path = Path.of(command);
         try {
             return path.toRealPath();
-        } catch (IOException _) {
+        } catch (IOException e) {
+            LOGGER.log(e);
             return path.toAbsolutePath().normalize();
         }
     }

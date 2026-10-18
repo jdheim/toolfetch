@@ -10,10 +10,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import java.io.IOException;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
@@ -44,7 +48,7 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogWithoutArguments() {
-        try (var _ = mockMessages("info", "info,This is 1st arg={}, this is 2nd arg={}")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("info", "info,This is 1st arg={}, this is 2nd arg={}")) {
             assertThatIllegalArgumentException().isThrownBy(() -> logger.log("info"))
                     .withMessage("Log message requires an argument: info,This is 1st arg={}, this is 2nd arg={}");
         }
@@ -52,7 +56,7 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogWithOneArgument() {
-        try (var _ = mockMessages("info", "info,This is 1st arg={}, this is 2nd arg={}")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("info", "info,This is 1st arg={}, this is 2nd arg={}")) {
             assertThatIllegalArgumentException().isThrownBy(() -> logger.log("info", "ABC"))
                     .withMessage("Log message requires an argument: info,This is 1st arg=ABC, this is 2nd arg={}");
         }
@@ -63,6 +67,15 @@ class ToolFetchLoggerTest {
         logger.log("info", "info message");
 
         testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "info message");
+    }
+
+    @Test
+    void testLogIgnoredException() {
+        logger.log(new IOException("Ignored failure"));
+
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.DEBUG.toString(), "Exception stack trace:");
+        testLogListAppenderSteps.assertExceptionLogged(IOException.class);
+        testLogListAppenderSteps.assertNoErrorNoWarn();
     }
 
     @Test
@@ -151,19 +164,20 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogTrace() {
-        try (var _ = mockMessages("trace", "trace,{}")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("trace", "trace,{}")) {
             assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> logger.log("trace", "trace message"))
-                    .withMessage("Trace logging must check ToolFetchLogger.isTraceEnabled() and use ToolFetchLogger.trace()");
+                    .withMessage("Trace logging must use ToolFetchLogger.trace() with a message supplier");
         }
     }
 
     @Test
     void testTraceWhenDisabled() {
-        assertThat(logger.isTraceEnabled()).isFalse();
+        Supplier<String> messageSupplier = mock();
 
-        logger.trace("trace message");
+        logger.trace(messageSupplier);
 
-        testLogListAppenderSteps.assertNoMatch(LogLevel.TRACE.toString(), "trace message");
+        verifyNoInteractions(messageSupplier);
+        assertThat(testLogListAppenderSteps.list).isEmpty();
     }
 
     @Test
@@ -172,9 +186,7 @@ class ToolFetchLoggerTest {
         Level originalLevel = delegate.getLevel();
         delegate.setLevel(Level.TRACE);
         try {
-            assertThat(logger.isTraceEnabled()).isTrue();
-
-            logger.trace("trace message");
+            logger.trace(() -> "trace message");
 
             testLogListAppenderSteps.assertAnyMatch(LogLevel.TRACE.toString(), "trace message");
         } finally {
@@ -184,7 +196,7 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogMessageWithoutDelimiter() {
-        try (var _ = mockMessages("invalid", "invalid message")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("invalid", "invalid message")) {
             assertThatIllegalArgumentException().isThrownBy(() -> logger.log("invalid"))
                     .withMessage("Invalid log message 'invalid message'. Expected format: <level>,<message>");
         }
@@ -192,7 +204,7 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogMessageWithoutText() {
-        try (var _ = mockMessages("invalid", "info, ")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("invalid", "info, ")) {
             assertThatIllegalArgumentException().isThrownBy(() -> logger.log("invalid"))
                     .withMessage("Log message must not be empty: 'info, '");
         }
@@ -200,7 +212,7 @@ class ToolFetchLoggerTest {
 
     @Test
     void testLogMessageWithUnsupportedLevel() {
-        try (var _ = mockMessages("invalid", "invalid,invalid message")) {
+        try (MockedStatic<ToolFetchLogger> _ = mockMessages("invalid", "invalid,invalid message")) {
             assertThatIllegalArgumentException().isThrownBy(() -> logger.log("invalid"))
                     .withMessage("Unsupported log level 'invalid' in message 'invalid,invalid message'");
         }

@@ -27,6 +27,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class AutoDetectArchiveUncompressor implements Uncompressor {
 
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(AutoDetectArchiveUncompressor.class);
+
     private static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY = new CompressorStreamFactory(true);
 
     private static final ArchiveStreamFactory ARCHIVE_STREAM_FACTORY = new ArchiveStreamFactory();
@@ -75,7 +77,8 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
                 CompressorInputStream cis = compressorStreamFactory().createCompressorInputStream(progress.stream());
                 lastCis = cis;
                 progress = new ArchiveUncompressProgress(false, new BufferedInputStream(cis));
-            } catch (CompressorException _) {
+            } catch (CompressorException e) {
+                LOGGER.log(e);
                 progress = new ArchiveUncompressProgress(true, progress.stream());
             }
         }
@@ -88,6 +91,7 @@ public class AutoDetectArchiveUncompressor implements Uncompressor {
             archiverName = ArchiveStreamFactory.detect(bis);
         } catch (ArchiveException e) {
             if (NO_ARCHIVER_FOUND_FOR_THE_STREAM_SIGNATURE.equals(e.getMessage())) {
+                LOGGER.log(e);
                 throw new SkippedArchiveException();
             }
             throw e;

@@ -7,7 +7,7 @@ package com.jdheim.toolfetch.service.util;
 
 import org.apache.commons.lang3.SystemUtils;
 
-/// Predicate methods for detecting the current operating system.
+/// Predicate methods for detecting the current operating system
 public final class OperatingSystemPredicates {
 
     private OperatingSystemPredicates() {

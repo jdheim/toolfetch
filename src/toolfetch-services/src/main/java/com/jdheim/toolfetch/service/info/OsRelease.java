@@ -11,10 +11,13 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.service.util.CharacterConstants;
 import org.apache.commons.lang3.StringUtils;
 
 public final class OsRelease {
+
+    private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(OsRelease.class);
 
     public static final String PRETTY_NAME = "PRETTY_NAME";
 
@@ -57,7 +60,8 @@ public final class OsRelease {
             return lines.filter(OsRelease::lineNotBlankNotCommented)
                     .flatMap(OsRelease::parseLine)
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, OsRelease::mergeDuplicates));
-        } catch (IOException _) {
+        } catch (IOException e) {
+            LOGGER.log(e);
             return Map.of();
         }
     }

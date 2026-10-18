@@ -5,6 +5,7 @@
 
 package com.jdheim.toolfetch.service.util;
 
+/// Shared constants for characters and symbols
 public final class CharacterConstants {
 
     public static final String COMMENT_PREFIX = "#";

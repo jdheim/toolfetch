@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,6 +157,19 @@ class InstallTest {
         Files.writeString(configPath, "tools: invalid");
         assertUsageError(CommandLine.ExitCode.SOFTWARE, "--only", "firefox");
         testLogListAppenderSteps.assertAnyMatch(LogLevel.ERROR.toString(), "Configuration does not match the schema:");
+    }
+
+    @Test
+    void testInvalidDownloadDestinationIsLoggedAtDebug() throws IOException {
+        Configuration configuration = configuration().destination("invalid\0path")
+                .addTool(tool().url("https://example.com/toolfetch.zip").build())
+                .build();
+        ConfigurationSteps.saveToConfigFile(configuration, configPath);
+
+        assertThat(commandLine.execute("install", "--config", configPath.toString())).isEqualTo(CommandLine.ExitCode.SOFTWARE);
+
+        testLogListAppenderSteps.assertExceptionLogged(InvalidPathException.class);
+        assertThat(error.toString()).isEmpty();
     }
 
     private Configuration installedConfiguration(String... options) {

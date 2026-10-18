@@ -685,6 +685,15 @@
       ]
     },
     {
+      "type": "com.jdheim.toolfetch.service.util.PathHelper",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "java.io.FilterInputStream",
       "fields": [
         {
@@ -710,7 +719,7 @@
         {
           "name": "<init>",
           "parameterTypes": [
-            "java.lang.String"
+            "org.apache.commons.compress.archivers.zip.ZipArchiveEntry"
           ]
         }
       ]
@@ -744,6 +753,9 @@
     },
     {
       "type": "org.apache.commons.compress.utils.InputStreamStatistics"
+    },
+    {
+      "type": "org.apache.commons.io.file.PathUtils"
     },
     {
       "type": "org.brotli.dec.BrotliInputStream"
@@ -1205,13 +1217,6 @@
   "foreign": {
     "downcalls": [
       {
-        "returnType": "jlong",
-        "parameterTypes": [
-          "void*",
-          "jint"
-        ]
-      },
-      {
         "returnType": "void",
         "parameterTypes": [
           "void*",
@@ -1223,7 +1228,6 @@
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
-          "jlong",
           "jint"
         ]
       },
@@ -1236,13 +1240,22 @@
           "void*",
           "void*",
           "jlong",
-          "void*"
+          "void*",
+          "jint"
         ],
         "options": {
           "critical": {
             "allowHeapAccess": true
           }
         }
+      },
+      {
+        "returnType": "jlong",
+        "parameterTypes": [
+          "void*",
+          "jlong",
+          "jint"
+        ]
       },
       {
         "returnType": "jlong",
@@ -1273,6 +1286,18 @@
         ]
       },
       {
+        "returnType": "void*",
+        "parameterTypes": [
+          "void*",
+          "jlong"
+        ],
+        "options": {
+          "critical": {
+            "allowHeapAccess": true
+          }
+        }
+      },
+      {
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
@@ -1296,16 +1321,10 @@
         "parameterTypes": []
       },
       {
-        "returnType": "jlong",
+        "returnType": "jint",
         "parameterTypes": [
           "void*",
-          "void*",
-          "jlong",
-          "void*",
-          "void*",
-          "jlong",
-          "void*",
-          "jint"
+          "jlong"
         ],
         "options": {
           "critical": {
@@ -1334,8 +1353,10 @@
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
+          "void*",
           "jlong",
-          "jint"
+          "void*",
+          "jlong"
         ],
         "options": {
           "critical": {
@@ -1353,6 +1374,23 @@
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
+          "void*",
+          "jlong",
+          "void*",
+          "void*",
+          "jlong",
+          "void*"
+        ],
+        "options": {
+          "critical": {
+            "allowHeapAccess": true
+          }
+        }
+      },
+      {
+        "returnType": "jlong",
+        "parameterTypes": [
+          "void*",
           "jlong",
           "void*",
           "jlong"
@@ -1405,6 +1443,18 @@
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
+          "jlong"
+        ],
+        "options": {
+          "critical": {
+            "allowHeapAccess": true
+          }
+        }
+      },
+      {
+        "returnType": "jlong",
+        "parameterTypes": [
+          "void*",
           "void*",
           "jlong"
         ],
@@ -1428,21 +1478,9 @@
         }
       },
       {
-        "returnType": "void*",
+        "returnType": "jlong",
         "parameterTypes": [
           "void*",
-          "jlong",
-          "jint"
-        ],
-        "options": {
-          "critical": {
-            "allowHeapAccess": true
-          }
-        }
-      },
-      {
-        "returnType": "jint",
-        "parameterTypes": [
           "void*",
           "jlong"
         ],
@@ -1460,7 +1498,8 @@
         "returnType": "jlong",
         "parameterTypes": [
           "void*",
-          "jlong"
+          "jlong",
+          "jint"
         ],
         "options": {
           "critical": {
@@ -1502,37 +1541,23 @@
         ]
       },
       {
-        "returnType": "void*",
-        "parameterTypes": [
-          "void*",
-          "jlong"
-        ],
-        "options": {
-          "critical": {
-            "allowHeapAccess": true
-          }
-        }
-      },
-      {
-        "returnType": "jlong",
-        "parameterTypes": [
-          "void*",
-          "void*",
-          "jlong",
-          "void*",
-          "jlong"
-        ],
-        "options": {
-          "critical": {
-            "allowHeapAccess": true
-          }
-        }
-      },
-      {
         "returnType": "jint",
         "parameterTypes": [
           "void*",
           "jlong"
+        ],
+        "options": {
+          "critical": {
+            "allowHeapAccess": true
+          }
+        }
+      },
+      {
+        "returnType": "void*",
+        "parameterTypes": [
+          "void*",
+          "jlong",
+          "jint"
         ],
         "options": {
           "critical": {
@@ -1562,19 +1587,6 @@
         "parameterTypes": [
           "jlong"
         ]
-      },
-      {
-        "returnType": "jlong",
-        "parameterTypes": [
-          "void*",
-          "void*",
-          "jlong"
-        ],
-        "options": {
-          "critical": {
-            "allowHeapAccess": true
-          }
-        }
       },
       {
         "returnType": "jint",

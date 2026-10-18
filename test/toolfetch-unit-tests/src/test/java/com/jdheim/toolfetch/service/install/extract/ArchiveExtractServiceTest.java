@@ -5,16 +5,23 @@
 
 package com.jdheim.toolfetch.service.install.extract;
 
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.service.exception.SkippedArchiveException;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -25,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.MockedStatic;
 
 /// OOC Tests for [ArchiveExtractService]
 class ArchiveExtractServiceTest {
@@ -52,6 +60,51 @@ class ArchiveExtractServiceTest {
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
         testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Cannot determine the destination path. Skipping tool: " + tool.id());
+    }
+
+    @Test
+    void testBinaryFileDetectionIsLoggedAtDebug() throws IOException {
+        Path binary = Files.createFile(tempDir.resolve("download.bin"));
+        Tool tool = tool().url("https://example.com/download.bin").build();
+        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+
+        archiveExtractService.extract(configuration, tool, binary);
+
+        assertThat(tempDir.resolve("toolfetch.bin")).exists();
+        testLogListAppenderSteps.assertExceptionLogged(SkippedArchiveException.class);
+        testLogListAppenderSteps.assertNoErrorNoWarn();
+    }
+
+    @Test
+    void testUnsupportedPermissionsAreLoggedAtDebug() throws IOException {
+        Path binary = Files.createFile(tempDir.resolve("toolfetch.bin"));
+        Tool tool = tool().url("https://example.com/toolfetch.bin").build();
+        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+        try (MockedStatic<Files> files = mockStatic(CALLS_REAL_METHODS)) {
+            files.when(() -> Files.getPosixFilePermissions(binary)).thenThrow(new UnsupportedOperationException());
+
+            archiveExtractService.extract(configuration, tool, binary);
+
+            assertThat(binary).exists();
+            testLogListAppenderSteps.assertExceptionLogged(UnsupportedOperationException.class);
+            testLogListAppenderSteps.assertNoErrorNoWarn();
+        }
+    }
+
+    @Test
+    void testBinaryRenameFailureIsLoggedAtDebug() throws IOException {
+        Path binary = Files.createFile(tempDir.resolve("download.bin"));
+        Tool tool = tool().url("https://example.com/download.bin").build();
+        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+        try (MockedStatic<Files> files = mockStatic(CALLS_REAL_METHODS)) {
+            files.when(() -> Files.move(any(), any(), any())).thenThrow(new IOException("Cannot rename"));
+
+            archiveExtractService.extract(configuration, tool, binary);
+
+            assertThat(binary).exists();
+            testLogListAppenderSteps.assertExceptionLogged(IOException.class);
+            testLogListAppenderSteps.assertNoErrorNoWarn();
+        }
     }
 
     @Test
