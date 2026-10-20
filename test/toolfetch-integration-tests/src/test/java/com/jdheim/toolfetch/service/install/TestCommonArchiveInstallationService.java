@@ -12,6 +12,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.jdheim.toolfetch.builder.TestChecksumsBuilder.checksums;
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.createZip;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,37 +24,28 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.logging.LogMarker;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.tool.Tool;
-import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 public class TestCommonArchiveInstallationService {
 
-    protected @Nullable TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @TempDir
     protected Path tempDir;
 
     @Nullable InstallationService installationService;
-
-    protected TestLogListAppenderSteps getTestLogListAppenderSteps() {
-        if (testLogListAppenderSteps == null) {
-            throw new AssertionError("TestLogListAppenderSteps not initialized");
-        }
-        return testLogListAppenderSteps;
-    }
 
     protected void testInstall(WireMockRuntimeInfo wmRuntimeInfo, Consumer<ZipArchiveOutputStream> zipEntries,
             Consumer<Path> assertions) {
@@ -66,8 +60,6 @@ public class TestCommonArchiveInstallationService {
     protected void testInstall(WireMockRuntimeInfo wmRuntimeInfo, String archiveName, byte[] archiveBytes,
             Consumer<Path> assertions) {
         installationService = new ArchiveInstallationService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start();
 
         stubFor(get("/download/" + archiveName).willReturn(aResponse().withStatus(200)
                 .withHeader(ContentTypes.CONTENT_TYPE, ContentTypes.OCTET_STREAM)
@@ -85,10 +77,9 @@ public class TestCommonArchiveInstallationService {
         } catch (NoSuchAlgorithmException e) {
             throw new AssertionError(e);
         }
-        Map<String, String> checksumValues = Map.of("sha256", sha256);
-        Checksums checksums = new Checksums(checksumValues);
-        Tool tool = new Tool(id, url, null, null, checksums);
-        Configuration configuration = new Configuration(tempDir.toString(), List.of(tool));
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().id(id).url(url).checksums(checksums().sha256(sha256)))
+                .build();
         installationService.install(configuration);
 
         assertThat(getAllServeEvents()).hasSize(1);
@@ -97,20 +88,20 @@ public class TestCommonArchiveInstallationService {
         assertions.accept(destinationPath);
         assertThat(archivePath).doesNotExist();
 
-        getTestLogListAppenderSteps().assertAnyMatch(LogMarker.STEP.toString(), "=== Installing " + id + " ===");
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Creating " + destinationPath);
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+        testLogListAppenderSteps.assertAnyMatch(LogMarker.STEP.toString(), "=== Installing " + id + " ===");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Creating " + destinationPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Downloading %s to %s".formatted(url, destinationPath));
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Scanning " + archivePath);
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Scan completed in ");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Download completed in ");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Scanning " + archivePath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Scan completed in ");
         if (Files.exists(destinationPath)) {
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
-            if (getTestLogListAppenderSteps().messages().stream()
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
+            if (testLogListAppenderSteps.messages().stream()
                     .noneMatch(line -> line.startsWith("Extraction failed")))
-                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
+                testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
         }
     }
 

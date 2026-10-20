@@ -9,6 +9,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getAllServeEvents;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.jdheim.toolfetch.builder.TestChecksumsBuilder.checksums;
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.addZipEntryFile;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.createZip;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,17 +22,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.builder.TestToolBuilder;
 import com.jdheim.toolfetch.command.ToolFetch;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.logging.LogMarker;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
-import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import com.jdheim.toolfetch.service.install.resolve.ToolUriTransformer;
 import com.jdheim.toolfetch.service.install.resolve.UriTransformer;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
@@ -105,13 +107,13 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String sha256 = ArchiveSteps.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_256);
         String sha384 = ArchiveSteps.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_384);
         String sha512 = ArchiveSteps.computeMessageDigest(binaryFileBytes, MessageDigestAlgorithms.SHA_512);
-        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
-        Checksums checksums = new Checksums(checksumValues);
-        Tool tool = new Tool(id, url, version, null, checksums);
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().id(id).url(url).version(version).checksums(checksums().sha256(sha256).sha384(sha384).sha512(sha512)))
+                .build();
+        Tool tool = configuration.tools().getFirst();
         Path binaryFileName = Path.of(getArchiveName(tool));
         WireMockSteps.stubFor(version, binaryFileName, binaryFileBytes, "text/plain; charset=UTF-8");
-        List<Tool> tools = List.of(tool);
-        return new Configuration(tempDir.toString(), tools);
+        return configuration;
     }
 
     private byte[] createBinaryFileBytes() {
@@ -202,13 +204,13 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String sha256 = ArchiveSteps.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_256);
         String sha384 = ArchiveSteps.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_384);
         String sha512 = ArchiveSteps.computeMessageDigest(archiveBytes, MessageDigestAlgorithms.SHA_512);
-        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
-        Checksums checksums = new Checksums(checksumValues);
-        Tool tool = new Tool(id, url, version, null, checksums);
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().id(id).url(url).version(version).checksums(checksums().sha256(sha256).sha384(sha384).sha512(sha512)))
+                .build();
+        Tool tool = configuration.tools().getFirst();
         Path archiveName = Path.of(getArchiveName(tool));
         WireMockSteps.stubFor(version, archiveName, archiveBytes);
-        List<Tool> tools = List.of(tool);
-        return new Configuration(tempDir.toString(), tools);
+        return configuration;
     }
 
     private String getArchiveName(Tool tool) {
@@ -236,15 +238,15 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
     }
 
     private Configuration createConfigFromArchiveDir(int httpPort) throws IOException {
-        List<Tool> tools;
+        List<TestToolBuilder> tools;
         try (Stream<Path> archivePaths = Files.walk(ARCHIVE_DIR)) {
-            tools = archivePaths.filter(Files::isRegularFile).map(archivePath -> toTool(archivePath, httpPort)).toList();
+            tools = archivePaths.filter(Files::isRegularFile).map(archivePath -> toToolBuilder(archivePath, httpPort)).toList();
         }
         assertThat(tools).isNotEmpty();
-        return new Configuration(tempDir.toString(), tools);
+        return configuration().destination(tempDir.toString()).addTools(tools.toArray(TestToolBuilder[]::new)).build();
     }
 
-    private Tool toTool(Path archivePath, int httpPort) {
+    private TestToolBuilder toToolBuilder(Path archivePath, int httpPort) {
         Path archiveName = archivePath.getFileName();
         assertThat(archiveName).isNotNull();
         WireMockSteps.stubFor(archiveName, ArchiveSteps.readTestFile(archivePath));
@@ -253,9 +255,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
         String sha256 = ArchiveSteps.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_256);
         String sha384 = ArchiveSteps.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_384);
         String sha512 = ArchiveSteps.computeMessageDigest(archivePath, MessageDigestAlgorithms.SHA_512);
-        Map<String, String> checksumValues = Map.of("sha256", sha256, "sha384", sha384, "sha512", sha512);
-        Checksums checksums = new Checksums(checksumValues);
-        return new Tool(id, url, null, null, checksums);
+        return tool().id(id).url(url).checksums(checksums().sha256(sha256).sha384(sha384).sha512(sha512));
     }
 
     private boolean isExcluded(String archiveName) {

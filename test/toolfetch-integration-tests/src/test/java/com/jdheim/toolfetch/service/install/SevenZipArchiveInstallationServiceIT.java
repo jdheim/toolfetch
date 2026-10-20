@@ -32,7 +32,7 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/7z/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample1Archive(destinationPath);
         });
     }
@@ -46,7 +46,7 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/7z/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample2Archive(destinationPath);
         });
     }
@@ -60,7 +60,7 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/7z/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample3Archive(destinationPath);
         });
     }
@@ -96,11 +96,11 @@ class SevenZipArchiveInstallationServiceIT extends TestCommonArchiveInstallation
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/7z/sample%d-password.7z".formatted(index));
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
-            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            files.forEach(file -> testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "Cannot read archive entry \"%s\". Skipping".formatted(file)));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Removing " + tempDir.resolve("toolfetch/toolfetch.7z"));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "No files were extracted. Removing " + tempDir.resolve("toolfetch"));
             assertThat(destinationPath).doesNotExist();
         });

@@ -8,6 +8,7 @@ package com.jdheim.toolfetch.command.subcommand;
 import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
 import static com.jdheim.toolfetch.builder.TestHttpBuilder.http;
 import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
+import static com.jdheim.toolfetch.builder.TestTrustStoreBuilder.trustStore;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.captor;
 import static org.mockito.Mockito.mockConstruction;
@@ -30,6 +31,7 @@ import com.jdheim.toolfetch.step.config.ConfigurationSteps;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -51,22 +53,22 @@ class InstallTest {
 
     StringWriter error;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() throws IOException {
         commandLine = ToolFetch.commandLine();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
+
         output = new StringWriter();
         error = new StringWriter();
         commandLine.setOut(new PrintWriter(output, true)).setErr(new PrintWriter(error, true));
         configPath = tempDir.resolve("toolfetch.yaml");
         Configuration configuration = configuration().addTools(
-                        tool().id("toolfetch").url("https://example.com/toolfetch.zip").build(),
-                        tool().id("firefox").url("https://example.com/firefox.zip").build(),
-                        tool().id("dbeaver").url("https://example.com/dbeaver.zip").build())
-                .http(http().trustStorePath("custom/cacerts").withDefaultTrustStoreType().build())
+                        tool().id("toolfetch").url("https://example.com/toolfetch.zip"),
+                        tool().id("firefox").url("https://example.com/firefox.zip"),
+                        tool().id("dbeaver").url("https://example.com/dbeaver.zip"))
+                .http(http().trustStore(trustStore().path("custom/cacerts").type("PKCS12")))
                 .build();
         ConfigurationSteps.saveToConfigFile(configuration, configPath);
     }
@@ -110,7 +112,7 @@ class InstallTest {
     void testPreservesConfigurationSettings() {
         Configuration configuration = installedConfiguration("--only", "firefox");
         assertThat(configuration.destination()).isEqualTo("/tmp");
-        assertThat(configuration.http()).isEqualTo(http().trustStorePath("custom/cacerts").withDefaultTrustStoreType().build());
+        assertThat(configuration.http()).isEqualTo(http().trustStore(trustStore().path("custom/cacerts").type("PKCS12")).build());
     }
 
     @ParameterizedTest
@@ -162,7 +164,7 @@ class InstallTest {
     @Test
     void testInvalidDownloadDestinationIsLoggedAtDebug() throws IOException {
         Configuration configuration = configuration().destination("invalid\0path")
-                .addTool(tool().url("https://example.com/toolfetch.zip").build())
+                .addTool(tool().url("https://example.com/toolfetch.zip"))
                 .build();
         ConfigurationSteps.saveToConfigFile(configuration, configPath);
 

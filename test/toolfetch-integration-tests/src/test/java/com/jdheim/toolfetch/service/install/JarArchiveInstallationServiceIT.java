@@ -25,7 +25,7 @@ class JarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/jar/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample1Archive(destinationPath);
             assertThat(destinationPath.resolve("META-INF")).isDirectory();
             assertThat(destinationPath.resolve("META-INF").resolve("MANIFEST.MF")).isRegularFile().hasContent("""
@@ -42,7 +42,7 @@ class JarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/jar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample2Archive(destinationPath);
         });
     }
@@ -54,7 +54,7 @@ class JarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/jar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample3Archive(destinationPath);
         });
     }

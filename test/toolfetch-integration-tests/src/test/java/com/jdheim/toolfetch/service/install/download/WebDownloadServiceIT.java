@@ -12,6 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.addZipEntryFile;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.createZip;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +30,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -43,6 +44,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -56,7 +58,8 @@ class WebDownloadServiceIT {
 
     WebDownloadService webDownloadService;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @TempDir
     Path tempDir;
@@ -64,8 +67,6 @@ class WebDownloadServiceIT {
     @BeforeEach
     void setUp() {
         webDownloadService = new WebDownloadService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -246,8 +247,9 @@ class WebDownloadServiceIT {
     private Configuration buildConfiguration(String scheme, String mockUrl, @Nullable String version, int httpPort) {
         String id = "toolfetch";
         String url = scheme + "://localhost:" + httpPort + mockUrl;
-        Tool tool = new Tool(id, url, version);
-        return new Configuration(tempDir.toString(), List.of(tool));
+        return configuration().destination(tempDir.toString())
+                .addTool(tool().id(id).url(url).version(version))
+                .build();
     }
 
     private void stubWireMockToServeZip(String mockUrl) {

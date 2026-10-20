@@ -5,6 +5,7 @@
 
 package com.jdheim.toolfetch.service.install.resolve;
 
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
@@ -12,6 +13,7 @@ import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -20,13 +22,12 @@ class ToolUriTransformerTest {
 
     UriTransformer uriTransformer;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() {
         uriTransformer = new ToolUriTransformer();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @ParameterizedTest
@@ -37,7 +38,7 @@ class ToolUriTransformerTest {
             "https://localhost/download/${version}/toolfetch-${version}.zip, 3.0.1, https://localhost/download/3.0.1/toolfetch-3.0.1.zip"
     })
     void testTransform_Happy(String url, String version, String expectedURI) {
-        Tool tool = new Tool("toolfetch", url, version);
+        Tool tool = tool().url(url).version(version).build();
 
         URI actualURI = uriTransformer.transform(tool);
 
@@ -50,7 +51,7 @@ class ToolUriTransformerTest {
             "ftp://localhost/download/toolfetch.zip, 'Unsupported URL scheme. Use http or https'"
     })
     void testTransform_Unhappy(String url, String logMessage) {
-        Tool tool = new Tool("toolfetch", url);
+        Tool tool = tool().url(url).build();
 
         URI actualURI = uriTransformer.transform(tool);
 

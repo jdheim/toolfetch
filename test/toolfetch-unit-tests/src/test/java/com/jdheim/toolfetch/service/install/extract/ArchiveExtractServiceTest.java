@@ -17,7 +17,6 @@ import static org.mockito.Mockito.mockStatic;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
@@ -29,6 +28,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -39,7 +39,8 @@ class ArchiveExtractServiceTest {
 
     ArchiveExtractService archiveExtractService;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @TempDir
     Path tempDir;
@@ -47,14 +48,14 @@ class ArchiveExtractServiceTest {
     @BeforeEach
     void setUp() {
         archiveExtractService = new ArchiveExtractService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @Test
     void testExtract_MissingDestinationPath() {
-        Tool tool = new Tool("toolfetch", "http://localhost/download/toolfetch.zip");
-        Configuration configuration = new Configuration(tempDir.toString(), List.of(tool));
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().url("http://localhost/download/toolfetch.zip"))
+                .build();
+        Tool tool = configuration.tools().getFirst();
         archiveExtractService.extract(configuration, tool, Path.of("toolfetch.zip"));
 
         assertThat(tempDir.resolve(tool.id())).doesNotExist();
@@ -65,8 +66,10 @@ class ArchiveExtractServiceTest {
     @Test
     void testBinaryFileDetectionIsLoggedAtDebug() throws IOException {
         Path binary = Files.createFile(tempDir.resolve("download.bin"));
-        Tool tool = tool().url("https://example.com/download.bin").build();
-        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().url("https://example.com/download.bin"))
+                .build();
+        Tool tool = configuration.tools().getFirst();
 
         archiveExtractService.extract(configuration, tool, binary);
 
@@ -78,8 +81,10 @@ class ArchiveExtractServiceTest {
     @Test
     void testUnsupportedPermissionsAreLoggedAtDebug() throws IOException {
         Path binary = Files.createFile(tempDir.resolve("toolfetch.bin"));
-        Tool tool = tool().url("https://example.com/toolfetch.bin").build();
-        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().url("https://example.com/toolfetch.bin"))
+                .build();
+        Tool tool = configuration.tools().getFirst();
         try (MockedStatic<Files> files = mockStatic(CALLS_REAL_METHODS)) {
             files.when(() -> Files.getPosixFilePermissions(binary)).thenThrow(new UnsupportedOperationException());
 
@@ -94,8 +99,10 @@ class ArchiveExtractServiceTest {
     @Test
     void testBinaryRenameFailureIsLoggedAtDebug() throws IOException {
         Path binary = Files.createFile(tempDir.resolve("download.bin"));
-        Tool tool = tool().url("https://example.com/download.bin").build();
-        Configuration configuration = configuration().destination(tempDir.toString()).addTool(tool).build();
+        Configuration configuration = configuration().destination(tempDir.toString())
+                .addTool(tool().url("https://example.com/download.bin"))
+                .build();
+        Tool tool = configuration.tools().getFirst();
         try (MockedStatic<Files> files = mockStatic(CALLS_REAL_METHODS)) {
             files.when(() -> Files.move(any(), any(), any())).thenThrow(new IOException("Cannot rename"));
 

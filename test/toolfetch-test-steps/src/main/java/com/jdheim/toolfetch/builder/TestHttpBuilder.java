@@ -11,17 +11,13 @@ import com.jdheim.toolfetch.model.http.ssl.truststore.TrustStore;
 import org.jspecify.annotations.Nullable;
 
 /// Http Builder for Tests
-public class TestHttpBuilder {
-
-    private static final String DEFAULT_TRUSTSTORE_TYPE = "PKCS12";
+public final class TestHttpBuilder {
 
     private @Nullable Integer connectTimeout;
 
     private @Nullable Integer requestTimeout;
 
-    private @Nullable String trustStorePath;
-
-    private @Nullable String trustStoreType;
+    private @Nullable TestTrustStoreBuilder trustStore;
 
     private TestHttpBuilder() {}
 
@@ -39,27 +35,14 @@ public class TestHttpBuilder {
         return this;
     }
 
-    public TestHttpBuilder trustStorePath(String trustStorePath) {
-        this.trustStorePath = trustStorePath;
-        return this;
-    }
-
-    public TestHttpBuilder trustStoreType(String trustStoreType) {
-        this.trustStoreType = trustStoreType;
-        return this;
-    }
-
-    public TestHttpBuilder withDefaultTrustStoreType() {
-        trustStoreType = DEFAULT_TRUSTSTORE_TYPE;
+    public TestHttpBuilder trustStore(TestTrustStoreBuilder trustStore) {
+        this.trustStore = trustStore;
         return this;
     }
 
     public Http build() {
-        TrustStore trustStore = null;
-        if (trustStorePath != null) {
-            trustStore = new TrustStore(trustStorePath, trustStoreType);
-        }
-        return new Http(connectTimeout, requestTimeout, new Ssl(trustStore));
+        TrustStore builtTrustStore = trustStore == null ? null : trustStore.build();
+        return new Http(connectTimeout, requestTimeout, new Ssl(builtTrustStore));
     }
 
 }

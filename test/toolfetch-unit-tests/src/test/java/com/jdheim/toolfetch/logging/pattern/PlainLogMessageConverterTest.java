@@ -21,7 +21,7 @@ import org.slf4j.MarkerFactory;
 /// OOC Tests for [PlainLogMessageConverter]
 class PlainLogMessageConverterTest {
 
-    private PlainLogMessageConverter converter;
+    PlainLogMessageConverter converter;
 
     @BeforeEach
     void setUp() {

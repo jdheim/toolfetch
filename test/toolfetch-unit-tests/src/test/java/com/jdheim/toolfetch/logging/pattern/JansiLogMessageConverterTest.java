@@ -25,9 +25,9 @@ class JansiLogMessageConverterTest {
 
     private static final String ANSI = "\u001B[";
 
-    private JansiLogMessageConverter converter;
+    JansiLogMessageConverter converter;
 
-    private boolean ansiEnabled;
+    boolean ansiEnabled;
 
     @BeforeEach
     void enableAnsi() {

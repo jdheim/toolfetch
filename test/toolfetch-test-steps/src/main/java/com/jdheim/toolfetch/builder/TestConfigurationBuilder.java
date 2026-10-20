@@ -8,7 +8,6 @@ package com.jdheim.toolfetch.builder;
 import java.util.ArrayList;
 import java.util.List;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.http.Http;
 import com.jdheim.toolfetch.model.tool.Tool;
 import org.jspecify.annotations.Nullable;
 
@@ -17,14 +16,17 @@ public final class TestConfigurationBuilder {
 
     private static final String DEFAULT_DESTINATION = "/tmp";
 
-    private final List<Tool> tools;
+    private final List<TestToolBuilder> tools;
+
+    private boolean defaultTool;
 
     private String destination;
 
-    private @Nullable Http http;
+    private @Nullable TestHttpBuilder http;
 
     private TestConfigurationBuilder() {
         tools = new ArrayList<>();
+        defaultTool = true;
         destination = DEFAULT_DESTINATION;
     }
 
@@ -37,31 +39,43 @@ public final class TestConfigurationBuilder {
         return this;
     }
 
-    public TestConfigurationBuilder addTool(Tool tool) {
+    public TestConfigurationBuilder addTool(TestToolBuilder tool) {
         tools.add(tool);
         return this;
     }
 
-    public TestConfigurationBuilder addTools(Tool... tools) {
-        this.tools.addAll(List.of(tools));
+    public TestConfigurationBuilder addTools(TestToolBuilder... tools) {
+        for (TestToolBuilder tool : tools) {
+            addTool(tool);
+        }
         return this;
     }
 
-    public TestConfigurationBuilder http(Http http) {
+    public TestConfigurationBuilder withoutTools() {
+        tools.clear();
+        defaultTool = false;
+        return this;
+    }
+
+    public TestConfigurationBuilder http(TestHttpBuilder http) {
         this.http = http;
         return this;
     }
 
     public TestConfigurationBuilder defaultHttp() {
-        http = TestHttpBuilder.http().build();
+        http = TestHttpBuilder.http();
         return this;
     }
 
     public Configuration build() {
-        if (tools.isEmpty()) {
-            tools.add(TestToolBuilder.tool().build());
+        if (defaultTool && tools.isEmpty()) {
+            tools.add(TestToolBuilder.tool());
         }
-        return new Configuration(destination, tools, http);
+        List<Tool> builtTools = tools.stream().map(TestToolBuilder::build).toList();
+        if (http == null) {
+            return new Configuration(destination, builtTools);
+        }
+        return new Configuration(destination, builtTools, http.build());
     }
 
 }

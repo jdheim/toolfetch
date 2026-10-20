@@ -15,8 +15,8 @@ import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.assertion.AssertionSteps;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.io.file.PathUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
@@ -26,13 +26,8 @@ class PathHelperTest {
     @TempDir
     Path tempDir;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
-
-    @BeforeEach
-    void setUp() {
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
-    }
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @Test
     void testNotInstantiable() {

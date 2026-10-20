@@ -26,9 +26,9 @@ class JansiLogLevelConverterTest {
 
     private static final String ANSI = "\u001B[";
 
-    private JansiLogLevelConverter converter;
+    JansiLogLevelConverter converter;
 
-    private boolean ansiEnabled;
+    boolean ansiEnabled;
 
     @BeforeEach
     void enableAnsi() {

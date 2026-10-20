@@ -5,11 +5,12 @@
 
 package com.jdheim.toolfetch.service.install.resolve;
 
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.file.Path;
-import java.util.List;
 import com.jdheim.toolfetch.model.Configuration;
 import com.jdheim.toolfetch.model.tool.Tool;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -37,8 +38,8 @@ class ToolDestinationResolverTest {
             justification = "Test code intentionally uses System.getenv to validate environment variable handling")
     void testResolveDestination(String destination, String toolDestination) {
         String id = "toolfetch";
-        Configuration configuration = new Configuration(destination, List.of());
-        Tool tool = new Tool(id, StringUtils.EMPTY, null, toolDestination);
+        Configuration configuration = configuration().destination(destination).withoutTools().build();
+        Tool tool = tool().id(id).url(StringUtils.EMPTY).destination(toolDestination).build();
         String expectedDestination = StringUtils.isNotEmpty(toolDestination) ? toolDestination : destination;
         if (expectedDestination.startsWith("$HOME")) {
             expectedDestination = expectedDestination.replace("$HOME", System.getenv("HOME"));

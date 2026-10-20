@@ -40,7 +40,7 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/tar/" + archiveName, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample1Archive(destinationPath);
         });
     }
@@ -56,7 +56,7 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/tar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample2Archive(destinationPath);
         });
     }
@@ -72,7 +72,7 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/tar/" + filename, expectedCompressorName);
 
         testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertNoErrorNoWarn();
+            testLogListAppenderSteps.assertNoErrorNoWarn();
             AssertionSteps.assertSample3Archive(destinationPath);
         });
     }
@@ -86,7 +86,7 @@ class TarArchiveInstallationServiceIT extends TestCommonArchiveInstallationServi
             brotliUtils.when(BrotliUtils::isBrotliCompressionAvailable).thenReturn(false);
 
             testInstall(wmRuntimeInfo, filename, archiveBytes, destinationPath -> {
-                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+                testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                         "Extraction failed: \"org.apache.commons.compress.compressors.CompressorException: "
                                 + "Brotli compression is not available. In addition to Apache Commons Compress you need the Google Brotli Dec library - see https://github.com/google/brotli/\". Skipping tool: toolfetch");
                 assertThat(destinationPath).doesNotExist();

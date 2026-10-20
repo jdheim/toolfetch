@@ -7,6 +7,7 @@ package com.jdheim.toolfetch.service.install.download.http;
 
 import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
 import static com.jdheim.toolfetch.builder.TestHttpBuilder.http;
+import static com.jdheim.toolfetch.builder.TestTrustStoreBuilder.trustStore;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -35,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -47,13 +49,12 @@ class ToolFetchHttpClientTest {
     @TempDir
     Path tempDir;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() {
         ToolFetchHttpClient.reset();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @AfterEach
@@ -88,7 +89,7 @@ class ToolFetchHttpClientTest {
     @Test
     void testHttpClient_FromConfiguration() throws GeneralSecurityException, IOException {
         Path cacerts = createCacerts(tempDir.resolve("custom", "cacerts"));
-        Configuration configuration = configuration().http(http().trustStorePath(cacerts.toString()).build()).build();
+        Configuration configuration = configuration().http(http().trustStore(trustStore().path(cacerts.toString()))).build();
         try (MockedStatic<JavaHome> javaHome = mockStatic()) {
             testHttpClient(configuration);
             javaHome.verifyNoInteractions();
@@ -121,7 +122,7 @@ class ToolFetchHttpClientTest {
 
     @Test
     void testHttpClient_InvalidCustomTrustStore() {
-        Configuration configuration = configuration().http(http().trustStorePath(tempDir.resolve("missing").toString()).build())
+        Configuration configuration = configuration().http(http().trustStore(trustStore().path(tempDir.resolve("missing").toString())))
                 .build();
         try (MockedStatic<JavaHome> javaHome = mockStatic()) {
             javaHome.when(JavaHome::get).thenReturn(null);
@@ -140,7 +141,7 @@ class ToolFetchHttpClientTest {
     void testHttpClient_CustomTrustStoreWithIncorrectPassword() throws GeneralSecurityException, IOException {
         Path cacerts = createCacerts(tempDir.resolve("custom", "cacerts"));
         Configuration configuration = configuration().http(
-                http().trustStorePath(cacerts.toString()).trustStoreType("PKCS12").build()).build();
+                http().trustStore(trustStore().path(cacerts.toString()).type("PKCS12"))).build();
         try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic(Mockito.CALLS_REAL_METHODS);
              MockedStatic<JavaHome> javaHome = mockStatic()) {
             toolfetchHttpClient.when(() -> ToolFetchHttpClient.trustStorePasswordOrDefault(any(), nullable(char[].class)))
@@ -193,7 +194,7 @@ class ToolFetchHttpClientTest {
 
     @Test
     void testHttpClient_CustomConnectTimeout() {
-        Configuration configuration = configuration().http(http().connectTimeout(30).build()).build();
+        Configuration configuration = configuration().http(http().connectTimeout(30)).build();
         testHttpClient_ConnectTimeout(configuration, 30);
     }
 
@@ -212,7 +213,7 @@ class ToolFetchHttpClientTest {
     @Test
     void testHttpClient_FromConfiguration_SingletonThreadSafety() throws GeneralSecurityException, IOException {
         Path cacerts = createCacerts(tempDir.resolve("custom", "cacerts"));
-        Configuration configuration = configuration().http(http().trustStorePath(cacerts.toString()).build()).build();
+        Configuration configuration = configuration().http(http().trustStore(trustStore().path(cacerts.toString()))).build();
         testHttpClient_SingletonThreadSafety(configuration);
     }
 

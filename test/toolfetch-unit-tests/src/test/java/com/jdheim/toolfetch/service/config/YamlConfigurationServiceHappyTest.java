@@ -5,6 +5,8 @@
 
 package com.jdheim.toolfetch.service.config;
 
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
+import static com.jdheim.toolfetch.builder.TestTrustStoreBuilder.trustStore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
@@ -51,7 +53,7 @@ class YamlConfigurationServiceHappyTest {
 
         if (configPath.contains("_trustStore")) {
             TrustStore trustStore = configuration.map(Configuration::http).map(Http::ssl).map(Ssl::trustStore).orElseThrow();
-            TrustStore expectedTrustStore = new TrustStore("custom/cacerts", "PKCS12");
+            TrustStore expectedTrustStore = trustStore().path("custom/cacerts").type("PKCS12").build();
             assertThat(trustStore).isNotNull().isEqualTo(expectedTrustStore);
         }
 
@@ -72,20 +74,18 @@ class YamlConfigurationServiceHappyTest {
         }
         Tool expectedFirstTool;
         if (configPath.contains("latest-version")) {
-            expectedFirstTool = new Tool("dbeaver", "https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz", null,
-                    expectedDestination);
+            expectedFirstTool = tool().id("dbeaver").url("https://dbeaver.io/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz")
+                    .destination(expectedDestination).build();
         } else {
-            expectedFirstTool = new Tool("toolfetch",
-                    "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz",
-                    "0.0.3", expectedDestination);
+            expectedFirstTool = tool().withDefaultUrlVersion().version("0.0.3").destination(expectedDestination).build();
         }
         assertThat(firstTool).isNotNull().isEqualTo(expectedFirstTool);
     }
 
     private void assertSecondTool(Tool secondTool) {
-        Tool expectedSecondTool = new Tool("firefox",
-                "https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz",
-                "146.0.1");
+        Tool expectedSecondTool = tool().id("firefox")
+                .url("https://ftp.mozilla.org/pub/firefox/releases/${version}/linux-x86_64/en-US/firefox-${version}.tar.xz")
+                .version("146.0.1").build();
         assertThat(secondTool).isNotNull().isEqualTo(expectedSecondTool);
     }
 

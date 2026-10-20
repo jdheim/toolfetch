@@ -19,11 +19,15 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 /// OOC Tests for [AutoDetectArchiveUncompressor]
 class AutoDetectArchiveUncompressorTest {
+
+    @RegisterExtension
+    final TestLogListAppenderSteps logs = new TestLogListAppenderSteps();
 
     AutoDetectArchiveUncompressor uncompressor;
 
@@ -38,8 +42,6 @@ class AutoDetectArchiveUncompressorTest {
     @Test
     void testBinaryDetectionLogsOriginalExceptionAtDebug() throws IOException {
         Path binary = Files.createFile(tempDir.resolve("tool.bin"));
-        TestLogListAppenderSteps logs = new TestLogListAppenderSteps();
-        logs.start();
 
         assertThatExceptionOfType(SkippedArchiveException.class).isThrownBy(() -> uncompressor.uncompress(binary));
 

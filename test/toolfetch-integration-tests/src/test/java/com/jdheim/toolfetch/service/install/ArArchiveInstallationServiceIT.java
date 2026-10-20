@@ -23,7 +23,7 @@ class ArArchiveInstallationServiceIT extends TestCommonArchiveInstallationServic
         byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/ar/" + archiveName);
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "Extraction failed: \"org.apache.commons.compress.archivers.ArchiveException: "
                             + "No Archiver found for the stream signature\". Skipping tool: toolfetch");
             assertThat(destinationPath).doesNotExist();

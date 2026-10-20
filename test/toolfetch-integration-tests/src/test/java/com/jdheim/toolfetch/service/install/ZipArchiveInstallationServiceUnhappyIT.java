@@ -8,6 +8,8 @@ package com.jdheim.toolfetch.service.install;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.jdheim.toolfetch.builder.TestConfigurationBuilder.configuration;
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.addZipEntryDir;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.addZipEntryFile;
 import static com.jdheim.toolfetch.step.archive.ArchiveSteps.createZip;
@@ -35,11 +37,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.model.Configuration;
-import com.jdheim.toolfetch.model.tool.Tool;
 import com.jdheim.toolfetch.service.install.download.WebDownloadService;
 import com.jdheim.toolfetch.service.install.download.http.ToolFetchHttpClient;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
-import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
@@ -87,10 +87,10 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         assertThat(logArgs).hasSize(3);
         Path destinationPath = tempDir.resolve(logArgs[0]);
         Path archivePath = destinationPath.resolve("toolfetch.zip");
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Extracting %s to %s".formatted(archivePath, destinationPath));
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                 "Extraction failed: \"java.lang.UnsupportedOperationException: Unsafe archive path: destination \"%s\", entry \"%s\" resolves outside the destination to \"%s\"\"".formatted(
                         destinationPath, logArgs[1], tempDir.resolve(logArgs[2]).normalize()));
     }
@@ -157,21 +157,21 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             Path backupPath = tempDir.resolve(id + ".bak");
             assertThat(backupPath).doesNotExist();
             if (backupPathExists) {
-                getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+                testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                         "Backup already exists: %s. Removing".formatted(backupPath));
             }
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
             Path archivePath = destinationPath.resolve("toolfetch.zip");
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "Extraction failed: \"java.lang.UnsupportedOperationException: Unsafe archive path: destination \"%s\", entry \"../test2.txt\" resolves outside the destination to \"%s\"\"".formatted(
                             destinationPath, tempDir.resolve(id + "/../test2.txt").normalize()));
-            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
-            getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + destinationPath);
+            testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Restoring %s to %s".formatted(backupPath, destinationPath));
         });
     }
@@ -196,13 +196,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path backupPath = tempDir.resolve(id + ".bak");
         assertThat(backupPath).doesNotExist();
         if (backupPathExists) {
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Backup already exists: %s. Removing".formatted(backupPath));
         }
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Destination already exists: %s. Moving to %s".formatted(destinationPath, backupPath));
-        getTestLogListAppenderSteps().assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
-        getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+        testLogListAppenderSteps.assertNoMatch(LogLevel.INFO.toString(), "Removing " + backupPath);
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                 "Restoring %s to %s".formatted(backupPath, destinationPath));
     }
 
@@ -211,13 +211,13 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         Path archivePath = tempDir.resolve("toolfetch/toolfetch.zip");
 
         testInstall(wmRuntimeInfo, archiveBytes, destinationPath -> {
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(),
                     "Extracting %s to %s".formatted(archivePath, destinationPath));
-            files.forEach(file -> getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            files.forEach(file -> testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "Cannot read archive entry \"%s\". Skipping".formatted(file)));
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
-            getTestLogListAppenderSteps().assertAnyMatch(LogLevel.WARN.toString(),
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Extraction completed in ");
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.INFO.toString(), "Removing " + archivePath);
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
                     "No files were extracted. Removing " + tempDir.resolve("toolfetch"));
         });
     }
@@ -236,8 +236,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
             files.when(() -> Files.exists(destinationPath)).thenReturn(false);
             files.when(() -> Files.exists(backupPath)).thenReturn(true);
             ArchiveInstallationService installationService = new ArchiveInstallationService();
-            testLogListAppenderSteps = new TestLogListAppenderSteps();
-            getTestLogListAppenderSteps().start();
+
             installationService.cleanup(configuration, configuration.tools().getFirst());
         }
 
@@ -265,8 +264,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
         ArchiveInstallationService installationService = spy(new ArchiveInstallationService());
         doReturn(webDownloadService).when(installationService).downloadService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start();
+
         try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
             toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
             installationService.install(configuration);
@@ -296,8 +294,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
         fillDestinationPath(id);
 
         installationService = new ArchiveInstallationService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start();
+
         installationService.install(configuration);
 
         Path destinationPath = tempDir.resolve(id);
@@ -338,8 +335,7 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
         ArchiveInstallationService installationService = spy(new ArchiveInstallationService());
         doReturn(webDownloadService).when(installationService).downloadService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        getTestLogListAppenderSteps().start();
+
         try (MockedStatic<ToolFetchHttpClient> toolfetchHttpClient = mockStatic()) {
             toolfetchHttpClient.when(() -> ToolFetchHttpClient.getInstance(any(Configuration.class))).thenReturn(mockHttpClient);
             installationService.install(configuration);
@@ -372,8 +368,9 @@ class ZipArchiveInstallationServiceUnhappyIT extends TestCommonArchiveInstallati
 
     private Configuration buildConfiguration(WireMockRuntimeInfo wmRuntimeInfo, String id, String mockUrl) {
         String url = "http" + "://localhost:" + wmRuntimeInfo.getHttpPort() + mockUrl;
-        Tool tool = new Tool(id, url);
-        return new Configuration(tempDir.toString(), List.of(tool));
+        return configuration().destination(tempDir.toString())
+                .addTool(tool().id(id).url(url))
+                .build();
     }
 
     private void stubWireMockToServe404Response(String mockUrl) {

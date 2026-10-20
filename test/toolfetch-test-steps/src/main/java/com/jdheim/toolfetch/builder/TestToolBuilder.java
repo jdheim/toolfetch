@@ -6,7 +6,6 @@
 package com.jdheim.toolfetch.builder;
 
 import com.jdheim.toolfetch.model.tool.Tool;
-import com.jdheim.toolfetch.model.tool.checksums.Checksums;
 import org.jspecify.annotations.Nullable;
 
 /// Tool Builder for Tests
@@ -30,7 +29,7 @@ public final class TestToolBuilder {
 
     private @Nullable String destination;
 
-    private @Nullable Checksums checksums;
+    private @Nullable TestChecksumsBuilder checksums;
 
     private TestToolBuilder() {
         id = DEFAULT_ID;
@@ -57,7 +56,7 @@ public final class TestToolBuilder {
         return this;
     }
 
-    public TestToolBuilder version(String version) {
+    public TestToolBuilder version(@Nullable String version) {
         this.version = version;
         return this;
     }
@@ -67,7 +66,7 @@ public final class TestToolBuilder {
         return this;
     }
 
-    public TestToolBuilder destination(String destination) {
+    public TestToolBuilder destination(@Nullable String destination) {
         this.destination = destination;
         return this;
     }
@@ -77,13 +76,22 @@ public final class TestToolBuilder {
         return this;
     }
 
-    public TestToolBuilder checksums(Checksums checksums) {
+    public TestToolBuilder checksums(TestChecksumsBuilder checksums) {
         this.checksums = checksums;
         return this;
     }
 
     public Tool build() {
-        return new Tool(id, url, version, destination, checksums);
+        if (checksums != null) {
+            return new Tool(id, url, version, destination, checksums.build());
+        }
+        if (destination != null) {
+            return new Tool(id, url, version, destination);
+        }
+        if (version != null) {
+            return new Tool(id, url, version);
+        }
+        return new Tool(id, url);
     }
 
 }

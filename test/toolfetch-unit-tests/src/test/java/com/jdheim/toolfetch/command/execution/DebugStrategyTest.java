@@ -20,6 +20,7 @@ import java.util.Optional;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import picocli.CommandLine;
@@ -30,15 +31,14 @@ class DebugStrategyTest {
     @TempDir
     Path tempDir;
 
-    private DebugStrategy strategy;
+    DebugStrategy strategy;
 
-    private TestLogListAppenderSteps logs;
+    @RegisterExtension
+    final TestLogListAppenderSteps logs = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() {
         strategy = new DebugStrategy();
-        logs = new TestLogListAppenderSteps();
-        logs.start();
     }
 
     @Test

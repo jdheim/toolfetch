@@ -14,9 +14,26 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.LoggerFactory;
 
-public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent> {
+public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent>
+        implements BeforeEachCallback, AfterEachCallback {
+
+    @Override
+    public void beforeEach(ExtensionContext context) {
+        list.clear();
+        start();
+    }
+
+    @Override
+    public void afterEach(ExtensionContext context) {
+        Logger logger = (Logger) LoggerFactory.getLogger("com.jdheim");
+        logger.detachAppender(this);
+        stop();
+    }
 
     public List<String> logs() {
         return formatLogs(list);
@@ -74,10 +91,6 @@ public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent> {
         if (getContext() == null) {
             setContext(logger.getLoggerContext());
         }
-        PatternLayout layout = new PatternLayout();
-        layout.setContext(getContext());
-        layout.setPattern("%toolFetchPlainLogLevel %toolFetchPlainLogMessage");
-        layout.start();
         super.start();
     }
 

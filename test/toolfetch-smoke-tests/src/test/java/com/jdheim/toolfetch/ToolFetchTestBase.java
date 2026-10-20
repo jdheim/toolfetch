@@ -24,6 +24,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import picocli.CommandLine;
 
 public class ToolFetchTestBase {
@@ -44,6 +45,9 @@ public class ToolFetchTestBase {
     private static final Path TOOLFETCH_LOG = Path.of(System.getProperty("user.home"), ".toolfetch", "toolfetch.log");
 
     private static final Pattern DEBUG_LOGGER_NAME = Pattern.compile("(\\[DEBUG]) \\[[^]]+] ");
+
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     ExecResult execute(String... args) throws IOException, InterruptedException {
         if (IS_FORCE_NATIVE_MODE_ENABLED) {
@@ -105,12 +109,12 @@ public class ToolFetchTestBase {
     }
 
     private ExecResult executeTest(String[] args) {
+        testLogListAppenderSteps.list.clear();
         CommandLine toolFetch = ToolFetch.commandLine();
         StringWriter log = new StringWriter();
         toolFetch.setOut(new PrintWriter(log));
         toolFetch.setErr(new PrintWriter(log));
-        TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
+
         int exitCode = toolFetch.execute(args);
         List<String> writerLogs = log.toString().lines().toList();
         List<String> collectedLogs = testLogListAppenderSteps.logs();

@@ -22,7 +22,7 @@ import org.slf4j.MarkerFactory;
 /// OOC Tests for [PlainLogLevelConverter]
 class PlainLogLevelConverterTest {
 
-    private PlainLogLevelConverter converter;
+    PlainLogLevelConverter converter;
 
     @BeforeEach
     void setUp() {

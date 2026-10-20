@@ -17,6 +17,7 @@ import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -27,7 +28,8 @@ class YamlParserServiceUnhappyTest {
 
     YamlParserService parserService;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @TempDir
     Path tempDir;
@@ -40,8 +42,6 @@ class YamlParserServiceUnhappyTest {
     @BeforeEach
     void setUp() {
         parserService = new YamlParserService();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @Test

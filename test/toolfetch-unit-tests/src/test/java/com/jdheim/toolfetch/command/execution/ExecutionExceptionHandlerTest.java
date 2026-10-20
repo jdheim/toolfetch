@@ -15,6 +15,7 @@ import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import picocli.CommandLine;
 
 /// OOC Tests for [ExecutionExceptionHandler]
@@ -22,13 +23,12 @@ class ExecutionExceptionHandlerTest {
 
     ExecutionExceptionHandler handler;
 
-    TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() {
         handler = new ExecutionExceptionHandler();
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @Test

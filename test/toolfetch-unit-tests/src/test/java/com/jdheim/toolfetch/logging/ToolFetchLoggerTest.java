@@ -23,21 +23,21 @@ import ch.qos.logback.classic.Logger;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 import org.slf4j.LoggerFactory;
 
 /// OOC Tests for [ToolFetchLogger]
 class ToolFetchLoggerTest {
 
-    private ToolFetchLogger logger;
+    ToolFetchLogger logger;
 
-    private TestLogListAppenderSteps testLogListAppenderSteps;
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
 
     @BeforeEach
     void setUp() {
         logger = ToolFetchLogger.getLogger(ToolFetchLoggerTest.class);
-        testLogListAppenderSteps = new TestLogListAppenderSteps();
-        testLogListAppenderSteps.start();
     }
 
     @Test
