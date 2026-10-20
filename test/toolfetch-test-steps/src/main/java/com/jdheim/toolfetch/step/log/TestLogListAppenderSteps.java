@@ -18,6 +18,14 @@ import org.slf4j.LoggerFactory;
 
 public class TestLogListAppenderSteps extends ListAppender<ILoggingEvent> {
 
+    public List<String> logs() {
+        return formatLogs(list);
+    }
+
+    public List<String> messages() {
+        return list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
     public void assertAnyMatch(String level, String message) {
         assertThat(formatLogs(list)).anyMatch(line -> line.contains("[%s] %s".formatted(level, message)));
     }

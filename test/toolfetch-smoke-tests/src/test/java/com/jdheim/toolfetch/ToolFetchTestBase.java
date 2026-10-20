@@ -17,9 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.jdheim.toolfetch.command.ToolFetch;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
@@ -27,7 +24,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 public class ToolFetchTestBase {
@@ -117,22 +113,9 @@ public class ToolFetchTestBase {
         testLogListAppenderSteps.start();
         int exitCode = toolFetch.execute(args);
         List<String> writerLogs = log.toString().lines().toList();
-        List<String> collectedLogs = formatLogs(testLogListAppenderSteps.list);
+        List<String> collectedLogs = testLogListAppenderSteps.logs();
         List<String> logs = Stream.concat(writerLogs.stream(), collectedLogs.stream()).toList();
         return new ExecResult(exitCode, logs);
-    }
-
-    private List<String> formatLogs(List<ILoggingEvent> events) {
-        PatternLayout layout = new PatternLayout();
-        try {
-            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-            layout.setContext(context);
-            layout.setPattern("%toolFetchPlainLogLevel %toolFetchPlainLogMessage");
-            layout.start();
-            return events.stream().map(layout::doLayout).toList();
-        } finally {
-            layout.stop();
-        }
     }
 
     void assertAnyMatch(ExecResult execResult, String message) {
