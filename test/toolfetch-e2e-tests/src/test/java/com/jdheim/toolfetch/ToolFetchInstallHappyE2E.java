@@ -50,7 +50,7 @@ import picocli.CommandLine;
 @WireMockTest
 class ToolFetchInstallHappyE2E extends ToolFetchTestBase {
 
-    static final Path ARCHIVE_DIR = Path.of("..", "toolfetch-integration-tests", "target", "test-classes", "archive");
+    static final Path ARCHIVE_DIR = Path.of("..", "toolfetch-component-tests", "target", "test-classes", "archive");
 
     static final List<String> EXCLUDED_ARCHIVERS = List.of(ArchiveStreamFactory.AR, ArchiveStreamFactory.ARJ,
             ArchiveStreamFactory.CPIO, ArchiveStreamFactory.DUMP);

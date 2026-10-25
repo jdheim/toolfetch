@@ -78,12 +78,7 @@
             </dependency>
             <dependency>
                 <groupId>com.jdheim</groupId>
-                <artifactId>toolfetch-unit-tests</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.jdheim</groupId>
-                <artifactId>toolfetch-integration-tests</artifactId>
+                <artifactId>toolfetch-component-tests</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

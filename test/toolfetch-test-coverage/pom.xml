@@ -38,12 +38,7 @@
 
         <dependency>
             <groupId>com.jdheim</groupId>
-            <artifactId>toolfetch-unit-tests</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jdheim</groupId>
-            <artifactId>toolfetch-integration-tests</artifactId>
+            <artifactId>toolfetch-component-tests</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -63,7 +58,7 @@
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>report-aggregate-unit</id>
+                                <id>report-aggregate-component</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>report-aggregate</goal>
@@ -72,22 +67,8 @@
                                     <dataFileIncludes>
                                         <dataFileInclude>target/jacoco.exec</dataFileInclude>
                                     </dataFileIncludes>
-                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-unit</outputDirectory>
-                                    <title>${project.name}: Unit Tests</title>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>report-aggregate-it</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>report-aggregate</goal>
-                                </goals>
-                                <configuration>
-                                    <dataFileIncludes>
-                                        <dataFileInclude>target/jacoco-it.exec</dataFileInclude>
-                                    </dataFileIncludes>
-                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-it</outputDirectory>
-                                    <title>${project.name}: Integration Tests</title>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-component</outputDirectory>
+                                    <title>${project.name}: Component Tests</title>
                                 </configuration>
                             </execution>
                             <execution>
@@ -113,7 +94,6 @@
                                 <configuration>
                                     <dataFileIncludes>
                                         <dataFileInclude>target/jacoco.exec</dataFileInclude>
-                                        <dataFileInclude>target/jacoco-it.exec</dataFileInclude>
                                         <dataFileInclude>target/jacoco-e2e.exec</dataFileInclude>
                                     </dataFileIncludes>
                                     <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-all</outputDirectory>

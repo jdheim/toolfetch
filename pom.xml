@@ -232,7 +232,6 @@
                     <version>${maven-failsafe-plugin.version}</version>
                     <configuration>
                         <includes>
-                            <include>**/*IT.java</include>
                             <include>**/*E2E.java</include>
                         </includes>
                         <systemPropertyVariables>
@@ -264,7 +263,6 @@
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
                         <excludes>
-                            <exclude>**/*IT.java</exclude>
                             <exclude>**/*E2E.java</exclude>
                         </excludes>
                         <systemPropertyVariables>
@@ -368,8 +366,7 @@
 
         <module>test/toolfetch-native-agent</module>
         <module>test/toolfetch-test-steps</module>
-        <module>test/toolfetch-unit-tests</module>
-        <module>test/toolfetch-integration-tests</module>
+        <module>test/toolfetch-component-tests</module>
         <module>test/toolfetch-e2e-tests</module>
         <module>test/toolfetch-test-coverage</module>
 

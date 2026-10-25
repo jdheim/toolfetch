@@ -21,8 +21,7 @@ OPTIONS:
   --dt, --dependency-tree       Dependency Tree
   -t, --jacoco-scan             Runs Tests with Jacoco Coverage Scan
   --jacoco-html                 Launch default browser to check Jacoco Coverage Scan analysis result
-  --jacoco-unit-html            Launch default browser to check Jacoco Coverage Scan analysis result for Unit Tests only
-  --jacoco-it-html              Launch default browser to check Jacoco Coverage Scan analysis result for Integration Tests only
+  --jacoco-component-html       Launch default browser to check Jacoco Coverage Scan analysis result for Component Tests only
   --jacoco-e2e-html             Launch default browser to check Jacoco Coverage Scan analysis result for E2E Tests only
   --e2e-native                  Runs E2E Tests for a standalone executable (native image)
   --native-agent-scan           Native Agent Scan (generates reachability-metadata.json)
@@ -52,8 +51,7 @@ readOptions() {
       --dt|--dependency-tree) dependencyTree "$@" ;;
       -t|--jacoco-scan) testsWithJacocoScan "$@" ;;
       --jacoco-html) jacocoHtml "all" ;;
-      --jacoco-unit-html) jacocoHtml "unit" ;;
-      --jacoco-it-html) jacocoHtml "it" ;;
+      --jacoco-component-html) jacocoHtml "component" ;;
       --jacoco-e2e-html) jacocoHtml "e2e" ;;
       --e2e-native) e2eTestsNative "$@" ;;
       --native-agent-scan) nativeAgentScan "$@" ;;

@@ -1,0 +1,62 @@
+/*
+ * Copyright 2026 JDHeim.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.jdheim.toolfetch.service.install.resolve;
+
+import static com.jdheim.toolfetch.builder.TestToolBuilder.tool;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.net.URI;
+import com.jdheim.toolfetch.logging.LogLevel;
+import com.jdheim.toolfetch.model.tool.Tool;
+import com.jdheim.toolfetch.step.log.TestLogListAppenderSteps;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+/// Component Tests for [ToolUriTransformer]
+class ToolUriTransformerTest {
+
+    UriTransformer uriTransformer;
+
+    @RegisterExtension
+    final TestLogListAppenderSteps testLogListAppenderSteps = new TestLogListAppenderSteps();
+
+    @BeforeEach
+    void setUp() {
+        uriTransformer = new ToolUriTransformer();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "http://localhost/download/toolfetch.zip, , http://localhost/download/toolfetch.zip",
+            "http://localhost/download/${version}/toolfetch.zip, 1.0, http://localhost/download/1.0/toolfetch.zip",
+            "https://localhost/download/${version}/toolfetch.zip, 2.0, https://localhost/download/2.0/toolfetch.zip",
+            "https://localhost/download/${version}/toolfetch-${version}.zip, 3.0.1, https://localhost/download/3.0.1/toolfetch-3.0.1.zip"
+    })
+    void testTransform_Happy(String url, String version, String expectedURI) {
+        Tool tool = tool().url(url).version(version).build();
+
+        URI actualURI = uriTransformer.transform(tool);
+
+        assertThat(actualURI).isEqualTo(URI.create(expectedURI));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "http://localhost/download/${version}/toolfetch.zip, 'Tool URL contains ${version}, but no version is configured. Set the version for this tool'",
+            "ftp://localhost/download/toolfetch.zip, 'Unsupported URL scheme. Use http or https'"
+    })
+    void testTransform_Unhappy(String url, String logMessage) {
+        Tool tool = tool().url(url).build();
+
+        URI actualURI = uriTransformer.transform(tool);
+
+        assertThat(actualURI).isNull();
+        testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(), logMessage);
+    }
+
+}

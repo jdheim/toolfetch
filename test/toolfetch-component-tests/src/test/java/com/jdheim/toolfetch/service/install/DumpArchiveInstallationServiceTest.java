@@ -1,0 +1,43 @@
+/*
+ * Copyright 2026 JDHeim.com
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.jdheim.toolfetch.service.install;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.jdheim.toolfetch.logging.LogLevel;
+import com.jdheim.toolfetch.step.archive.ArchiveSteps;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.Test;
+
+/// Component Tests for [ArchiveInstallationService]
+/// Commands to create dump file:
+/// dd if=/dev/zero of=fs.img bs=1M count=20
+/// mkfs.ext2 fs.img
+/// sudo mkdir /mnt/testfs
+/// sudo mount -o loop fs.img /mnt/testfs
+/// sudo cp test1.txt test2.txt test3.txt /mnt/testfs/
+/// sudo dump -0 -z9 -f sample1.dump /mnt/testfs
+/// sudo umount /mnt/testfs
+@WireMockTest
+class DumpArchiveInstallationServiceTest extends TestCommonArchiveInstallationService {
+
+    @Test
+    void testInstall_NotSupported(WireMockRuntimeInfo wmRuntimeInfo) {
+        String archiveName = "sample1.dump";
+        byte[] archiveBytes = ArchiveSteps.readTestFile("/archive/dump/" + archiveName);
+
+        testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
+            testLogListAppenderSteps.assertAnyMatch(LogLevel.WARN.toString(),
+                    "Extraction failed: \"org.apache.commons.compress.archivers.ArchiveException: "
+                            + "No Archiver found for the stream signature\". Skipping tool: toolfetch");
+            testLogListAppenderSteps.assertExceptionLogged(ArchiveException.class);
+            assertThat(destinationPath).doesNotExist();
+        });
+    }
+
+}
