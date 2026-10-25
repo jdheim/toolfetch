@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source "$(dirname "${BASH_SOURCE[0]}")/common/projectFunctions.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common/functions.sh"
 
 usage() {
   cat << EOF
@@ -39,7 +39,7 @@ regenerateMavenWrapper() {
   local newValue
   newValue="$(mvn -B -v | grep "Apache Maven" | sed "s/Apache Maven \([^ ]*\).*/\1/")"
   mvn wrapper:wrapper -pl . -Dmaven="${newValue}"
-  updatePropertyInXmlFile "${PROJECT_DIR}/pom.xml" "n=http://maven.apache.org/POM/4.0.0" "/n:project/n:properties/n:enforce-maven.version" "${newValue}"
+  updatePropertyInXmlFile "${PROJECT_DIR}/pom.xml" "enforce-maven.version" "${newValue}"
   replaceHttpWithHttps
 }
 

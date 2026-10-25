@@ -101,6 +101,31 @@ trim() {
   printf '%s\n' "${string}"
 }
 
+mvnw() {
+  (
+    cd "${PROJECT_DIR}"
+    ./mvnw "$@"
+  )
+}
+
+xmlProperty() {
+  local propertyName="<${1}>"
+  local xmlFile="${2}"
+  grep -m 1 "${propertyName}" "${xmlFile}" | awk -F'[<>]' '{print $3}'
+}
+
+updatePropertyInXmlFile() {
+  local file="${1}"
+  local propertyName="${2}"
+  local propertyValue="${3}"
+  local oldValue
+  oldValue=$(sed -n "s|.*<${propertyName}>\(.*\)</${propertyName}>.*|\1|p" "${file}")
+  if [[ -n "${oldValue}" && "${oldValue}" != "${propertyValue}" ]]; then
+    info "Updating ${file}: ${oldValue} -> ${propertyValue}"
+    sed -i "s|<${propertyName}>[^<]*</${propertyName}>|<${propertyName}>${propertyValue}</${propertyName}>|" "${file}"
+  fi
+}
+
 # General validations
 
 requireFile() {
