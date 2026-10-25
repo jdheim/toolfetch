@@ -14,8 +14,8 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>toolfetch-smoke-tests</artifactId>
-    <name>ToolFetch Smoke Tests</name>
+    <artifactId>toolfetch-e2e-tests</artifactId>
+    <name>ToolFetch E2E Tests</name>
 
     <dependencies>
         <dependency>
@@ -116,7 +116,7 @@
 
     <profiles>
         <profile>
-            <id>smoke-tests</id>
+            <id>e2e-tests</id>
             <activation>
                 <property>
                     <name>!skipTests</name>
@@ -160,7 +160,7 @@
                                     <goal>prepare-agent-integration</goal>
                                 </goals>
                                 <configuration>
-                                    <destFile>${project.build.directory}/jacoco-st.exec</destFile>
+                                    <destFile>${project.build.directory}/jacoco-e2e.exec</destFile>
                                 </configuration>
                             </execution>
                         </executions>
@@ -188,7 +188,7 @@
             </build>
         </profile>
         <profile>
-            <id>smoke-tests-native</id>
+            <id>e2e-tests-native</id>
             <build>
                 <plugins>
                     <plugin>

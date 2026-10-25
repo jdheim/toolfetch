@@ -48,7 +48,7 @@
         </dependency>
         <dependency>
             <groupId>com.jdheim</groupId>
-            <artifactId>toolfetch-smoke-tests</artifactId>
+            <artifactId>toolfetch-e2e-tests</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -91,17 +91,17 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>report-aggregate-st</id>
+                                <id>report-aggregate-e2e</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>report-aggregate</goal>
                                 </goals>
                                 <configuration>
                                     <dataFileIncludes>
-                                        <dataFileInclude>target/jacoco-st.exec</dataFileInclude>
+                                        <dataFileInclude>target/jacoco-e2e.exec</dataFileInclude>
                                     </dataFileIncludes>
-                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-st</outputDirectory>
-                                    <title>${project.name}: Smoke Tests</title>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-e2e</outputDirectory>
+                                    <title>${project.name}: E2E Tests</title>
                                 </configuration>
                             </execution>
                             <execution>
@@ -114,7 +114,7 @@
                                     <dataFileIncludes>
                                         <dataFileInclude>target/jacoco.exec</dataFileInclude>
                                         <dataFileInclude>target/jacoco-it.exec</dataFileInclude>
-                                        <dataFileInclude>target/jacoco-st.exec</dataFileInclude>
+                                        <dataFileInclude>target/jacoco-e2e.exec</dataFileInclude>
                                     </dataFileIncludes>
                                     <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate-all</outputDirectory>
                                     <title>${project.name}</title>

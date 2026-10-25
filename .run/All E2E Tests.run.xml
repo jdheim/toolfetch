@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Smoke Tests" type="JUnit" factoryName="JUnit">
-    <module name="toolfetch-smoke-tests" />
+  <configuration default="false" name="All E2E Tests" type="JUnit" factoryName="JUnit">
+    <module name="toolfetch-e2e-tests" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="directory" />
-    <dir value="$PROJECT_DIR$/test/toolfetch-smoke-tests/src/test/java/com/jdheim/toolfetch" />
+    <dir value="$PROJECT_DIR$/test/toolfetch-e2e-tests/src/test/java/com/jdheim/toolfetch" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -21,4 +21,4 @@ printSummary() {
 
 trap printSummary EXIT
 
-./build.sh && ./verify.sh && ./verify.sh --native-agent-scan && ./build.sh --release && ./verify.sh --st-native
+./build.sh && ./verify.sh && ./verify.sh --native-agent-scan && ./build.sh --release && ./verify.sh --e2e-native

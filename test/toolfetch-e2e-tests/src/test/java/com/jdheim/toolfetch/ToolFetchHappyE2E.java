@@ -20,8 +20,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
 
-/// Smoke Tests for [ToolFetch]
-class ToolFetchHappySmokeTest extends ToolFetchTestBase {
+/// E2E Tests for [ToolFetch]
+class ToolFetchHappyE2E extends ToolFetchTestBase {
 
     @TempDir
     Path tempDir;
@@ -63,17 +63,6 @@ class ToolFetchHappySmokeTest extends ToolFetchTestBase {
     void testVersionAndHelp(String option) throws Exception {
         ExecResult execResult = execute(option);
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
-        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
-        assertNoMatch(execResult, "[INFO] Command completed in ");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"-h", "--help"})
-    void testInstallHelp(String option) throws Exception {
-        ExecResult execResult = execute("install", option);
-        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
-        assertAnyMatch(execResult, "Usage: toolfetch install");
-        assertAnyMatch(execResult, "Install tools");
         assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
         assertNoMatch(execResult, "[INFO] Command completed in ");
     }

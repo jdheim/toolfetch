@@ -66,7 +66,7 @@ public class ToolFetchTestBase {
 
     /// Run: `./build.sh --native-debug` and use `-Dnative-debug=true` in VM Options to enable debugging of Native Image
     @SuppressFBWarnings(value = "COMMAND_INJECTION",
-            justification = "Test-only code. Arguments are constructed internally for controlled Smoke Tests of Native Image and are not influenced by external or user input")
+            justification = "Test-only code. Arguments are constructed internally for controlled E2E Tests of Native Image and are not influenced by external or user input")
     private ExecResult executeNativeImage(String[] args) throws IOException, InterruptedException {
         args = enrichArgs(args);
         Files.deleteIfExists(TOOLFETCH_LOG);

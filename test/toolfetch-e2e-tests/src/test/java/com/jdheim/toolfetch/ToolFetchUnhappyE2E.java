@@ -7,26 +7,12 @@ package com.jdheim.toolfetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import com.jdheim.toolfetch.command.ToolFetch;
-import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
 
-/// Smoke Tests for [ToolFetch]
-class ToolFetchUnhappySmokeTest extends ToolFetchTestBase {
-
-    @Test
-    void testAutoDetectedConfigNotFound() throws Exception {
-        ExecResult execResult = execute("install");
-        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
-        Path configPath = Path.of(SystemUtils.USER_DIR, "toolfetch.yaml");
-        assertAnyMatch(execResult, "File \"%s\" does not exist".formatted(configPath));
-        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
-        assertNoMatch(execResult, "[INFO] Command completed in ");
-    }
+/// E2E Tests for [ToolFetch]
+class ToolFetchUnhappyE2E extends ToolFetchTestBase {
 
     @Test
     void testMissingSubcommand() throws Exception {
@@ -42,16 +28,6 @@ class ToolFetchUnhappySmokeTest extends ToolFetchTestBase {
         ExecResult execResult = execute("-z");
         assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
         assertAnyMatch(execResult, "Unknown option: '-z'");
-        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
-        assertNoMatch(execResult, "[INFO] Command completed in ");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"-v", "--version"})
-    void testUnknownOption(String option) throws Exception {
-        ExecResult execResult = execute("install", option);
-        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
-        assertAnyMatch(execResult, "Unknown option: '%s'".formatted(option));
         assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
         assertNoMatch(execResult, "[INFO] Command completed in ");
     }

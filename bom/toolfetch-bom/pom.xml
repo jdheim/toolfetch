@@ -88,7 +88,7 @@
             </dependency>
             <dependency>
                 <groupId>com.jdheim</groupId>
-                <artifactId>toolfetch-smoke-tests</artifactId>
+                <artifactId>toolfetch-e2e-tests</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

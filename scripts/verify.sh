@@ -23,8 +23,8 @@ OPTIONS:
   --jacoco-html                 Launch default browser to check Jacoco Coverage Scan analysis result
   --jacoco-unit-html            Launch default browser to check Jacoco Coverage Scan analysis result for Unit Tests only
   --jacoco-it-html              Launch default browser to check Jacoco Coverage Scan analysis result for Integration Tests only
-  --jacoco-st-html              Launch default browser to check Jacoco Coverage Scan analysis result for Smoke Tests only
-  --st-native                   Runs Smoke Tests for a standalone executable (native image)
+  --jacoco-e2e-html             Launch default browser to check Jacoco Coverage Scan analysis result for E2E Tests only
+  --e2e-native                  Runs E2E Tests for a standalone executable (native image)
   --native-agent-scan           Native Agent Scan (generates reachability-metadata.json)
   --native-agent-maven-scan     Native Agent Scan (generates reachability-metadata.json) using native-maven-plugin
   --owasp-scan                  OWASP Scan
@@ -54,8 +54,8 @@ readOptions() {
       --jacoco-html) jacocoHtml "all" ;;
       --jacoco-unit-html) jacocoHtml "unit" ;;
       --jacoco-it-html) jacocoHtml "it" ;;
-      --jacoco-st-html) jacocoHtml "st" ;;
-      --st-native) smokeTestsNative "$@" ;;
+      --jacoco-e2e-html) jacocoHtml "e2e" ;;
+      --e2e-native) e2eTestsNative "$@" ;;
       --native-agent-scan) nativeAgentScan "$@" ;;
       --native-agent-maven-scan) nativeAgentMavenScan "$@" ;;
       --owasp-scan) owaspScan "$@" ;;
@@ -159,15 +159,15 @@ testsWithJacocoScan() {
   exit $?
 }
 
-smokeTestsNative() {
-  step "Smoke Tests for a standalone executable (native image)"
+e2eTestsNative() {
+  step "E2E Tests for a standalone executable (native image)"
   shift
   local binary="${PROJECT_DIR}/target/toolfetch"
   if [[ ! -x "${binary}" ]]; then
     error "Executable \"${binary}\" does not exist. Run: ./build.sh -n "
     return 1
   fi
-  run mvnw -ntp verify -pl :toolfetch-smoke-tests -am -Psmoke-tests-native "$@"
+  run mvnw -ntp verify -pl :toolfetch-e2e-tests -am -Pe2e-tests-native "$@"
   exit $?
 }
 

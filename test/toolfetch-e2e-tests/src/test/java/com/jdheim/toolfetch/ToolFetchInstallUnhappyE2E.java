@@ -10,24 +10,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.command.subcommand.Install;
 import com.jdheim.toolfetch.logging.LogLevel;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
 
-/// Smoke Tests for [ToolFetch] -c/--config
+/// E2E Tests for [Install]
 @WireMockTest
-class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
+class ToolFetchInstallUnhappyE2E extends ToolFetchTestBase {
 
     @TempDir
     Path tempDir;
 
     @ParameterizedTest
+    @ValueSource(strings = {"-v", "--version"})
+    void testVersionUnknownOption(String option) throws Exception {
+        ExecResult execResult = execute("install", option);
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
+        assertAnyMatch(execResult, "Unknown option: '%s'".formatted(option));
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testUnknownOption(String option) throws Exception {
+    void testConfigUnknownOption(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         Files.createFile(toolfetchConfigPath);
         ExecResult execResult = execute("install", option, toolfetchConfigPath.toString(), "-z");
@@ -39,7 +51,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testUnmatchedArgument(String option) throws Exception {
+    void testConfigUnmatchedArgument(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         Files.createFile(toolfetchConfigPath);
         ExecResult execResult = execute("install", option, toolfetchConfigPath.toString(), "arg");
@@ -51,7 +63,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testMissingConfigPath(String option) throws Exception {
+    void testConfigMissingConfigPath(String option) throws Exception {
         ExecResult execResult = execute("install", option);
         assertMissingRequiredParameterConfigPath(execResult);
         assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
@@ -60,7 +72,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testEmptyConfigPath(String option) throws Exception {
+    void testConfigEmptyConfigPath(String option) throws Exception {
         ExecResult execResult = execute("install", option, StringUtils.EMPTY);
         assertMissingRequiredParameterConfigPath(execResult);
         assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
@@ -74,7 +86,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testParsingError(String option) throws Exception {
+    void testConfigParsingError(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         if (!Files.exists(toolfetchConfigPath)) {
             Files.createFile(toolfetchConfigPath);
@@ -91,7 +103,7 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testJsonSchemaError(String option) throws Exception {
+    void testConfigJsonSchemaError(String option) throws Exception {
         Path toolfetchConfigPath = tempDir.resolve("toolfetch.yaml");
         if (!Files.exists(toolfetchConfigPath)) {
             Files.writeString(toolfetchConfigPath, "destination: /tmp");
@@ -104,6 +116,16 @@ class ToolFetchConfigUnhappySmokeTest extends ToolFetchTestBase {
             assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.SOFTWARE);
             assertOneMatch(execResult, "[INFO] Command completed in ");
         }
+    }
+
+    @Test
+    void testAutoDetectedConfigNotFound() throws Exception {
+        ExecResult execResult = execute("install");
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.USAGE);
+        Path configPath = Path.of(SystemUtils.USER_DIR, "toolfetch.yaml");
+        assertAnyMatch(execResult, "File \"%s\" does not exist".formatted(configPath));
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.USAGE);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
 }

@@ -69,15 +69,15 @@ jobs:
           mv target/toolfetch-${PROJECT_VERSION}-${MATRIX_JOB_PLATFORM} target/toolfetch
           chmod +x target/toolfetch
 
-      - name: "Smoke Test Native"
+      - name: "E2E Tests Native"
         working-directory: scripts
         shell: bash
-        run: ./verify.sh --st-native
+        run: ./verify.sh --e2e-native
 
       - name: "Upload Test Reports"
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
-          name: smoke-test-native-report-${{ matrix.job.platform }}
+          name: e2e-tests-native-report-${{ matrix.job.platform }}
           if-no-files-found: error
-          path: test/toolfetch-smoke-tests/target/failsafe-reports/**/TEST-*.xml
+          path: test/toolfetch-e2e-tests/target/failsafe-reports/**/TEST-*.xml

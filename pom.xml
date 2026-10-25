@@ -233,7 +233,7 @@
                     <configuration>
                         <includes>
                             <include>**/*IT.java</include>
-                            <include>**/*SmokeTest.java</include>
+                            <include>**/*E2E.java</include>
                         </includes>
                         <systemPropertyVariables>
                             <org.jline.jansi.Ansi.disable>true</org.jline.jansi.Ansi.disable>
@@ -265,7 +265,7 @@
                     <configuration>
                         <excludes>
                             <exclude>**/*IT.java</exclude>
-                            <exclude>**/*SmokeTest.java</exclude>
+                            <exclude>**/*E2E.java</exclude>
                         </excludes>
                         <systemPropertyVariables>
                             <org.jline.jansi.Ansi.disable>true</org.jline.jansi.Ansi.disable>
@@ -370,7 +370,7 @@
         <module>test/toolfetch-test-steps</module>
         <module>test/toolfetch-unit-tests</module>
         <module>test/toolfetch-integration-tests</module>
-        <module>test/toolfetch-smoke-tests</module>
+        <module>test/toolfetch-e2e-tests</module>
         <module>test/toolfetch-test-coverage</module>
 
         <module>build/toolfetch-native-image</module>

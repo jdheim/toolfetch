@@ -69,7 +69,7 @@
       "includeClasses": ".*"
     },
     {
-      "excludeClasses": "^com\\.jdheim\\.toolfetch\\.(?:.*(?:TestBase|Test|IT)|.*\\.Test.*)(?:\\$.*)?$"
+      "excludeClasses": "^com\\.jdheim\\.toolfetch\\.(?:.*(?:TestBase|Test|IT|E2E)|.*\\.Test.*)(?:\\$.*)?$"
     },
     {
       "excludeClasses": "^com\\.tngtech\\..*(?:\\[\\])+$"

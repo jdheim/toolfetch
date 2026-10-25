@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.jdheim.toolfetch.builder.TestToolBuilder;
-import com.jdheim.toolfetch.command.ToolFetch;
+import com.jdheim.toolfetch.command.subcommand.Install;
 import com.jdheim.toolfetch.logging.LogLevel;
 import com.jdheim.toolfetch.logging.LogMarker;
 import com.jdheim.toolfetch.model.Configuration;
@@ -46,9 +46,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import picocli.CommandLine;
 
-/// Smoke Tests for [ToolFetch] -c/--config
+/// E2E Tests for [Install]
 @WireMockTest
-class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
+class ToolFetchInstallHappyE2E extends ToolFetchTestBase {
 
     static final Path ARCHIVE_DIR = Path.of("..", "toolfetch-integration-tests", "target", "test-classes", "archive");
 
@@ -70,7 +70,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testSingleBinaryFile(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+    void testConfigSingleBinaryFile(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         Configuration config = createConfigWithOneToolAsBinaryFile(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
@@ -122,7 +122,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testSingleArchive(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+    void testConfigSingleArchive(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         Configuration config = createConfigWithOneToolAsArchive(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
@@ -149,7 +149,7 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = {"-c", "--config"})
-    void testAllArchives(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+    void testConfigAllArchives(String option, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         Configuration config = createConfigFromArchiveDir(wmRuntimeInfo.getHttpPort());
         ConfigurationSteps.saveToConfigFile(config, configPath);
 
@@ -194,6 +194,17 @@ class ToolFetchConfigHappySmokeTest extends ToolFetchTestBase {
             assertOneMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
             assertOneMatch(execResult, "[INFO] Command completed in ");
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-h", "--help"})
+    void testHelp(String option) throws Exception {
+        ExecResult execResult = execute("install", option);
+        assertThat(execResult.exitCode()).isEqualTo(CommandLine.ExitCode.OK);
+        assertAnyMatch(execResult, "Usage: toolfetch install");
+        assertAnyMatch(execResult, "Install tools");
+        assertNoMatch(execResult, "Command exit code: " + CommandLine.ExitCode.OK);
+        assertNoMatch(execResult, "[INFO] Command completed in ");
     }
 
     private Configuration createConfigWithOneToolAsArchive(int httpPort) {
