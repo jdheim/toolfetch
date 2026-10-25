@@ -199,8 +199,6 @@
                             <arg>-XDcompilePolicy=simple</arg>
                             <arg>--should-stop=ifError=FLOW</arg>
                             <arg>${compiler.error-prone.args}</arg>
-                            <!-- @Patch Necessary only if building with JDK21+: https://github.com/google/error-prone/issues/5426 -->
-                            <arg>-XDaddTypeAnnotationsToSymbol=true</arg>
                         </compilerArgs>
                     </configuration>
                 </plugin>
