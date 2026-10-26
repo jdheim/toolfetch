@@ -12,13 +12,6 @@ fi
 declare -r PROJECT_FUNCTIONS_LOADED="true"
 source "$(dirname "${BASH_SOURCE[0]}")/functions.sh"
 
-# Project constants
-declare -rx MAVEN_VERSION_IGNORE=".*-(M|alpha|beta|rc)[-.]?[0-9]+"
-
-# Project paths
-declare -rx PROPERTY_UPDATES_FILE="property-updates.txt"
-declare -rx PROPERTY_UPDATES_PATH="target/${PROPERTY_UPDATES_FILE}"
-
 # Project functions
 
 projectVersion() {

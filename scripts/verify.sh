@@ -10,6 +10,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/common/projectFunctions.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/common/sonarqube.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/common/summaryRun.sh"
 
+declare -r MAVEN_VERSION_IGNORE="(?i).*-(M|alpha|beta|rc)[-.]?[0-9]+"
+declare -r DEPENDENCY_UPDATES_FILE="dependency-updates.txt"
+declare -r DEPENDENCY_UPDATES_PATH="target/${DEPENDENCY_UPDATES_FILE}"
+
 usage() {
   cat << EOF
 Usage: $(basename "$0") [OPTION]...
@@ -238,7 +242,7 @@ versionCheck() {
   shift
   run mvnw -ntp versions:display-property-updates \
     -pl .,:toolfetch-bom \
-    -Dversions.outputFile="${PROPERTY_UPDATES_PATH}" \
+    -Dversions.outputFile="${DEPENDENCY_UPDATES_PATH}" \
     -Dversions.overwriteOutput=true \
     -Dmaven.version.ignore="${MAVEN_VERSION_IGNORE}" "$@"
   exit $?
@@ -247,27 +251,27 @@ versionCheck() {
 versionUpdate() {
   step "Version Update"
   shift
-  local propertyUpdatesFiles versionPropertyUpdates isUpdated propertyUpdatesFile moduleDir property oldVersion newVersion message
-  propertyUpdatesFiles="$(find "${PROJECT_DIR}" -type f -name "${PROPERTY_UPDATES_FILE}" -print)"
-  if [[ -z "${propertyUpdatesFiles}" ]]; then
-    error "The \"${PROPERTY_UPDATES_FILE}\" file does not exist. Run: ./verify.sh -v"
+  local dependencyUpdatesFiles dependencyUpdates isUpdated dependencyUpdatesFile moduleDir modulePath property oldVersion newVersion message
+  dependencyUpdatesFiles="$(find "${PROJECT_DIR}" -type f -name "${DEPENDENCY_UPDATES_FILE}" -print)"
+  if [[ -z "${dependencyUpdatesFiles}" ]]; then
+    error "The \"${DEPENDENCY_UPDATES_FILE}\" file does not exist. Run: ./scripts/verify.sh -v"
     return 1
   fi
-  while IFS= read -r propertyUpdatesFile; do
-    versionPropertyUpdates="$(awk '/version property updates are available/ { found=1 }
+  while IFS= read -r dependencyUpdatesFile; do
+    dependencyUpdates="$(awk '/version property updates are available/ { found=1 }
                                       found && /->/ {
                                         gsub(/^\$\{|\}$/, "", $1)
                                         print $1, $(NF-2), $NF
                                       }
-                                      ' "${propertyUpdatesFile}")"
-    modulePath="${propertyUpdatesFile%/"${PROPERTY_UPDATES_PATH}"}"
+                                      ' "${dependencyUpdatesFile}")"
+    modulePath="${dependencyUpdatesFile%/"${DEPENDENCY_UPDATES_PATH}"}"
     moduleDir="${modulePath}"
     if [[ "${moduleDir}" == "${PROJECT_DIR}" ]]; then
       moduleDir="."
     else
       moduleDir="${modulePath#"${PROJECT_DIR}/"}"
     fi
-    if [[ -n "${versionPropertyUpdates}" ]]; then
+    if [[ -n "${dependencyUpdates}" ]]; then
       while read -r property oldVersion newVersion; do
         isUpdated="true"
         message="Update ${property%.version} from ${oldVersion} to ${newVersion}"
@@ -282,17 +286,17 @@ versionUpdate() {
         local exitCode=$?
         set -e
         if (( exitCode == 0 )); then
-          sed -i "\|^[[:space:]]*\${${property}}[[:space:]].*->[[:space:]]|d" "${propertyUpdatesFile}"
+          sed -i "\|^[[:space:]]*\${${property}}[[:space:]].*->[[:space:]]|d" "${dependencyUpdatesFile}"
           info "Committing changes..."
-          git add "${modulePath}/pom.xml"
-          git commit --only -m "deps: ${message}" -- "${modulePath}/pom.xml"
+          git -C "${PROJECT_DIR}" add "${modulePath}/pom.xml"
+          git -C "${PROJECT_DIR}" commit --only -m "deps: ${message}" -- "${modulePath}/pom.xml"
         else
           return 1
         fi
-      done <<< "${versionPropertyUpdates}"
+      done <<< "${dependencyUpdates}"
     fi
-    rm "${propertyUpdatesFile}"
-  done <<< "${propertyUpdatesFiles}"
+    rm "${dependencyUpdatesFile}"
+  done <<< "${dependencyUpdatesFiles}"
   if ! "${isUpdated:-false}"; then
     warn "Nothing to update"
   fi
