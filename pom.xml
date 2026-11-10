@@ -75,10 +75,10 @@
         <syft.version>1.57.1</syft.version>
         <syft.sha256.linux-amd64>bf52519eb57f675d47c07d43213cb6dff6449f3d6d1147ff6701ed91f44eef0c</syft.sha256.linux-amd64>
         <syft.sha256.linux-arm64>aa3d3e07344f590bcce8d31043b752daa76c8a56c2aa34ceeee63c6168152582</syft.sha256.linux-arm64>
-        <!-- https://github.com/upx/upx/releases/ -->
-        <upx.version>5.2.1</upx.version>
-        <upx.sha256.linux-amd64>402162aad30af47e60dbd767fb2e64ca394ace9727ba1f40283641f1d1b91657</upx.sha256.linux-amd64>
-        <upx.sha256.linux-arm64>a72d112c5970a904a31da0b9c84f919bc16b9a311787c12245508544a78c7d36</upx.sha256.linux-arm64>
+        <!-- https://github.com/upx/upx/releases -->
+        <upx.version>5.3.0</upx.version>
+        <upx.sha256.linux-amd64>79cea8a50b6fa102d10c7b79a419cd77dead3cc2d78661de2dc5e5815dc505c1</upx.sha256.linux-amd64>
+        <upx.sha256.linux-arm64>2a4afa860ac7aa6968f88df7841823746e5d00ba56affdf9342c2f5254fb776f</upx.sha256.linux-arm64>
 
         <!-- Dependencies -->
         <archunit-junit.version>6</archunit-junit.version>
