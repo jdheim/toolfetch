@@ -67,7 +67,7 @@ runs:
     - name: "Setup ENV variables from pom.xml"
       shell: bash
       run: |
-        echo "JDK_VERSION=$(grep -m 1 "<graalvm-jdk.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
+        echo "JDK_VERSION=$(grep -m 1 "<maven.compiler.release>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
         echo "SYFT_VERSION=$(grep -m 1 "<syft.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
         echo "SYFT_SHA256=$(grep -m 1 "<syft.sha256.linux-${ARCH}>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}
         echo "UPX_VERSION=$(grep -m 1 "<upx.version>" "pom.xml" | awk -F'[<>]' '{print $3}')" >> ${GITHUB_ENV}

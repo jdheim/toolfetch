@@ -64,10 +64,10 @@
 
         <!-- GraalVM JDK: also update in jreleaser.yml -->
         <!-- https://docs.oracle.com/en/graalvm/jdk/25/docs/release-notes -->
-        <graalvm-jdk.version>25.0.4</graalvm-jdk.version>
-        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.4_linux-x64_bin.tar.gz.sha256 -->
+        <graalvm-jdk.version>${maven.compiler.release}</graalvm-jdk.version>
+        <!-- curl -s https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-x64_bin.tar.gz.sha256 -->
         <graalvm-jdk.sha256.linux-amd64>76007c309f821aaf435bce63162ea0395587fc77350801c81643fe7feea37276</graalvm-jdk.sha256.linux-amd64>
-        <!-- curl -s https://download.oracle.com/graalvm/25/archive/graalvm-jdk-25.0.4_linux-aarch64_bin.tar.gz.sha256 -->
+        <!-- curl -s https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-aarch64_bin.tar.gz.sha256 -->
         <graalvm-jdk.sha256.linux-arm64>7031aead8da4c6a7816c4e2be4eabfddaf7f4abcfe8e5f16134c4da69a5e70de</graalvm-jdk.sha256.linux-arm64>
 
         <!-- GitHub Actions -->
@@ -444,13 +444,13 @@
                                         <jdk>
                                             <name>graalvm-linux-amd64</name>
                                             <platform>linux-x86_64</platform>
-                                            <url>https://download.oracle.com/graalvm/${maven.compiler.release}/archive/graalvm-jdk-${graalvm-jdk.version}_linux-x64_bin.tar.gz</url>
+                                            <url>https://download.oracle.com/graalvm/${maven.compiler.release}/latest/graalvm-jdk-${graalvm-jdk.version}_linux-x64_bin.tar.gz</url>
                                             <checksum>${graalvm-jdk.sha256.linux-amd64}</checksum>
                                         </jdk>
                                         <jdk>
                                             <name>graalvm-linux-arm64</name>
                                             <platform>linux-aarch64</platform>
-                                            <url>https://download.oracle.com/graalvm/${maven.compiler.release}/archive/graalvm-jdk-${graalvm-jdk.version}_linux-aarch64_bin.tar.gz</url>
+                                            <url>https://download.oracle.com/graalvm/${maven.compiler.release}/latest/graalvm-jdk-${graalvm-jdk.version}_linux-aarch64_bin.tar.gz</url>
                                             <checksum>${graalvm-jdk.sha256.linux-arm64}</checksum>
                                         </jdk>
                                     </jdks>
@@ -475,7 +475,7 @@
                                         <argument>-c</argument>
                                         <argument>
                                             <![CDATA[
-                                                mv ${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}+* \
+                                                mv ${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}*+* \
                                                     ${project.build.directory}/jdks/graalvm-${graalvm.platform}/graalvm-jdk-${graalvm-jdk.version}
                                             ]]>
                                         </argument>

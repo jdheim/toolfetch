@@ -36,7 +36,7 @@ readOptions() {
       -n|--native) isNativeImage="true"; enrichNativeOptions ;;
       --native-debug) isNativeImage="true"; isNativeImageDebug="true"; enrichNativeOptions ;;
       --native-maven) local graalVmJdkVersion
-        graalVmJdkVersion="$(xmlProperty "graalvm-jdk.version" "${PROJECT_DIR}/pom.xml")"
+        graalVmJdkVersion="$(xmlProperty "maven.compiler.release" "${PROJECT_DIR}/pom.xml")"
         export GRAALVM_HOME="${PROJECT_DIR}/target/jdks/graalvm-linux-amd64/graalvm-jdk-${graalVmJdkVersion}"
         remainingOptions+=("-Pnative-image-with-maven")
         enrichNativeOptions ;;

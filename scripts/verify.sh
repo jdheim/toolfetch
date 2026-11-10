@@ -185,7 +185,7 @@ nativeAgentMavenScan() {
   step "Native Agent Maven Scan"
   shift
   local graalVmJdkVersion
-  graalVmJdkVersion="$(xmlProperty "graalvm-jdk.version" "${PROJECT_DIR}/pom.xml")"
+  graalVmJdkVersion="$(xmlProperty "maven.compiler.release" "${PROJECT_DIR}/pom.xml")"
   export GRAALVM_HOME="${PROJECT_DIR}/target/jdks/graalvm-linux-amd64/graalvm-jdk-${graalVmJdkVersion}"
   run mvnw -ntp verify -pl :toolfetch-test-coverage -am -Psetup-graalvm,native-agent-scan-with-maven "$@"
   processReachabilityMetadataJson

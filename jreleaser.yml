@@ -1,6 +1,6 @@
 environment:
   properties:
-    graalVmDir: 'graalvm-jdk-25.0.4'
+    graalVmDir: 'graalvm-jdk-25'
 project:
   name: 'toolfetch'
   version: '0.1.1-SNAPSHOT'
