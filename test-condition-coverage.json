@@ -3,6 +3,6 @@
   "namedLogo": "sonarqubeserver",
   "logoColor": "white",
   "label": "Test Condition Coverage (%)",
-  "message": "95.0",
+  "message": "95.1",
   "color": "brightgreen"
 }
