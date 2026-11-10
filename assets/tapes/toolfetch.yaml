@@ -1,7 +1,7 @@
 destination: "/tmp"
 tools:
   - id: toolfetch
-    version: "0.1.0"
+    version: "0.1.1"
     url: "https://github.com/jdheim/toolfetch/releases/download/v${version}/toolfetch-${version}-linux-amd64.tar.gz"
     checksums:
-      sha256: "f61a13cefc303a97dfc8c2f0faf2913820130d803e50028941f030caa4208cc0"
+      sha256: "12d2ad27b35f5e4e7826bed39f4a50aab6d744f91db20f4f8f4202f4cc1d5ec6"
