@@ -33,7 +33,7 @@
         <json-schema-validator.version>3.0.9</json-schema-validator.version>
         <jspecify.version>1.0.1</jspecify.version>
         <logback.version>1.6.6</logback.version>
-        <nullaway.version>0.14.2</nullaway.version>
+        <nullaway.version>0.14.3</nullaway.version>
         <picocli.version>4.7.7</picocli.version>
         <slf4j-api.version>2.0.20</slf4j-api.version>
         <snakeyaml-engine.version>3.2</snakeyaml-engine.version>
