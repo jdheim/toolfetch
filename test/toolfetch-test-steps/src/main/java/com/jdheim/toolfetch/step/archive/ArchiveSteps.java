@@ -97,7 +97,7 @@ public final class ArchiveSteps {
 
     public static void addZipEntryDir(ZipArchiveOutputStream zaos, String path) {
         if (!path.endsWith("/")) {
-            path = path + "/";
+            path += "/";
         }
         ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
         try {

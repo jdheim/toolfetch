@@ -26,7 +26,7 @@ class JarArchiveInstallationServiceTest extends TestCommonArchiveInstallationSer
 
         testInstall(wmRuntimeInfo, archiveName, archiveBytes, destinationPath -> {
             testLogListAppenderSteps.assertNoErrorNoWarn();
-            AssertionSteps.assertSample1Archive(destinationPath);
+            AssertionSteps.assertSample1Archive(destinationPath, !archiveSuffix.contains(".pack"));
             assertThat(destinationPath.resolve("META-INF")).isDirectory();
             assertThat(destinationPath.resolve("META-INF").resolve("MANIFEST.MF")).isRegularFile().hasContent("""
                     Manifest-Version: 1.0

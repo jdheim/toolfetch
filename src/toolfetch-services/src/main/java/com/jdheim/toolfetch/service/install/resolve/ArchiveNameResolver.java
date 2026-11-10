@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.jdheim.toolfetch.logging.ToolFetchLogger;
+import com.jdheim.toolfetch.service.util.CharacterConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -91,8 +92,7 @@ public class ArchiveNameResolver implements FileNameResolver {
 
     String resolveFromUri(HttpResponse<InputStream> httpResponse) {
         return Optional.ofNullable(httpResponse.uri())
-                .map(URI::getRawPath)
-                .filter(path -> !path.endsWith("/"))
+                .map(URI::getRawPath).filter(path -> !path.endsWith(CharacterConstants.SLASH))
                 .map(path -> path.substring(path.lastIndexOf('/') + 1))
                 .map(String::trim)
                 .map(ArchiveNameResolver::escapePlusBeforeUrlDecode)

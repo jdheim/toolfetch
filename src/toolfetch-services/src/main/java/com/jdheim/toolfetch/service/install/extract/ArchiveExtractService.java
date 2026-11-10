@@ -5,12 +5,17 @@
 
 package com.jdheim.toolfetch.service.install.extract;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
@@ -19,10 +24,12 @@ import com.jdheim.toolfetch.service.exception.SkippedArchiveException;
 import com.jdheim.toolfetch.service.install.extract.model.ArchiveWithCompressorInputStream;
 import com.jdheim.toolfetch.service.install.extract.scan.ArchiveScanner;
 import com.jdheim.toolfetch.service.install.extract.scan.PathScanner;
+import com.jdheim.toolfetch.service.install.extract.scan.ScanResult;
 import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveUncompressor;
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
 import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
 import com.jdheim.toolfetch.service.log.LogHelper;
+import com.jdheim.toolfetch.service.util.CharacterConstants;
 import com.jdheim.toolfetch.service.util.PathHelper;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -36,9 +43,9 @@ public class ArchiveExtractService implements ExtractService {
 
     private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveExtractService.class);
 
-    private static final String SLASH = "/";
-
     private static final int EXTRACT_BUFFER_SIZE = 8192;
+
+    private static final int MAX_SYMBOLIC_LINK_TARGET_SIZE = 4096;
 
     private final PathScanner pathScanner;
 
@@ -70,22 +77,23 @@ public class ArchiveExtractService implements ExtractService {
     }
 
     private void extract(Path archivePath, Path destinationPath) throws IOException {
-        String topLevelDir = normalize(pathScanner.scan(archivePath));
+        ScanResult scanResult = pathScanner.scan(archivePath);
         LOGGER.log("archive-extract.started", archivePath, destinationPath);
         long startTime = System.nanoTime();
         try (ArchiveWithCompressorInputStream acis = uncompressor.uncompress(archivePath)) {
-            extractStream(acis, destinationPath, topLevelDir);
+            extractStream(acis, destinationPath, scanResult);
         } finally {
             String elapsedTime = LogHelper.elapsedTime(startTime);
             LOGGER.log("archive-extract.completed", elapsedTime);
         }
     }
 
-    private void extractStream(ArchiveWithCompressorInputStream acis, Path destinationPath, String topLevelDir) throws
+    private void extractStream(ArchiveWithCompressorInputStream acis, Path destinationPath, ScanResult scanResult) throws
             IOException {
         ArchiveEntry archiveEntry;
         int totalArchiveEntries = 0;
         long totalExtractedArchiveSize = 0L;
+        Map<Path, Path> symbolicLinks = new LinkedHashMap<>();
 
         while ((archiveEntry = acis.getNextEntry()) != null) {
             boolean canReadEntryData = acis.canReadEntryData(archiveEntry);
@@ -98,15 +106,77 @@ public class ArchiveExtractService implements ExtractService {
 
             ArchiveZipBombValidator.validateEntryCount(++totalArchiveEntries);
 
-            String entryName = stripEntryName(archiveEntry, topLevelDir);
+            String entryName = stripEntryName(archiveEntry, scanResult.topLevelDir());
             Path target = resolveSecureTargetPath(destinationPath, entryName);
 
-            totalExtractedArchiveSize = extractEntry(acis, archiveEntry, target, totalExtractedArchiveSize);
+            totalExtractedArchiveSize = extractArchiveEntry(acis, archiveEntry, target, scanResult, symbolicLinks,
+                    totalExtractedArchiveSize);
+        }
+        createSymbolicLinks(destinationPath, symbolicLinks);
+    }
 
-            Integer unixPermissions = readUnixPermissions(archiveEntry);
-            if (unixPermissions != null) {
-                applyUnixPermissions(target, unixPermissions);
+    private long extractArchiveEntry(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry, Path target,
+            ScanResult scanResult, Map<Path, Path> symbolicLinks, long totalExtractedArchiveSize) throws IOException {
+        if (archiveEntry instanceof TarArchiveEntry tarEntry && tarEntry.isSymbolicLink()) {
+            String linkTarget = tarEntry.getLinkName();
+            validateSymbolicLinkTargetSize(linkTarget.getBytes(StandardCharsets.UTF_8).length, archiveEntry, scanResult);
+            symbolicLinks.put(target, Path.of(linkTarget));
+            return totalExtractedArchiveSize;
+        }
+
+        if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
+            zipEntry.setUnixMode(scanResult.zipMode(zipEntry.getName()));
+            if (zipEntry.isUnixSymlink()) {
+                byte[] linkTarget = readZipSymbolicLinkTarget(acis, archiveEntry, scanResult, totalExtractedArchiveSize);
+                symbolicLinks.put(target,
+                        Path.of(StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(linkTarget)).toString()));
+                return totalExtractedArchiveSize + linkTarget.length;
             }
+        }
+
+        long extractedSize = extractEntry(acis, archiveEntry, target, totalExtractedArchiveSize);
+        Integer unixPermissions = readUnixPermissions(archiveEntry);
+        if (unixPermissions != null) {
+            applyUnixPermissions(target, unixPermissions);
+        }
+        return extractedSize;
+    }
+
+    private byte[] readZipSymbolicLinkTarget(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry,
+            ScanResult scanResult, long totalExtractedArchiveSize) throws IOException {
+        ByteArrayOutputStream linkTarget = new ByteArrayOutputStream();
+        byte[] buffer = new byte[MAX_SYMBOLIC_LINK_TARGET_SIZE + 1];
+        int bytesRead;
+        while ((bytesRead = acis.read(buffer)) > 0) {
+            int linkTargetSize = linkTarget.size() + bytesRead;
+            ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry);
+            ArchiveZipBombValidator.validateTotalSize(totalExtractedArchiveSize + linkTargetSize);
+            validateSymbolicLinkTargetSize(linkTargetSize, archiveEntry, scanResult);
+            linkTarget.write(buffer, 0, bytesRead);
+        }
+        return linkTarget.toByteArray();
+    }
+
+    private void validateSymbolicLinkTargetSize(int size, ArchiveEntry archiveEntry, ScanResult scanResult) {
+        if (size > MAX_SYMBOLIC_LINK_TARGET_SIZE) {
+            throw new UnsupportedOperationException(
+                    ToolFetchLogger.message("exception.archive-extract.symlink-target-too-large",
+                            stripEntryName(archiveEntry, scanResult.topLevelDir()), MAX_SYMBOLIC_LINK_TARGET_SIZE));
+        }
+    }
+
+    private void createSymbolicLinks(Path destinationPath, Map<Path, Path> symbolicLinks) throws IOException {
+        for (Path link : symbolicLinks.keySet()) {
+            Files.createDirectories(requireParent(link));
+        }
+        for (Map.Entry<Path, Path> link : symbolicLinks.entrySet()) {
+            Path parent = requireParent(link.getKey());
+            Path linkTarget = link.getValue().normalize();
+            if (linkTarget.toString().isEmpty()) {
+                linkTarget = Path.of(CharacterConstants.DOT);
+            }
+            resolveSecureTargetPath(destinationPath, parent.resolve(linkTarget).toString());
+            Files.createSymbolicLink(link.getKey(), linkTarget);
         }
     }
 
@@ -122,8 +192,8 @@ public class ArchiveExtractService implements ExtractService {
     }
 
     String normalize(String entryName) {
-        if (StringUtils.isNotEmpty(entryName) && !entryName.endsWith(SLASH)) {
-            entryName = entryName + SLASH;
+        if (StringUtils.isNotEmpty(entryName) && !entryName.endsWith(CharacterConstants.SLASH)) {
+            entryName += CharacterConstants.SLASH;
         }
         return entryName;
     }
@@ -142,10 +212,7 @@ public class ArchiveExtractService implements ExtractService {
 
     long extractEntry(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry, Path target,
             long totalExtractedArchiveSize) throws IOException {
-        Path parent = target.getParent();
-        if (parent == null) {
-            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.missing-parent", target));
-        }
+        Path parent = requireParent(target);
         if (!Files.exists(parent)) {
             Files.createDirectories(parent);
         }
@@ -164,6 +231,14 @@ public class ArchiveExtractService implements ExtractService {
         return totalExtractedArchiveSize;
     }
 
+    private Path requireParent(Path target) {
+        Path parent = target.getParent();
+        if (parent == null) {
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.missing-parent", target));
+        }
+        return parent;
+    }
+
     private @Nullable Integer readUnixPermissions(ArchiveEntry archiveEntry) {
         if (archiveEntry instanceof TarArchiveEntry tarEntry) {
             return tarEntry.getMode();
@@ -176,7 +251,7 @@ public class ArchiveExtractService implements ExtractService {
     }
 
     private void applyUnixPermissions(Path target, int unixPermissions) throws IOException {
-        int perms = unixPermissions & 0770;
+        int perms = unixPermissions & 0_770;
 
         try {
             Set<PosixFilePermission> posixPermissions = Files.getPosixFilePermissions(target);
@@ -188,13 +263,13 @@ public class ArchiveExtractService implements ExtractService {
             posixPermissions.remove(PosixFilePermission.GROUP_WRITE);
             posixPermissions.remove(PosixFilePermission.GROUP_EXECUTE);
 
-            if ((perms & 0400) != 0) posixPermissions.add(PosixFilePermission.OWNER_READ);
-            if ((perms & 0200) != 0) posixPermissions.add(PosixFilePermission.OWNER_WRITE);
-            if ((perms & 0100) != 0) posixPermissions.add(PosixFilePermission.OWNER_EXECUTE);
+            if ((perms & 0_400) != 0) posixPermissions.add(PosixFilePermission.OWNER_READ);
+            if ((perms & 0_200) != 0) posixPermissions.add(PosixFilePermission.OWNER_WRITE);
+            if ((perms & 0_100) != 0) posixPermissions.add(PosixFilePermission.OWNER_EXECUTE);
 
-            if ((perms & 0040) != 0) posixPermissions.add(PosixFilePermission.GROUP_READ);
-            if ((perms & 0020) != 0) posixPermissions.add(PosixFilePermission.GROUP_WRITE);
-            if ((perms & 0010) != 0) posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
+            if ((perms & 0_040) != 0) posixPermissions.add(PosixFilePermission.GROUP_READ);
+            if ((perms & 0_020) != 0) posixPermissions.add(PosixFilePermission.GROUP_WRITE);
+            if ((perms & 0_010) != 0) posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
 
             Files.setPosixFilePermissions(target, posixPermissions);
         } catch (UnsupportedOperationException e) {
@@ -214,7 +289,7 @@ public class ArchiveExtractService implements ExtractService {
 
     private void tryRenameAndSetExecutable(Path sourcePath, Tool tool) {
         try {
-            applyUnixPermissions(sourcePath, 0770);
+            applyUnixPermissions(sourcePath, 0_770);
             LOGGER.log("archive-extract.set-executable", sourcePath);
             Path targetPath = sourcePath.resolveSibling(tool.id() + getFileSuffix(sourcePath));
             if (!sourcePath.equals(targetPath)) {

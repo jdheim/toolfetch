@@ -35,10 +35,20 @@ public final class AssertionSteps {
 
     /// Asserts the structure and contents of the specified destination directory after the "sample1" archive is extracted
     public static void assertSample1Archive(Path destinationPath) {
+        assertSample1Archive(destinationPath, true);
+    }
+
+    /// Pack200 discards ZIP Unix modes, including the symbolic-link type.
+    public static void assertSample1Archive(Path destinationPath, boolean preservesSymbolicLinks) {
         assertThat(destinationPath).isDirectory();
         for (int i = 1; i <= 3; i++) {
             assertThat(destinationPath.resolve("test%d.txt".formatted(i))).isRegularFile()
                     .hasContent("Hello ToolFetch %d".formatted(i));
+        }
+        if (preservesSymbolicLinks) {
+            assertThat(destinationPath.resolve("test1-link.txt")).isSymbolicLink().hasContent("Hello ToolFetch 1");
+        } else {
+            assertThat(destinationPath.resolve("test1-link.txt")).isRegularFile().hasContent("test1.txt");
         }
     }
 

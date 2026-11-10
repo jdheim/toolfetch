@@ -10,6 +10,10 @@ public final class CharacterConstants {
 
     public static final String COMMENT_PREFIX = "#";
 
+    public static final String DOT = ".";
+
+    public static final String SLASH = "/";
+
     public static final char DOUBLE_QUOTE_CHAR = '"';
 
     public static final char EQUALS_CHAR = '=';

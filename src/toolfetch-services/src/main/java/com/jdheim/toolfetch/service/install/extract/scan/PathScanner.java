@@ -10,6 +10,6 @@ import java.nio.file.Path;
 
 public interface PathScanner {
 
-    String scan(Path archivePath) throws IOException;
+    ScanResult scan(Path archivePath) throws IOException;
 
 }

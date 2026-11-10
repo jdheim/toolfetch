@@ -181,7 +181,7 @@ class ToolFetchInstallHappyE2E extends ToolFetchTestBase {
                     assertAnyMatch(execResult,
                             "[%s] No files were extracted. Removing %s".formatted(LogLevel.WARN, destinationPath));
                 } else if (tool.id().contains("sample1")) {
-                    AssertionSteps.assertSample1Archive(destinationPath);
+                    AssertionSteps.assertSample1Archive(destinationPath, !archiveName.contains(".pack"));
                 } else if (tool.id().contains("sample2")) {
                     AssertionSteps.assertSample2Archive(destinationPath);
                 } else if (tool.id().contains("sample3")) {
