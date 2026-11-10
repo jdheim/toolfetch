@@ -10,12 +10,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemLoopException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import com.jdheim.toolfetch.logging.ToolFetchLogger;
 import com.jdheim.toolfetch.model.Configuration;
@@ -33,7 +40,10 @@ import com.jdheim.toolfetch.service.util.CharacterConstants;
 import com.jdheim.toolfetch.service.util.PathHelper;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipExtraField;
+import org.apache.commons.compress.archivers.zip.ZipShort;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -45,7 +55,13 @@ public class ArchiveExtractService implements ExtractService {
 
     private static final int EXTRACT_BUFFER_SIZE = 8192;
 
-    private static final int MAX_SYMBOLIC_LINK_TARGET_SIZE = 4096;
+    private static final int MAX_LINK_TARGET_SIZE = 4096;
+
+    private static final int MAX_SYMBOLIC_LINK_DEPTH = 40;
+
+    private static final ZipShort PKWARE_UNIX_EXTRA_FIELD_ID = new ZipShort(0x000d);
+
+    private static final int PKWARE_UNIX_TARGET_OFFSET = 12;
 
     private final PathScanner pathScanner;
 
@@ -94,6 +110,7 @@ public class ArchiveExtractService implements ExtractService {
         int totalArchiveEntries = 0;
         long totalExtractedArchiveSize = 0L;
         Map<Path, Path> symbolicLinks = new LinkedHashMap<>();
+        Map<Path, Path> hardLinks = new LinkedHashMap<>();
 
         while ((archiveEntry = acis.getNextEntry()) != null) {
             boolean canReadEntryData = acis.canReadEntryData(archiveEntry);
@@ -108,26 +125,57 @@ public class ArchiveExtractService implements ExtractService {
 
             String entryName = stripEntryName(archiveEntry, scanResult.topLevelDir());
             Path target = resolveSecureTargetPath(destinationPath, entryName);
+            validateExistingTargetPath(destinationPath, target);
 
-            totalExtractedArchiveSize = extractArchiveEntry(acis, archiveEntry, target, scanResult, symbolicLinks,
+            symbolicLinks.remove(target);
+            hardLinks.remove(target);
+            totalExtractedArchiveSize = extractArchiveEntry(acis, archiveEntry, target, scanResult, symbolicLinks, hardLinks,
                     totalExtractedArchiveSize);
+            createHardLinks(destinationPath, hardLinks, symbolicLinks, false);
         }
+        createHardLinks(destinationPath, hardLinks, symbolicLinks, true);
         createSymbolicLinks(destinationPath, symbolicLinks);
     }
 
     private long extractArchiveEntry(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry, Path target,
-            ScanResult scanResult, Map<Path, Path> symbolicLinks, long totalExtractedArchiveSize) throws IOException {
-        if (archiveEntry instanceof TarArchiveEntry tarEntry && tarEntry.isSymbolicLink()) {
+            ScanResult scanResult, Map<Path, Path> symbolicLinks, Map<Path, Path> hardLinks,
+            long totalExtractedArchiveSize) throws IOException {
+        if (archiveEntry instanceof TarArchiveEntry tarEntry && (tarEntry.isSymbolicLink() || tarEntry.isLink())) {
             String linkTarget = tarEntry.getLinkName();
-            validateSymbolicLinkTargetSize(linkTarget.getBytes(StandardCharsets.UTF_8).length, archiveEntry, scanResult);
-            symbolicLinks.put(target, Path.of(linkTarget));
-            return totalExtractedArchiveSize;
+            validateLinkTargetSize(linkTarget.getBytes(StandardCharsets.UTF_8).length, archiveEntry, scanResult);
+            if (tarEntry.isLink()) {
+                hardLinks.put(target, stripHardLinkTarget(linkTarget, scanResult.topLevelDir()));
+            } else {
+                symbolicLinks.put(target, Path.of(linkTarget));
+            }
+            byte[] payload = readLinkPayload(acis, archiveEntry, scanResult, totalExtractedArchiveSize);
+            return totalExtractedArchiveSize + payload.length;
         }
 
         if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
-            zipEntry.setUnixMode(scanResult.zipMode(zipEntry.getName()));
+            zipEntry.setUnixMode(scanResult.zipMode(zipEntry.getDataOffset()));
+            ZipExtraField unixField = zipEntry.getExtraField(PKWARE_UNIX_EXTRA_FIELD_ID);
+            if (unixField != null && (zipEntry.isUnixSymlink()
+                    || (zipEntry.getUnixMode() & UnixStat.FILE_TYPE_FLAG) == UnixStat.FILE_FLAG)) {
+                byte[] unixData = unixField.getLocalFileDataData();
+                if (unixData.length > PKWARE_UNIX_TARGET_OFFSET) {
+                    int targetSize = unixData.length - PKWARE_UNIX_TARGET_OFFSET;
+                    validateLinkTargetSize(targetSize, archiveEntry, scanResult);
+                    String linkTarget = StandardCharsets.UTF_8.newDecoder()
+                            .decode(ByteBuffer.wrap(unixData, PKWARE_UNIX_TARGET_OFFSET, targetSize))
+                            .toString();
+                    if (zipEntry.isUnixSymlink()) {
+                        symbolicLinks.put(target, Path.of(linkTarget));
+                    } else {
+                        hardLinks.put(target, stripHardLinkTarget(linkTarget, scanResult.topLevelDir()));
+                    }
+                    byte[] payload = readLinkPayload(acis, archiveEntry, scanResult, totalExtractedArchiveSize);
+                    return totalExtractedArchiveSize + payload.length;
+                }
+            }
             if (zipEntry.isUnixSymlink()) {
-                byte[] linkTarget = readZipSymbolicLinkTarget(acis, archiveEntry, scanResult, totalExtractedArchiveSize);
+                byte[] linkTarget = readLinkPayload(acis, archiveEntry, scanResult, totalExtractedArchiveSize);
+                validateLinkTargetSize(linkTarget.length, archiveEntry, scanResult);
                 symbolicLinks.put(target,
                         Path.of(StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(linkTarget)).toString()));
                 return totalExtractedArchiveSize + linkTarget.length;
@@ -142,26 +190,79 @@ public class ArchiveExtractService implements ExtractService {
         return extractedSize;
     }
 
-    private byte[] readZipSymbolicLinkTarget(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry,
+    private byte[] readLinkPayload(ArchiveWithCompressorInputStream acis, ArchiveEntry archiveEntry,
             ScanResult scanResult, long totalExtractedArchiveSize) throws IOException {
         ByteArrayOutputStream linkTarget = new ByteArrayOutputStream();
-        byte[] buffer = new byte[MAX_SYMBOLIC_LINK_TARGET_SIZE + 1];
+        byte[] buffer = new byte[MAX_LINK_TARGET_SIZE + 1];
         int bytesRead;
         while ((bytesRead = acis.read(buffer)) > 0) {
             int linkTargetSize = linkTarget.size() + bytesRead;
             ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry);
             ArchiveZipBombValidator.validateTotalSize(totalExtractedArchiveSize + linkTargetSize);
-            validateSymbolicLinkTargetSize(linkTargetSize, archiveEntry, scanResult);
+            validateLinkTargetSize(linkTargetSize, archiveEntry, scanResult);
             linkTarget.write(buffer, 0, bytesRead);
         }
         return linkTarget.toByteArray();
     }
 
-    private void validateSymbolicLinkTargetSize(int size, ArchiveEntry archiveEntry, ScanResult scanResult) {
-        if (size > MAX_SYMBOLIC_LINK_TARGET_SIZE) {
-            throw new UnsupportedOperationException(
-                    ToolFetchLogger.message("exception.archive-extract.symlink-target-too-large",
-                            stripEntryName(archiveEntry, scanResult.topLevelDir()), MAX_SYMBOLIC_LINK_TARGET_SIZE));
+    private void validateLinkTargetSize(int size, ArchiveEntry archiveEntry, ScanResult scanResult) {
+        if (size == 0) {
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.link-target-empty",
+                    stripEntryName(archiveEntry, scanResult.topLevelDir())));
+        }
+        if (size > MAX_LINK_TARGET_SIZE) {
+            throw new UnsupportedOperationException(ToolFetchLogger.message("exception.archive-extract.link-target-too-large",
+                    stripEntryName(archiveEntry, scanResult.topLevelDir()), MAX_LINK_TARGET_SIZE));
+        }
+    }
+
+    private Path stripHardLinkTarget(String linkTarget, String topLevelDir) {
+        Path normalizedTarget = Path.of(linkTarget).normalize();
+        if (!topLevelDir.isEmpty()) {
+            Path normalizedRoot = Path.of(topLevelDir).normalize();
+            if (normalizedTarget.startsWith(normalizedRoot)) {
+                return normalizedRoot.relativize(normalizedTarget);
+            }
+        }
+        return normalizedTarget;
+    }
+
+    private void createHardLinks(Path destinationPath, Map<Path, Path> hardLinks, Map<Path, Path> symbolicLinks,
+            boolean required) throws IOException {
+        while (!hardLinks.isEmpty()) {
+            boolean createdLink = false;
+            Iterator<Map.Entry<Path, Path>> links = hardLinks.entrySet().iterator();
+            while (links.hasNext()) {
+                Map.Entry<Path, Path> link = links.next();
+                Path linkTarget = resolveSecureTargetPath(destinationPath, link.getValue().toString());
+                if (hardLinks.containsKey(linkTarget)) {
+                    continue;
+                }
+                if (symbolicLinks.containsKey(linkTarget) || Files.isSymbolicLink(linkTarget)) {
+                    validateExistingTargetPath(destinationPath, linkTarget);
+                    throw new IOException(
+                            ToolFetchLogger.message("exception.archive-extract.hard-link-target-not-file", linkTarget));
+                }
+                if (!required && !Files.exists(linkTarget, LinkOption.NOFOLLOW_LINKS)) {
+                    continue;
+                }
+                resolveSecureTargetPath(destinationPath.toRealPath(), linkTarget.toRealPath().toString());
+                if (!Files.isRegularFile(linkTarget, LinkOption.NOFOLLOW_LINKS)) {
+                    throw new IOException(
+                            ToolFetchLogger.message("exception.archive-extract.hard-link-target-not-file", linkTarget));
+                }
+                Files.createDirectories(requireParent(link.getKey()));
+                deleteRegularFile(link.getKey());
+                Files.createLink(link.getKey(), linkTarget);
+                links.remove();
+                createdLink = true;
+            }
+            if (!createdLink) {
+                if (required) {
+                    throw new IOException(ToolFetchLogger.message("exception.archive-extract.hard-link-cycle", hardLinks));
+                }
+                return;
+            }
         }
     }
 
@@ -171,13 +272,43 @@ public class ArchiveExtractService implements ExtractService {
         }
         for (Map.Entry<Path, Path> link : symbolicLinks.entrySet()) {
             Path parent = requireParent(link.getKey());
-            Path linkTarget = link.getValue().normalize();
-            if (linkTarget.toString().isEmpty()) {
-                linkTarget = Path.of(CharacterConstants.DOT);
-            }
+            Path linkTarget = link.getValue();
             resolveSecureTargetPath(destinationPath, parent.resolve(linkTarget).toString());
+            deleteRegularFile(link.getKey());
             Files.createSymbolicLink(link.getKey(), linkTarget);
         }
+        for (Path link : symbolicLinks.keySet()) {
+            validateExistingTargetPath(destinationPath, link);
+        }
+    }
+
+    /// Checks existing ancestors as well as the lexical path, including for targets that do not exist yet.
+    private void validateExistingTargetPath(Path destinationPath, Path target) throws IOException {
+        Path resolved = resolveExistingPath(target, MAX_SYMBOLIC_LINK_DEPTH);
+        resolveSecureTargetPath(destinationPath.toRealPath(), resolved.toString());
+    }
+
+    private Path resolveExistingPath(Path target, int remainingLinks) throws IOException {
+        Path absoluteTarget = target.toAbsolutePath();
+        Path resolved = Objects.requireNonNull(absoluteTarget.getRoot());
+        Deque<Path> components = new ArrayDeque<>();
+        absoluteTarget.forEach(components::addLast);
+        while (!components.isEmpty()) {
+            resolved = resolved.resolve(components.removeFirst()).normalize();
+            if (Files.isSymbolicLink(resolved)) {
+                if (remainingLinks-- == 0) {
+                    throw new FileSystemLoopException(resolved.toString());
+                }
+                Path linkTarget = Files.readSymbolicLink(resolved);
+                resolved = linkTarget.isAbsolute() ? Objects.requireNonNull(linkTarget.getRoot()) : requireParent(resolved);
+                for (int i = linkTarget.getNameCount() - 1; i >= 0; i--) {
+                    components.addFirst(linkTarget.getName(i));
+                }
+            } else if (Files.exists(resolved, LinkOption.NOFOLLOW_LINKS)) {
+                resolved = resolved.toRealPath();
+            }
+        }
+        return resolved;
     }
 
     String stripEntryName(ArchiveEntry archiveEntry, String topLevelDir) {
@@ -218,7 +349,8 @@ public class ArchiveExtractService implements ExtractService {
         }
         byte[] extractBuffer = new byte[EXTRACT_BUFFER_SIZE];
 
-        try (OutputStream out = Files.newOutputStream(target)) {
+        deleteRegularFile(target);
+        try (OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
             int bytesRead;
             while ((bytesRead = acis.read(extractBuffer)) > 0) {
                 ArchiveZipBombValidator.validateCompressionRatio(acis, archiveEntry);
@@ -229,6 +361,12 @@ public class ArchiveExtractService implements ExtractService {
         }
 
         return totalExtractedArchiveSize;
+    }
+
+    private void deleteRegularFile(Path target) throws IOException {
+        if (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)) {
+            Files.delete(target);
+        }
     }
 
     private Path requireParent(Path target) {

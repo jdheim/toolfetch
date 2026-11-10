@@ -17,14 +17,14 @@ import org.junit.jupiter.api.Test;
 /// Component Tests for [ScanResult]
 class ScanResultTest {
 
-    Map<String, Integer> zipModes;
+    Map<Long, Integer> zipModes;
 
     ScanResult scanResult;
 
     @BeforeEach
     void setUp() {
         zipModes = new HashMap<>();
-        zipModes.put("tool", UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
+        zipModes.put(123L, UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
         scanResult = new ScanResult("tools", zipModes);
     }
 
@@ -32,7 +32,7 @@ class ScanResultTest {
     void testConstructorCopiesZipModes() {
         zipModes.clear();
 
-        assertThat(scanResult.zipMode("tool")).isEqualTo(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
+        assertThat(scanResult.zipMode(123L)).isEqualTo(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
     }
 
     @Test

@@ -6,8 +6,13 @@
 package com.jdheim.toolfetch.service.install.extract.scan;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.jdheim.toolfetch.step.archive.ArchiveSteps;
@@ -19,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.MockedStatic;
 
 /// Component Tests for [ArchiveScanner]
 class ArchiveScannerTest {
@@ -40,7 +46,31 @@ class ArchiveScannerTest {
         ScanResult result = archiveScanner.scan(archive);
 
         assertThat(result.zipModes()).hasSize(1)
-                .containsEntry("test1-link.txt", UnixStat.LINK_FLAG | UnixStat.DEFAULT_LINK_PERM);
+                .containsValue(UnixStat.LINK_FLAG | UnixStat.DEFAULT_LINK_PERM);
+    }
+
+    @Test
+    void testScan_UsesArchiveSeparatorsForWindowsParentPath() throws IOException {
+        Path archive = tempDir.resolve("tool.zip");
+        try (ZipArchiveOutputStream out = new ZipArchiveOutputStream(Files.newOutputStream(archive))) {
+            out.putArchiveEntry(new ZipArchiveEntry("pkg/bin/tool"));
+            out.write(1);
+            out.closeArchiveEntry();
+        }
+        Path entryPath = mock();
+        Path parent = mock();
+        FileSystem fileSystem = mock();
+        when(entryPath.getParent()).thenReturn(parent);
+        when(parent.toString()).thenReturn("pkg\\bin");
+        when(parent.getFileSystem()).thenReturn(fileSystem);
+        when(fileSystem.getSeparator()).thenReturn("\\");
+        try (MockedStatic<Path> paths = mockStatic(CALLS_REAL_METHODS)) {
+            paths.when(() -> Path.of("pkg/bin/tool")).thenReturn(entryPath);
+
+            ScanResult result = archiveScanner.scan(archive);
+
+            assertThat(result.topLevelDir()).isEqualTo("pkg/bin/");
+        }
     }
 
     @ParameterizedTest
@@ -59,9 +89,9 @@ class ArchiveScannerTest {
         ScanResult result = archiveScanner.scan(archive);
 
         if (executable) {
-            assertThat(result.zipModes()).containsEntry("tool", mode);
+            assertThat(result.zipModes()).containsValue(mode);
         } else {
-            assertThat(result.zipModes()).doesNotContainKey("tool");
+            assertThat(result.zipModes()).isEmpty();
         }
     }
 

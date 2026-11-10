@@ -9,7 +9,8 @@ import java.util.Map;
 import com.jdheim.toolfetch.service.util.CharacterConstants;
 import org.apache.commons.lang3.StringUtils;
 
-public record ScanResult(String topLevelDir, Map<String, Integer> zipModes) {
+/// ZIP modes are keyed by entry data offset so repeated names retain distinct metadata
+public record ScanResult(String topLevelDir, Map<Long, Integer> zipModes) {
 
     public ScanResult {
         zipModes = Map.copyOf(zipModes);
@@ -18,8 +19,8 @@ public record ScanResult(String topLevelDir, Map<String, Integer> zipModes) {
         }
     }
 
-    public int zipMode(String entryName) {
-        return zipModes.getOrDefault(entryName, 0);
+    public int zipMode(long dataOffset) {
+        return zipModes.getOrDefault(dataOffset, 0);
     }
 
 }

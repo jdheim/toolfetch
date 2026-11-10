@@ -18,10 +18,12 @@ import com.jdheim.toolfetch.service.install.extract.uncompress.CompositeArchiveU
 import com.jdheim.toolfetch.service.install.extract.uncompress.Uncompressor;
 import com.jdheim.toolfetch.service.install.extract.validation.ArchiveZipBombValidator;
 import com.jdheim.toolfetch.service.log.LogHelper;
+import com.jdheim.toolfetch.service.util.CharacterConstants;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.archivers.zip.ZipShort;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -30,6 +32,10 @@ public class ArchiveScanner implements PathScanner {
     private static final ToolFetchLogger LOGGER = ToolFetchLogger.getLogger(ArchiveScanner.class);
 
     private static final int ZIP_SIGNATURE_SIZE = 4;
+
+    private static final int OWNER_OR_GROUP_EXECUTE_MASK = 0_110;
+
+    private static final ZipShort PKWARE_UNIX_EXTRA_FIELD_ID = new ZipShort(0x000d);
 
     private final Uncompressor uncompressor;
 
@@ -60,7 +66,7 @@ public class ArchiveScanner implements PathScanner {
     }
 
     private ScanResult scanZip(ZipFile zip) {
-        Map<String, Integer> modes = new LinkedHashMap<>();
+        Map<Long, Integer> modes = new LinkedHashMap<>();
         Path topLevelDir = null;
         boolean commonParentPossible = true;
         int totalArchiveEntries = 0;
@@ -69,8 +75,9 @@ public class ArchiveScanner implements PathScanner {
             ZipArchiveEntry entry = entries.nextElement();
             if (entry.isDirectory() || !zip.canReadEntryData(entry)) continue;
             int mode = entry.getUnixMode();
-            if (entry.isUnixSymlink() || (mode & 0_110) != 0) {
-                modes.put(entry.getName(), mode);
+            if (entry.isUnixSymlink() || (mode & OWNER_OR_GROUP_EXECUTE_MASK) != 0
+                    || entry.getExtraField(PKWARE_UNIX_EXTRA_FIELD_ID) != null) {
+                modes.put(entry.getDataOffset(), mode);
             }
             ArchiveZipBombValidator.validateEntryCount(++totalArchiveEntries);
             if (commonParentPossible) {
@@ -100,7 +107,9 @@ public class ArchiveScanner implements PathScanner {
     }
 
     private String topLevelDirPath(@Nullable Path topLevelDir) {
-        String topLevelDirPath = topLevelDir != null ? topLevelDir.toString() : StringUtils.EMPTY;
+        String topLevelDirPath = topLevelDir != null
+                ? topLevelDir.toString().replace(topLevelDir.getFileSystem().getSeparator(), CharacterConstants.SLASH)
+                : StringUtils.EMPTY;
         if (StringUtils.isNotEmpty(topLevelDirPath)) {
             LOGGER.log("archive-scan.top-level-dir-found", topLevelDirPath);
         }
