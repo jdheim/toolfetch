@@ -30,11 +30,11 @@ jobs:
         run: ./build.sh
 
       # https://dependency-check.github.io/DependencyCheck/analyzers/assembly-analyzer.html
-      - name: "Install .NET SDK required by AssemblyAnalyzer"
-        uses: awalsh128/cache-apt-pkgs-action@latest
+      - name: "Set up .NET 8 for the Assembly Analyzer"
+        uses: actions/setup-dotnet@v6
         with:
-          packages: dotnet-runtime-8.0
-          version: owasp-scan-1.1
+          dotnet-version: '8.0.x'
+          skip-lts-prepass: true
 
       - name: "OWASP Scan"
         env:
