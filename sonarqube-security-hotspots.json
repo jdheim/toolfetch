@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "namedLogo": "sonarqubeserver",
-  "logoColor": "white",
-  "label": "SonarQube Security Hotspots",
-  "message": "passing",
-  "color": "brightgreen"
-}
